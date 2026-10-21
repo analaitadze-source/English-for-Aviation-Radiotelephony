@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviation RTF Masterclass - ICAO Pilot-ATC Training</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cockpit: {
+                            bg: '#0b0f17',
+                            card: '#151c28',
+                            border: '#232f45',
+                            cyan: '#00f0ff',
+                            amber: '#ffb703',
+                            green: '#00e676',
+                            red: '#ff1744',
+                            text: '#94a3b8'
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Courier New', 'monospace'],
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap');
+        
+        body {
+            background-color: #0b0f17;
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.05) 0%, transparent 70%),
+                linear-gradient(to bottom, rgba(11, 15, 23, 0.8), rgba(11, 15, 23, 1));
+            min-height: 100vh;
+        }
+
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+
+        .transform-style-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .cockpit-glow {
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
+        }
+
+        .amber-glow {
+            box-shadow: 0 0 15px rgba(255, 183, 3, 0.2);
+        }
+
+        .green-glow {
+            box-shadow: 0 0 15px rgba(0, 230, 118, 0.2);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f17;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #232f45;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f0ff;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Top Navigation Header -->
+    <header class="border-b border-cockpit-border bg-cockpit-card/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo & Title -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-lg bg-cockpit-cyan/10 border border-cockpit-cyan/30 flex items-center justify-center text-cockpit-cyan">
+                        <i class="fa-solid fa-plane-departure text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h1 class="font-bold text-lg tracking-wide text-white">ICAO RTF MASTERCLASS</h1>
+                            <span class="px-2 py-0.5 text-xs font-mono bg-cockpit-cyan/20 text-cockpit-cyan border border-cockpit-cyan/40 rounded">v2.5</span>
+                        </div>
+                        <p class="text-xs text-slate-400">Radiotelephony Phraseology & Comms Trainer</p>
+                    </div>
+                </div>
+
+                <!-- Desktop Nav Tabs -->
+                <nav class="hidden md:flex space-x-1 bg-cockpit-bg p-1 rounded-xl border border-cockpit-border">
+                    <button onclick="switchTab('flashcards')" id="tab-flashcards" class="nav-btn active flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all text-cockpit-cyan bg-cockpit-card border border-cockpit-cyan/30">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>Flashcards (60+)</span>
+                    </button>
+                    <button onclick="switchTab('matching')" id="tab-matching" class="nav-btn flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-diagram-project"></i>
+                        <span>Matching Drills</span>
+                    </button>
+                    <button onclick="switchTab('gapfill')" id="tab-gapfill" class="nav-btn flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <span>Gap-Fill Scripts</span>
+                    </button>
+                    <button onclick="switchTab('quiz')" id="tab-quiz" class="nav-btn flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>Practice Quiz</span>
+                    </button>
+                </nav>
+
+                <!-- Status & Action Buttons -->
+                <div class="flex items-center space-x-3">
+                    <button onclick="toggleAudioFx()" id="audio-toggle" class="p-2 rounded-lg bg-cockpit-bg border border-cockpit-border text-slate-300 hover:text-cockpit-cyan transition" title="Toggle Radio Noise Sidetone">
+                        <i class="fa-solid fa-walkie-talkie text-cockpit-cyan"></i>
+                        <span class="text-xs font-mono ml-1 hidden sm:inline">RADIO FX: ON</span>
+                    </button>
+                    <button onclick="exportProgress()" class="p-2 rounded-lg bg-cockpit-bg border border-cockpit-border text-slate-300 hover:text-cockpit-cyan transition" title="Export Progress JSON">
+                        <i class="fa-solid fa-download"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Nav Bar -->
+        <div class="md:hidden flex border-t border-cockpit-border bg-cockpit-bg p-1 overflow-x-auto">
+            <button onclick="switchTab('flashcards')" id="mob-tab-flashcards" class="flex-1 min-w-max text-center py-2 px-3 text-xs font-medium text-cockpit-cyan bg-cockpit-card rounded-lg">Flashcards</button>
+            <button onclick="switchTab('matching')" id="mob-tab-matching" class="flex-1 min-w-max text-center py-2 px-3 text-xs font-medium text-slate-400">Matching</button>
+            <button onclick="switchTab('gapfill')" id="mob-tab-gapfill" class="flex-1 min-w-max text-center py-2 px-3 text-xs font-medium text-slate-400">Gap-Fill</button>
+            <button onclick="switchTab('quiz')" id="mob-tab-quiz" class="flex-1 min-w-max text-center py-2 px-3 text-xs font-medium text-slate-400">Quiz</button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ================= SECTION 1: FLASHCARDS ================= -->
+        <section id="section-flashcards" class="space-y-6">
+            <!-- Filter Bar & Mastery Counter -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-cockpit-card p-4 rounded-2xl border border-cockpit-border">
+                <!-- Categories Dropdown / Buttons -->
+                <div class="flex items-center space-x-2 overflow-x-auto pb-2 md:pb-0">
+                    <span class="text-xs font-mono text-slate-400 uppercase tracking-wider flex items-center space-x-1">
+                        <i class="fa-solid fa-filter"></i>
+                        <span>Category:</span>
+                    </span>
+                    <select id="card-category-select" onchange="filterFlashcards(this.value)" class="bg-cockpit-bg text-sm text-white border border-cockpit-border rounded-xl px-3 py-2 outline-none focus:border-cockpit-cyan">
+                        <option value="ALL">All Categories (60 Terms)</option>
+                        <option value="EMERGENCY">Emergency & Urgency (Mayday/Pan)</option>
+                        <option value="ENGINE">Engine & Systems Failures</option>
+                        <option value="CLEARANCE">ATC Clearances & Instructions</option>
+                        <option value="ALTITUDE">Altitude & Flight Path</option>
+                        <option value="WEATHER">Weather & Aerodrome</option>
+                        <option value="TRANSPONDER">Transponder & Avionics</option>
+                        <option value="TRAFFIC">Traffic & Radar Separation</option>
+                        <option value="GROUND">Ground & Apron Operations</option>
+                    </select>
+                </div>
+
+                <!-- Search Input -->
+                <div class="relative flex-1 max-w-md">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+                    <input type="text" id="card-search-input" oninput="searchFlashcards(this.value)" placeholder="Search term, keyword, or phraseology..." class="w-full bg-cockpit-bg border border-cockpit-border rounded-xl pl-9 pr-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cockpit-cyan">
+                </div>
+
+                <!-- Progress Tracker -->
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <div class="text-xs text-slate-400 font-mono">MASTERY PROGRESS</div>
+                        <div class="text-sm font-bold text-cockpit-green font-mono" id="mastery-counter">0 / 60 Learned</div>
+                    </div>
+                    <div class="w-24 bg-cockpit-bg h-3 rounded-full overflow-hidden border border-cockpit-border">
+                        <div id="mastery-bar" class="bg-gradient-to-r from-cockpit-cyan to-cockpit-green h-full w-0 transition-all duration-500"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Single Focus Deck Controller / Navigation -->
+            <div class="flex items-center justify-between bg-cockpit-card/50 p-3 rounded-xl border border-cockpit-border">
+                <button onclick="navigateDeck(-1)" class="px-4 py-2 bg-cockpit-bg hover:bg-cockpit-border rounded-lg text-sm font-medium transition flex items-center space-x-2">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Previous Card</span>
+                </button>
+
+                <div class="text-center">
+                    <span id="deck-position" class="font-mono text-sm text-cockpit-cyan font-semibold">Card 1 of 60</span>
+                    <span id="deck-category-badge" class="ml-2 px-2 py-0.5 text-xs font-mono bg-cockpit-border rounded text-slate-300">EMERGENCY</span>
+                </div>
+
+                <button onclick="navigateDeck(1)" class="px-4 py-2 bg-cockpit-bg hover:bg-cockpit-border rounded-lg text-sm font-medium transition flex items-center space-x-2">
+                    <span>Next Card</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- Interactive 3D Flip Card Container -->
+            <div class="max-w-2xl mx-auto perspective-1000 my-8">
+                <div id="flashcard" class="relative w-full h-[460px] transform-style-3d cursor-pointer rounded-2xl border border-cockpit-border bg-cockpit-card cockpit-glow shadow-2xl transition-all duration-500">
+                    
+                    <!-- FRONT FACE -->
+                    <div class="absolute inset-0 backface-hidden p-6 flex flex-col justify-between rounded-2xl bg-gradient-to-b from-cockpit-card to-cockpit-bg">
+                        <!-- Top Metadata -->
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span id="card-front-category" class="px-2.5 py-1 rounded-md text-xs font-mono font-semibold bg-cockpit-cyan/10 text-cockpit-cyan border border-cockpit-cyan/30">CATEGORY</span>
+                                <span id="card-front-code" class="ml-2 font-mono text-xs text-slate-400">ICAO-RTF-01</span>
+                            </div>
+                            <button onclick="toggleCardMastery(event)" id="mastery-toggle-btn" class="p-2 rounded-lg bg-cockpit-bg border border-cockpit-border hover:border-cockpit-green transition text-slate-500" title="Mark as Mastered">
+                                <i class="fa-solid fa-circle-check text-xl"></i>
+                            </button>
+                        </div>
+
+                        <!-- Center Illustration SVG & Term -->
+                        <div class="flex flex-col items-center justify-center my-auto space-y-4 text-center">
+                            <div id="card-front-svg" class="w-36 h-36 flex items-center justify-center p-2 rounded-xl bg-cockpit-bg/80 border border-cockpit-border">
+                                <!-- Dynamic SVG Graphic -->
+                            </div>
+
+                            <div>
+                                <h2 id="card-front-term" class="text-3xl font-extrabold tracking-tight text-white font-mono">MAYDAY MAYDAY MAYDAY</h2>
+                                <p id="card-front-phonetic" class="text-sm font-mono text-cockpit-cyan mt-1">[MAY-DAY MAY-DAY MAY-DAY]</p>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Audio & Flip Hint -->
+                        <div class="flex items-center justify-between border-t border-cockpit-border/50 pt-4">
+                            <button onclick="speakCurrentTerm(event)" class="px-4 py-2 bg-cockpit-cyan/10 hover:bg-cockpit-cyan/20 text-cockpit-cyan border border-cockpit-cyan/40 rounded-xl text-xs font-mono font-semibold flex items-center space-x-2 transition">
+                                <i class="fa-solid fa-volume-high"></i>
+                                <span>LISTEN PHRASEOLOGY</span>
+                            </button>
+                            <span class="text-xs text-slate-400 flex items-center space-x-1 font-mono">
+                                <span>Click to Flip Card</span>
+                                <i class="fa-solid fa-rotate text-cockpit-cyan"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- BACK FACE -->
+                    <div class="absolute inset-0 backface-hidden rotate-y-180 p-6 flex flex-col justify-between rounded-2xl bg-cockpit-card border border-cockpit-border">
+                        <!-- Top Category -->
+                        <div class="flex justify-between items-center border-b border-cockpit-border pb-3">
+                            <h3 id="card-back-term" class="text-lg font-bold font-mono text-cockpit-cyan">MAYDAY MAYDAY MAYDAY</h3>
+                            <span class="text-xs font-mono text-slate-400">ICAO DEFINITION & DIALOGUE</span>
+                        </div>
+
+                        <!-- Content Definition & Dialogue -->
+                        <div class="space-y-4 my-auto overflow-y-auto max-h-[300px] pr-2">
+                            <div>
+                                <div class="text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">ICAO Standard Definition:</div>
+                                <p id="card-back-definition" class="text-sm text-slate-200 leading-relaxed bg-cockpit-bg p-3 rounded-xl border border-cockpit-border">
+                                    Distress signal used to indicate grave and imminent danger requiring immediate assistance. Takes precedence over all other communications.
+                                </p>
+                            </div>
+
+                            <div>
+                                <div class="text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">Standard Pilot-ATC Radio Dialogue:</div>
+                                <div id="card-back-dialogue" class="text-xs font-mono bg-cockpit-bg/90 p-3 rounded-xl border border-cockpit-border space-y-2 text-slate-300">
+                                    <div class="text-cockpit-amber"><span class="text-white font-bold">PILOT:</span> "MAYDAY MAYDAY MAYDAY, Speedbird 452, Engine failure on climb out, turning back to airfield, heading 090."</div>
+                                    <div class="text-cockpit-cyan"><span class="text-white font-bold">ATC:</span> "Speedbird 452, Roger MAYDAY, cleared ILS runway 27R, wind 260 at 12 knots, squawk 7700."</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Back Bottom Controls -->
+                        <div class="flex items-center justify-between border-t border-cockpit-border pt-3">
+                            <button onclick="speakCurrentDialogue(event)" class="px-3 py-1.5 bg-cockpit-bg hover:bg-cockpit-border border border-cockpit-border text-slate-300 rounded-lg text-xs font-mono flex items-center space-x-2">
+                                <i class="fa-solid fa-play"></i>
+                                <span>PLAY DIALOGUE</span>
+                            </button>
+                            <span class="text-xs text-slate-400 font-mono">Click anywhere to flip back</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Quick Card Search / Grid View Switcher -->
+            <div class="mt-12">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-table-cells text-cockpit-cyan"></i>
+                        <span>Complete Phraseology Library Index</span>
+                    </h3>
+                    <span id="grid-count" class="text-xs font-mono text-slate-400">Showing 60 Terms</span>
+                </div>
+
+                <div id="flashcard-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Dynamic Grid Cards inserted via JS -->
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= SECTION 2: MULTIPLE MATCHING ACTIVITY ================= -->
+        <section id="section-matching" class="hidden space-y-6">
+            <!-- Mode Toggle & Header -->
+            <div class="bg-cockpit-card p-6 rounded-2xl border border-cockpit-border flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-diagram-project text-cockpit-cyan"></i>
+                        <span>Pilot-ATC Operational Matching Drills</span>
+                    </h2>
+                    <p class="text-sm text-slate-400 mt-1">Match standard RTF Phraseology with the corresponding Pilot-ATC Operational Scenario.</p>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <button onclick="initMatchingGame('ROUTINE')" id="match-mode-routine" class="px-4 py-2 rounded-xl text-xs font-mono font-bold border transition bg-cockpit-cyan/20 border-cockpit-cyan text-cockpit-cyan">
+                        ROUTINE SCENARIOS
+                    </button>
+                    <button onclick="initMatchingGame('NON_ROUTINE')" id="match-mode-emergency" class="px-4 py-2 rounded-xl text-xs font-mono font-bold border transition bg-cockpit-bg border-cockpit-border text-slate-400 hover:text-white">
+                        EMERGENCY / NON-ROUTINE
+                    </button>
+                </div>
+            </div>
+
+            <!-- Matching Game Board -->
+            <div class="bg-cockpit-card p-6 rounded-2xl border border-cockpit-border space-y-6">
+                <!-- Scoreboard Bar -->
+                <div class="flex items-center justify-between bg-cockpit-bg p-4 rounded-xl border border-cockpit-border font-mono text-sm">
+                    <div class="flex items-center space-x-4">
+                        <div>
+                            <span class="text-slate-400 text-xs block">MATCHES MADE</span>
+                            <span id="match-score" class="text-cockpit-green font-bold text-lg">0 / 6</span>
+                        </div>
+                        <div class="border-l border-cockpit-border h-8"></div>
+                        <div>
+                            <span class="text-slate-400 text-xs block">ATTEMPTS</span>
+                            <span id="match-attempts" class="text-white font-bold text-lg">0</span>
+                        </div>
+                    </div>
+                    
+                    <button onclick="resetMatchingGame()" class="px-3 py-1.5 bg-cockpit-border hover:bg-slate-700 text-white rounded-lg text-xs transition flex items-center space-x-2">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>Reset Game</span>
+                    </button>
+                </div>
+
+                <!-- Explanation / Feedback Banner -->
+                <div id="matching-feedback" class="hidden p-4 rounded-xl border font-mono text-xs leading-relaxed">
+                    <!-- Dynamic feedback message -->
+                </div>
+
+                <!-- Dual Matching Columns -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Column A: RTF Phraseology -->
+                    <div class="space-y-3">
+                        <div class="text-xs font-mono text-cockpit-cyan uppercase tracking-wider font-semibold flex items-center justify-between">
+                            <span>Standard RTF Phraseology (Click to select)</span>
+                            <i class="fa-solid fa-walkie-talkie"></i>
+                        </div>
+                        <div id="matching-col-a" class="space-y-3">
+                            <!-- Dynamic Cards -->
+                        </div>
+                    </div>
+
+                    <!-- Column B: Operational Scenarios -->
+                    <div class="space-y-3">
+                        <div class="text-xs font-mono text-cockpit-amber uppercase tracking-wider font-semibold flex items-center justify-between">
+                            <span>Operational Scenario / Meaning (Click to match)</span>
+                            <i class="fa-solid fa-plane-arrival"></i>
+                        </div>
+                        <div id="matching-col-b" class="space-y-3">
+                            <!-- Dynamic Cards -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= SECTION 3: GAP-FILL EXERCISES ================= -->
+        <section id="section-gapfill" class="hidden space-y-6">
+            <!-- Scenario Selector Header -->
+            <div class="bg-cockpit-card p-6 rounded-2xl border border-cockpit-border space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+                            <i class="fa-solid fa-pen-to-square text-cockpit-cyan"></i>
+                            <span>Interactive Pilot-ATC Radio Dialogue Gap-Fill</span>
+                        </h2>
+                        <p class="text-sm text-slate-400 mt-1">Complete real-world ICAO radio scripts by selecting or typing correct phraseology.</p>
+                    </div>
+
+                    <div class="flex items-center space-x-3">
+                        <span class="text-xs font-mono text-slate-400">Select Script:</span>
+                        <select id="gapfill-scenario-select" onchange="loadGapFillScenario(this.value)" class="bg-cockpit-bg text-sm text-white border border-cockpit-border rounded-xl px-3 py-2 outline-none focus:border-cockpit-cyan">
+                            <option value="routine_clearance">1. Routine: Pushback & Taxi Clearance</option>
+                            <option value="routine_enroute">2. Routine: En-Route & Descent Handover</option>
+                            <option value="emergency_engine">3. Emergency: Engine Failure MAYDAY</option>
+                            <option value="urgency_medical">4. Urgency: Medical Diversion PAN PAN</option>
+                            <option value="weather_windshear">5. Weather: Severe Windshear Go-Around</option>
+                            <option value="technical_hydraulic">6. Technical: Hydraulic Pressure Loss</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Gap Fill Worksheet -->
+            <div class="bg-cockpit-card p-6 rounded-2xl border border-cockpit-border space-y-6">
+                <!-- Scenario Info Badge -->
+                <div class="flex items-center justify-between border-b border-cockpit-border pb-4">
+                    <div>
+                        <h3 id="gf-title" class="text-lg font-bold text-cockpit-cyan font-mono">Routine: Pushback & Departure Clearance</h3>
+                        <p id="gf-desc" class="text-xs text-slate-400 mt-1">Airbus A320 requesting pushback and departure clearance at Frankfurt Aerodrome (EDDF).</p>
+                    </div>
+
+                    <div class="text-right">
+                        <div class="text-xs text-slate-400 font-mono">GAP FILL ACCURACY</div>
+                        <div id="gf-score" class="text-lg font-bold text-cockpit-green font-mono">0 / 0 Completed</div>
+                    </div>
+                </div>
+
+                <!-- Transcript Area with Dropdowns/Inputs -->
+                <div id="gf-transcript-container" class="space-y-4 font-mono text-sm bg-cockpit-bg p-6 rounded-xl border border-cockpit-border leading-relaxed">
+                    <!-- Dynamic Transcript Script rendered here -->
+                </div>
+
+                <!-- Action Controls -->
+                <div class="flex flex-wrap items-center justify-between gap-4 pt-2">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="validateGapFill()" class="px-5 py-2.5 bg-cockpit-cyan hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-sm font-mono transition flex items-center space-x-2 shadow-lg shadow-cockpit-cyan/20">
+                            <i class="fa-solid fa-check"></i>
+                            <span>Check Answers</span>
+                        </button>
+                        <button onclick="revealGapFillAnswers()" class="px-4 py-2.5 bg-cockpit-bg hover:bg-cockpit-border text-slate-300 rounded-xl text-sm font-mono border border-cockpit-border transition flex items-center space-x-2">
+                            <i class="fa-solid fa-eye"></i>
+                            <span>Reveal Full Transcript</span>
+                        </button>
+                    </div>
+
+                    <button onclick="speakFullScript()" class="px-4 py-2.5 bg-cockpit-border hover:bg-slate-700 text-cockpit-cyan rounded-xl text-sm font-mono transition flex items-center space-x-2">
+                        <i class="fa-solid fa-headphones"></i>
+                        <span>Play Audio Broadcast</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= SECTION 4: PRACTICE QUIZ ================= -->
+        <section id="section-quiz" class="hidden space-y-6">
+            <div class="bg-cockpit-card p-6 rounded-2xl border border-cockpit-border flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-list-check text-cockpit-cyan"></i>
+                        <span>ICAO Phraseology Practice Quiz</span>
+                    </h2>
+                    <p class="text-sm text-slate-400 mt-1">Test your knowledge on standard readback rules, emergency priorities, and RTF standards.</p>
+                </div>
+
+                <div class="font-mono text-right">
+                    <div class="text-xs text-slate-400">QUIZ SCORE</div>
+                    <div id="quiz-score-display" class="text-xl font-bold text-cockpit-green">0 / 10</div>
+                </div>
+            </div>
+
+            <div class="bg-cockpit-card p-6 rounded-2xl border border-cockpit-border space-y-6">
+                <!-- Question Progress Bar -->
+                <div class="w-full bg-cockpit-bg h-2 rounded-full overflow-hidden border border-cockpit-border">
+                    <div id="quiz-progress" class="bg-cockpit-cyan h-full w-10 transition-all duration-300"></div>
+                </div>
+
+                <!-- Question Card -->
+                <div id="quiz-card" class="space-y-6">
+                    <div class="flex items-center space-x-3">
+                        <span id="quiz-q-num" class="px-3 py-1 bg-cockpit-cyan/20 text-cockpit-cyan border border-cockpit-cyan/30 rounded-lg text-xs font-mono font-bold">QUESTION 1</span>
+                        <span id="quiz-q-category" class="text-xs font-mono text-slate-400 uppercase">Emergency Protocols</span>
+                    </div>
+
+                    <h3 id="quiz-question-text" class="text-lg font-semibold text-white font-mono leading-snug">
+                        Which of the following elements MUST always be included in an initial MAYDAY distress call if time permits?
+                    </h3>
+
+                    <!-- Choices Grid -->
+                    <div id="quiz-options-container" class="space-y-3">
+                        <!-- Dynamic Radio Options -->
+                    </div>
+
+                    <!-- Answer Feedback Box -->
+                    <div id="quiz-explanation-box" class="hidden p-4 rounded-xl font-mono text-xs bg-cockpit-bg border border-cockpit-border space-y-2">
+                        <div id="quiz-result-title" class="font-bold text-sm"></div>
+                        <p id="quiz-explanation-text" class="text-slate-300"></p>
+                    </div>
+
+                    <!-- Navigation Controls -->
+                    <div class="flex justify-end pt-4 border-t border-cockpit-border">
+                        <button onclick="nextQuizQuestion()" id="quiz-next-btn" class="px-6 py-2.5 bg-cockpit-cyan text-slate-950 font-bold rounded-xl text-sm font-mono hover:bg-cyan-400 transition flex items-center space-x-2">
+                            <span>Next Question</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-cockpit-border bg-cockpit-card/40 py-4 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs font-mono text-slate-500">
+            Aviation RTF Masterclass • ICAO Annex 10 Vol II & Doc 9432 Standardized Phraseology Training
+        </div>
+    </footer>
+
+
+    <!-- JAVASCRIPT LOGIC & DATA STORE -->
+    <script>
+        /* ==========================================================================
+           1. DATA STORE (60 FLASHCARDS, MATCHING DRILLS, GAP-FILL, QUIZ)
+           ========================================================================== */
+
+        // SVG Visual Generators for Flashcards
+        const SVG_GRAPHICS = {
+            mayday: `<svg class="w-full h-full text-cockpit-red" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2"><path d="M50 10 L90 85 L10 85 Z" fill="rgba(255,23,68,0.1)" stroke="currentColor" stroke-width="4"/><text x="50" y="65" text-anchor="middle" fill="#ff1744" font-size="28" font-weight="bold">!</text><circle cx="50" cy="45" r="3" fill="#ff1744"/></svg>`,
+            panpan: `<svg class="w-full h-full text-cockpit-amber" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2"><rect x="15" y="15" width="70" height="70" rx="10" fill="rgba(255,183,3,0.1)" stroke="currentColor" stroke-width="3"/><path d="M50 30 L50 58 M50 70 L50 72" stroke="#ffb703" stroke-width="6" stroke-linecap="round"/></svg>`,
+            squawk: `<svg class="w-full h-full text-cockpit-cyan" viewBox="0 0 100 100" fill="none" stroke="currentColor"><circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="2" fill="rgba(0,240,255,0.05)"/><circle cx="50" cy="50" r="25" stroke="currentColor" stroke-dasharray="4 4"/><line x1="50" y1="10" x2="50" y2="90" stroke="currentColor" stroke-width="1"/><line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" stroke-width="1"/><text x="50" y="54" text-anchor="middle" fill="#00f0ff" font-size="14" font-family="monospace">7700</text></svg>`,
+            qnh: `<svg class="w-full h-full text-cockpit-green" viewBox="0 0 100 100" fill="none" stroke="currentColor"><circle cx="50" cy="50" r="38" stroke="currentColor" stroke-width="3" fill="rgba(0,230,118,0.05)"/><path d="M50 20 L50 50 L70 50" stroke="#00e676" stroke-width="3"/><text x="50" y="75" text-anchor="middle" fill="#00e676" font-size="11" font-family="monospace">1013 hPa</text></svg>`,
+            holdshort: `<svg class="w-full h-full text-cockpit-amber" viewBox="0 0 100 100" fill="none"><rect x="10" y="20" width="80" height="60" fill="rgba(255,183,3,0.1)" stroke="#ffb703" stroke-width="2"/><line x1="20" y1="35" x2="80" y2="35" stroke="#ffb703" stroke-width="4"/><line x1="20" y1="45" x2="80" y2="45" stroke="#ffb703" stroke-width="4"/><line x1="20" y1="55" x2="80" y2="55" stroke="#ffb703" stroke-width="4" stroke-dasharray="6 4"/><line x1="20" y1="65" x2="80" y2="65" stroke="#ffb703" stroke-width="4" stroke-dasharray="6 4"/></svg>`,
+            windshear: `<svg class="w-full h-full text-cockpit-amber" viewBox="0 0 100 100" fill="none" stroke="currentColor"><path d="M10 30 Q30 10 50 30 T90 30" stroke="#ffb703" stroke-width="3"/><path d="M10 70 Q30 50 50 70 T90 70" stroke="#ff1744" stroke-width="3"/><path d="M40 40 L60 60 M60 40 L40 60" stroke="#ffb703" stroke-width="2"/><text x="50" y="90" text-anchor="middle" fill="#ffb703" font-size="10" font-family="monospace">WS ALERT</text></svg>`,
+            engine: `<svg class="w-full h-full text-cockpit-red" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="30" stroke="#ff1744" stroke-width="3"/><path d="M50 20 L50 80 M20 50 L80 50 M29 29 L71 71 M29 71 L71 29" stroke="#ff1744" stroke-width="2"/><circle cx="50" cy="50" r="10" fill="#ff1744"/></svg>`,
+            radar: `<svg class="w-full h-full text-cockpit-cyan" viewBox="0 0 100 100" fill="none"><path d="M10 80 L50 20 L90 80 Z" stroke="#00f0ff" stroke-width="2"/><circle cx="50" cy="45" r="4" fill="#00f0ff"/><line x1="50" y1="45" x2="70" y2="25" stroke="#00f0ff" stroke-width="1.5"/></svg>`
+        };
+
+        // 60 Comprehensive Flashcards
+        const FLASHCARDS_DATA = [
+            { id: 1, term: "MAYDAY MAYDAY MAYDAY", category: "EMERGENCY", phonetic: "[MAY-DAY MAY-DAY MAY-DAY]", def: "International distress signal indicating grave and imminent danger requiring immediate assistance.", pilot: "MAYDAY MAYDAY MAYDAY, Speedbird 452, Engine failure on climb out, turning back to airfield.", atc: "Speedbird 452, Roger MAYDAY, cleared ILS runway 27R, squawk 7700.", svg: SVG_GRAPHICS.mayday },
+            { id: 2, term: "PAN PAN PAN PAN PAN PAN", category: "EMERGENCY", phonetic: "[PAN-PAN PAN-PAN PAN-PAN]", def: "Urgency signal concerning the safety of an aircraft or person on board, but not requiring immediate distress priority.", pilot: "PAN PAN PAN PAN PAN PAN, Lufthansa 112, medical emergency on board, requesting priority landing.", atc: "Lufthansa 112, Roger PAN PAN, direct to Frankfurt, expect runway 07R.", svg: SVG_GRAPHICS.panpan },
+            { id: 3, term: "SQUAWK IDENT", category: "TRANSPONDER", phonetic: "[SKWOK EYE-DENT]", def: "Instruction to operate the transponder 'IDENT' feature to highlight aircraft position on controller's radar scope.", pilot: "Squawking IDENT, Air France 228.", atc: "Air France 228, radar contact 15 miles west of Zurich, FL320.", svg: SVG_GRAPHICS.squawk },
+            { id: 4, term: "HOLD SHORT OF [RUNWAY]", category: "GROUND", phonetic: "[HOLD SHORT OF...]", def: "Mandatory instruction to stop prior to reaching a runway holding point and await explicit clearance.", pilot: "Holding short of runway 28L, Delta 404.", atc: "Delta 404, hold short of runway 28L, traffic on short final.", svg: SVG_GRAPHICS.holdshort },
+            { id: 5, term: "QNH [VALUE]", category: "ALTITUDE", phonetic: "[Q-N-H ONE-ZERO-ONE-THREE]", def: "Altimeter subscale setting to yield indication of altitude above mean sea level upon landing.", pilot: "QNH 1013 acknowledged, United 901.", atc: "United 901, descend FL100, QNH 1013 hectopascals.", svg: SVG_GRAPHICS.qnh },
+            { id: 6, term: "WINDSHEAR WARNING", category: "WEATHER", phonetic: "[WIND-SHEER WARNING]", def: "Notification of rapid wind direction/speed changes creating critical lift loss risk on final or takeoff.", pilot: "Going around, windshear warning, KLM 642.", atc: "KLM 642, roger climb straight ahead 3000 feet.", svg: SVG_GRAPHICS.windshear },
+            { id: 7, term: "LINE UP AND WAIT", category: "GROUND", phonetic: "[LINE UP AND WAIT]", def: "Instruction to taxi onto the departure runway and align with centerline, awaiting takeoff clearance.", pilot: "Lining up and waiting runway 09, Ryan 123.", atc: "Ryan 123, runway 09 line up and wait.", svg: SVG_GRAPHICS.radar },
+            { id: 8, term: "CLEARED FOR TAKE-OFF", category: "CLEARANCE", phonetic: "[CLEARED FOR TAKE-OFF]", def: "Official authorization by aerodrome control to commence takeoff roll on specified runway.", pilot: "Cleared for take-off runway 22, BA 33.", atc: "BA 33, wind 240 at 8 knots, runway 22 cleared for take-off.", svg: SVG_GRAPHICS.radar },
+            { id: 9, term: "CLEARED ILS APPROACH", category: "CLEARANCE", phonetic: "[CLEARED I-L-S APPROACH]", def: "Authorization to fly Instrument Landing System localizer and glidepath for landing.", pilot: "Cleared ILS runway 26, Swiss 52.", atc: "Swiss 52, established localizer, cleared ILS runway 26.", svg: SVG_GRAPHICS.radar },
+            { id: 10, term: "WILCO", category: "CLEARANCE", phonetic: "[WILL-CO]", def: "Abbreviation for 'I understand your message and will comply with it'.", pilot: "Wilco, turning left heading 180, Easy 44.", atc: "Easy 44, turn left heading 180 vectoring for sequence.", svg: SVG_GRAPHICS.radar },
+            { id: 11, term: "ROGER", category: "CLEARANCE", phonetic: "[ROJ-ER]", def: "I have received all of your last transmission. Under no circumstances used as affirmative or readback replacement.", pilot: "Roger, Dublin Tower, Shamrock 102.", atc: "Shamrock 102, information Bravo current.", svg: SVG_GRAPHICS.radar },
+            { id: 12, term: "READBACK", category: "CLEARANCE", phonetic: "[READ-BACK]", def: "Repeat all or specified part of an ATC message back to controller to confirm accuracy.", pilot: "Climb FL280, readback direct Delta, Emirates 201.", atc: "Emirates 201, readback correct.", svg: SVG_GRAPHICS.radar },
+            { id: 13, term: "SQUAWK 7500", category: "TRANSPONDER", phonetic: "[SKWOK SEVEN-FIVE-ZERO-ZERO]", def: "Emergency transponder code indicating unlawful interference / aircraft hijacking.", pilot: "(Silent code selection on transponder unit)", atc: "Confirm squawking 7500?", svg: SVG_GRAPHICS.squawk },
+            { id: 14, term: "SQUAWK 7600", category: "TRANSPONDER", phonetic: "[SKWOK SEVEN-SIX-ZERO-ZERO]", def: "Transponder code signaling complete loss of radio communications (Radio Failure).", pilot: "(Squawks 7600, follows LOST COMM procedures)", atc: "Aircraft squawking 7600 identified, continue standard arrival.", svg: SVG_GRAPHICS.squawk },
+            { id: 15, term: "SQUAWK 7700", category: "TRANSPONDER", phonetic: "[SKWOK SEVEN-SEVEN-ZERO-ZERO]", def: "General emergency transponder code transmitted during Mayday/Pan distress situations.", pilot: "Squawking 7700, MAYDAY declared.", atc: "Radar contact, squawking 7700.", svg: SVG_GRAPHICS.mayday },
+            { id: 16, term: "GO-AROUND", category: "ALTITUDE", phonetic: "[GO-A-ROUND]", def: "Instruction or pilot action to discontinue approach and execute published missed approach procedure.", pilot: "Going around, SAS 911.", atc: "SAS 911, roger go-around, climb 4000 feet.", svg: SVG_GRAPHICS.radar },
+            { id: 17, term: "DESCEND TO FLIGHT LEVEL", category: "ALTITUDE", phonetic: "[DEE-SEND TO FLIGHT LEVEL]", def: "Instruction to descend using standard altimeter pressure setting 1013.25 hPa.", pilot: "Descending FL140, Qatar 008.", atc: "Qatar 008, descend FL140.", svg: SVG_GRAPHICS.qnh },
+            { id: 18, term: "ALTITUDE READBACK", category: "ALTITUDE", phonetic: "[ALTITUDE READ-BACK]", def: "Mandatory pilot repetition of assigned altitude, flight level, or QNH setting.", pilot: "Descend 3000 feet QNH 1011, Cessna 172.", atc: "Cessna 172, correct.", svg: SVG_GRAPHICS.qnh },
+            { id: 19, term: "TCAS RESOLUTION ADVISORY", category: "TRAFFIC", phonetic: "[T-CAS R-A]", def: "Maneuver mandated by Traffic Collision Avoidance System; pilot must inform ATC immediately.", pilot: "TCAS RA climbing, Turkish 1821.", atc: "Turkish 1821, roger.", svg: SVG_GRAPHICS.radar },
+            { id: 20, term: "REPORT ESTABLISHED", category: "CLEARANCE", phonetic: "[REPORT ESTABLISHED]", def: "Instructs pilot to advise controller when locked on ILS localizer or glide path.", pilot: "Established localizer runway 14, Qantas 11.", atc: "Qantas 11, report established localizer runway 14.", svg: SVG_GRAPHICS.radar },
+            { id: 21, term: "STANDBY", category: "CLEARANCE", phonetic: "[STAND-BY]", def: "Instruction to wait; controller or pilot will call back shortly. Does not mean clearance given.", pilot: "Standing by, Finnair 83.", atc: "Finnair 83, standby for pushback.", svg: SVG_GRAPHICS.radar },
+            { id: 22, term: "SAY AGAIN", category: "CLEARANCE", phonetic: "[SAY A-GAIN]", def: "Request to repeat all or part of a transmission due to noise or distortion.", pilot: "Say again waypoint name, Iberia 300.", atc: "Iberia 300, I say again direct ZURICH.", svg: SVG_GRAPHICS.radar },
+            { id: 23, term: "EXPEDITE CLIMB", category: "ALTITUDE", phonetic: "[EX-PE-DITE CLIMB]", def: "Instruction to increase rate of climb to avoid traffic separation conflict.", pilot: "Expediting climb FL330, Cathay 251.", atc: "Cathay 251, expedite climb FL330 due to crossing traffic.", svg: SVG_GRAPHICS.radar },
+            { id: 24, term: "CROSS [WAYPOINT] AT FL...", category: "ALTITUDE", phonetic: "[CROSS... AT FLIGHT LEVEL]", def: "En-route restriction requiring precise flight level crossing over a navigation fix.", pilot: "Cross ABBEV at FL240, Virgin 19.", atc: "Virgin 19, cross ABBEV at FL240.", svg: SVG_GRAPHICS.radar },
+            { id: 25, term: "CROSSING RUNWAY CLEARED", category: "GROUND", phonetic: "[CROSS RUNWAY... CLEARED]", def: "Explicit authorization to cross an active runway during taxi operations.", pilot: "Crossing runway 18 left, Speedbird 90.", atc: "Speedbird 90, cross runway 18 left via taxiway Echo.", svg: SVG_GRAPHICS.holdshort },
+            { id: 26, term: "GIVE WAY TO [TRAFFIC]", category: "GROUND", phonetic: "[GIVE WAY TO...]", def: "Taxi instruction to yield movement priority to another designated aircraft.", pilot: "Giving way to Boeing 777, Cargolux 71.", atc: "Cargolux 71, give way to B777 crossing left to right.", svg: SVG_GRAPHICS.radar },
+            { id: 27, term: "REPORT VACATED", category: "GROUND", phonetic: "[REPORT VACATED]", def: "Instructs landing pilot to announce when aircraft is entirely clear of active runway.", pilot: "Runway 08R vacated taxiway Alpha, Lufthansa 400.", atc: "Lufthansa 400, report runway vacated.", svg: SVG_GRAPHICS.holdshort },
+            { id: 28, term: "RESUME OWN NAVIGATION", category: "CLEARANCE", phonetic: "[RESUME OWN NAVIGATION]", def: "Advises pilot radar vectoring is ended and to navigate via flight plan route.", pilot: "Resuming own navigation to SPY, KLM 18.", atc: "KLM 18, vectoring complete, resume own navigation to SPY.", svg: SVG_GRAPHICS.radar },
+            { id: 29, term: "TRAFFIC IN SIGHT", category: "TRAFFIC", phonetic: "[TRAFFIC IN SIGHT]", def: "Confirmation by pilot that target visual traffic has been spotted out window.", pilot: "Traffic in sight, maintaining visual separation, Piper 432.", atc: "Piper 432, traffic 2 o'clock 3 miles northbound.", svg: SVG_GRAPHICS.radar },
+            { id: 30, term: "NEGATIVE CONTACT", category: "TRAFFIC", phonetic: "[NEGATIVE CONTACT]", def: "Pilot statement indicating designated traffic is not visually acquired.", pilot: "Negative contact, requesting radar vectors, Cessna 88.", atc: "Cessna 88, traffic 12 o'clock 2 miles.", svg: SVG_GRAPHICS.radar },
+            // Additional 30 items omitted for brevity in narrative, populated algorithmically
+            { id: 31, term: "ENGINE FLAMEOUT", category: "ENGINE", phonetic: "[ENGINE FLAME-OUT]", def: "Sudden extinction of combustion in jet engine leading to complete thrust loss.", pilot: "MAYDAY, engine 1 flameout, drifting down FL200.", atc: "Roger MAYDAY, turn left heading 090 descent cleared FL180.", svg: SVG_GRAPHICS.engine },
+            { id: 32, term: "HYDRAULIC FAILURE", category: "ENGINE", phonetic: "[HYDRAULIC FAILURE]", def: "Loss of hydraulic fluid or pressure affecting flight control surfaces or landing gear.", pilot: "PAN PAN, system hydraulic low pressure, request holding pattern.", atc: "Cleared to hold over ZUE, maintain 5000 feet.", svg: SVG_GRAPHICS.engine },
+            { id: 33, term: "BIRD STRIKE", category: "EMERGENCY", phonetic: "[BIRD STRIKE]", def: "Impact between aircraft and avian wildlife, risking engine damage or windscreen breach.", pilot: "MAYDAY, severe bird strike, windshield shattered, returning.", atc: "Radar contact, cleared immediate landing runway 36.", svg: SVG_GRAPHICS.mayday },
+            { id: 34, term: "CABIN DEPRESSURIZATION", category: "EMERGENCY", phonetic: "[CABIN DE-PRESSUR-IZATION]", def: "Loss of cabin pressure requiring immediate emergency descent to 10,000 feet / MSA.", pilot: "MAYDAY MAYDAY MAYDAY, emergency descent FL100.", atc: "Descend FL100, turn right heading 180, QNH 1012.", svg: SVG_GRAPHICS.mayday },
+            { id: 35, term: "FUEL MINIMUM / MAYDAY FUEL", category: "EMERGENCY", phonetic: "[MAYDAY FUEL]", def: "Declaration that committed total fuel remaining threatens safe landing margin.", pilot: "MAYDAY FUEL, require direct routing and immediate landing.", atc: "Direct runway 09, cleared to land, all traffic cleared.", svg: SVG_GRAPHICS.mayday },
+            { id: 36, term: "RUNWAY INCURSION", category: "GROUND", phonetic: "[RUNWAY IN-CURSION]", def: "Unauthorized presence of vehicle/aircraft on active runway surface.", pilot: "Stopping on taxiway, traffic on runway!", atc: "Hold position! Cancel take-off clearance!", svg: SVG_GRAPHICS.holdshort },
+            { id: 37, term: "CONTINUE APPROACH", category: "CLEARANCE", phonetic: "[CONTINUE APPROACH]", def: "Authorization to continue approach; landing clearance pending traffic clearance.", pilot: "Continuing approach, Air Berlin 50.", atc: "Air Berlin 50, continue approach runway 16, traffic vacating.", svg: SVG_GRAPHICS.radar },
+            { id: 38, term: "CLEARED TO LAND", category: "CLEARANCE", phonetic: "[CLEARED TO LAND]", def: "Final approval by aerodrome controller to land on designated active runway.", pilot: "Cleared to land runway 16, Air Berlin 50.", atc: "Air Berlin 50, wind 180 at 10, runway 16 cleared to land.", svg: SVG_GRAPHICS.radar },
+            { id: 39, term: "CANCEL TAKEOFF CLEARANCE", category: "CLEARANCE", phonetic: "[CANCEL TAKE-OFF CLEARANCE]", def: "Urgent controller command to abort takeoff roll prior to acceleration.", pilot: "Aborting takeoff! Lufthansa 99.", atc: "Lufthansa 99, cancel takeoff clearance, STOP IMMEDIATELY!", svg: SVG_GRAPHICS.mayday },
+            { id: 40, term: "CORRECTION", category: "CLEARANCE", phonetic: "[COR-REC-TION]", def: "An error has been made in transmission; correct version follows immediately.", pilot: "Climbing FL300... Correction, FL280, Emirates 4.", atc: "Emirates 4, correction climb FL320.", svg: SVG_GRAPHICS.radar },
+            { id: 41, term: "MONITOR FREQUENCY", category: "TRANSPONDER", phonetic: "[MONITOR FREQUENCY]", def: "Listen on specified frequency without calling until controller initiates.", pilot: "Monitoring tower 118.1, Swiss 2.", atc: "Swiss 2, monitor tower 118.1.", svg: SVG_GRAPHICS.radar },
+            { id: 42, term: "CONTACT RADAR ON...", category: "TRANSPONDER", phonetic: "[CONTACT RADAR ON...]", def: "Instruction to establish two-way voice call on new sector frequency.", pilot: "Contacting radar 132.45, Speedbird 11.", atc: "Speedbird 11, contact radar 132.45.", svg: SVG_GRAPHICS.radar },
+            { id: 43, term: "REPORT PASSING", category: "ALTITUDE", phonetic: "[REPORT PASSING]", def: "Instructs pilot to state exact flight level or altitude when passing fix.", pilot: "Passing FL180 climbing FL350, BA 5.", atc: "BA 5, report passing FL180.", svg: SVG_GRAPHICS.radar },
+            { id: 44, term: "RADAR CONTACT", category: "TRAFFIC", phonetic: "[RADAR CONTACT]", def: "ATC notification that aircraft flight track is identified on radar terminal screen.", pilot: "Roger radar contact, Delta 88.", atc: "Delta 88, radar contact 10 miles east of Dover.", svg: SVG_GRAPHICS.radar },
+            { id: 45, term: "IDENTIFIED", category: "TRAFFIC", phonetic: "[I-DEN-TI-FIED]", def: "Aircraft observation confirmed on radar display screen.", pilot: "Roger, Norwegian 404.", atc: "Norwegian 404, identified FL240.", svg: SVG_GRAPHICS.radar },
+            { id: 46, term: "DIRECT TO [WAYPOINT]", category: "CLEARANCE", phonetic: "[DIRECT TO...]", def: "Clearance to proceed straight to specified fix bypassing intermediate route points.", pilot: "Direct SPY, Transavia 101.", atc: "Transavia 101, cleared direct SPY.", svg: SVG_GRAPHICS.radar },
+            { id: 47, term: "ORBIT LEFT / RIGHT", category: "CLEARANCE", phonetic: "[ORBIT LEFT / RIGHT]", def: "Instruction to complete a 360-degree turn for air traffic delay spacing.", pilot: "Orbiting left, Cessna 152.", atc: "Cessna 152, make one orbit left for spacing.", svg: SVG_GRAPHICS.radar },
+            { id: 48, term: "HEAVY", category: "TRAFFIC", phonetic: "[HEAVY]", def: "Suffix added to aircraft callsign with maximum takeoff mass of 136,000 kg or more.", pilot: "United 920 Heavy, passing FL120.", atc: "United 920 Heavy, radar contact.", svg: SVG_GRAPHICS.radar },
+            { id: 49, term: "SUPER", category: "TRAFFIC", phonetic: "[SUPER]", def: "Callsign designator for Airbus A380 due to extreme wake turbulence category.", pilot: "Emirates 001 Super, established FL380.", atc: "Emirates 001 Super, roger.", svg: SVG_GRAPHICS.radar },
+            { id: 50, term: "EXPECT FURTHER CLEARANCE", category: "CLEARANCE", phonetic: "[EXPECT FURTHER CLEARANCE]", def: "Time given by ATC when pilot can expect updated flight instructions during holding.", pilot: "EFC at 45, Alitalia 77.", atc: "Alitalia 77, expect further clearance at time 45.", svg: SVG_GRAPHICS.radar },
+            { id: 51, term: "ALTITUDE RESTRICTION", category: "ALTITUDE", phonetic: "[ALTITUDE RESTRICTION]", def: "Mandatory level cap or climb limit imposed for airspace separation.", pilot: "Crossing 5000 feet or below, Ryan 4.", atc: "Ryan 4, cross 10 miles DME at or below 5000 feet.", svg: SVG_GRAPHICS.qnh },
+            { id: 52, term: "TAXI TO HOLDING POINT", category: "GROUND", phonetic: "[TAXI TO HOLDING POINT]", def: "Authorization to maneuver aircraft on ground to designated runway intersection.", pilot: "Taxiing holding point 27L via Alpha, Speedbird 12.", atc: "Speedbird 12, taxi holding point 27L via taxiway Alpha.", svg: SVG_GRAPHICS.holdshort },
+            { id: 53, term: "PUSHBACK APPROVED", category: "GROUND", phonetic: "[PUSHBACK APPROVED]", def: "Clearance for aircraft push tug to maneuver plane off gate ramp.", pilot: "Pushback approved nose south, Lufthansa 88.", atc: "Lufthansa 88, pushback approved, face south.", svg: SVG_GRAPHICS.radar },
+            { id: 54, term: "BACKTRACK RUNWAY", category: "GROUND", phonetic: "[BACKTRACK RUNWAY]", def: "Taxiing on active runway opposite to landing direction to reach takeoff end.", pilot: "Backtracking runway 09, Air India 10.", atc: "Air India 10, backtrack runway 09.", svg: SVG_GRAPHICS.holdshort },
+            { id: 55, term: "REPORT VISUAL", category: "WEATHER", phonetic: "[REPORT VISUAL]", def: "Instructs pilot to state when runway or preceding aircraft is visually in sight.", pilot: "Runway in sight, Aegean 30.", atc: "Aegean 30, report runway in sight.", svg: SVG_GRAPHICS.radar },
+            { id: 56, term: "VISUAL APPROACH CLEARED", category: "CLEARANCE", phonetic: "[VISUAL APPROACH CLEARED]", def: "Approach executed by pilot under visual flight rules using ground references.", pilot: "Cleared visual approach runway 28, Austrian 12.", atc: "Austrian 12, cleared visual approach runway 28.", svg: SVG_GRAPHICS.radar },
+            { id: 57, term: "LANDING GEAR UNLOCKED", category: "ENGINE", phonetic: "[LANDING GEAR UNLOCKED]", def: "Abnormal unsafe landing gear status indication reported to ATC.", pilot: "PAN PAN, landing gear unsafe light, low pass request.", atc: "Cleared low pass runway 09 for tower visual check.", svg: SVG_GRAPHICS.engine },
+            { id: 58, term: "SMOKE IN CABIN", category: "EMERGENCY", phonetic: "[SMOKE IN CABIN]", def: "In-flight fire or electrical burning hazard requiring immediate emergency diversion.", pilot: "MAYDAY MAYDAY MAYDAY, smoke in cabin, request emergency landing.", atc: "Cleared immediate priority vectors to nearest airfield.", svg: SVG_GRAPHICS.mayday },
+            { id: 59, term: "RADAR SERVICE TERMINATED", category: "TRAFFIC", phonetic: "[RADAR SERVICE TERMINATED]", def: "Notification that ATC is no longer providing radar vectors or separation monitoring.", pilot: "Squawking VFR 7000, Piper 99.", atc: "Piper 99, radar service terminated, squawk 7000.", svg: SVG_GRAPHICS.radar },
+            { id: 60, term: "FREQUENCY CHANGE APPROVED", category: "TRANSPONDER", phonetic: "[FREQUENCY CHANGE APPROVED]", def: "Authorization to leave current ATC radio frequency and tune into next facility.", pilot: "Changing frequency, Delta 505.", atc: "Delta 505, frequency change approved, good day.", svg: SVG_GRAPHICS.radar }
+        ];
+
+        // 2. MATCHING EXERCISES DATA
+        const MATCHING_DATA = {
+            ROUTINE: [
+                { id: "r1", phrase: "LINE UP AND WAIT", match: "Taxi onto departure runway and align on centerline awaiting takeoff signal.", explanation: "Line Up and Wait authorizes entering the runway surface, but NOT commencing takeoff roll." },
+                { id: "r2", phrase: "SQUAWK IDENT", match: "Activate transponder pulse to highlight aircraft icon on controller radar.", explanation: "Ident sends a visual pulse to controller display to confirm radar identity." },
+                { id: "r3", phrase: "QNH 1013 HECTOPASCALS", match: "Set altimeter subscale to sea level barometric pressure.", explanation: "QNH gives height above mean sea level (MSL) when landing." },
+                { id: "r4", phrase: "REPORT VACATED", match: "Announce when aircraft has completely cleared the active runway safety strip.", explanation: "Ensures runway is legally clear before issuing landing clearance to following plane." },
+                { id: "r5", phrase: "WILCO", match: "I understand your instruction and will comply with it.", explanation: "Wilco stands for 'Will Comply' and binds the crew to execute instructions." },
+                { id: "r6", phrase: "RESUME OWN NAVIGATION", match: "Vectoring is finished; resume flying original flight plan track.", explanation: "Terminates radar heading vectors and returns navigation responsibility to flight deck." }
+            ],
+            NON_ROUTINE: [
+                { id: "nr1", phrase: "MAYDAY MAYDAY MAYDAY", match: "Distress call: Aircraft facing grave & imminent danger requiring immediate priority.", explanation: "Mayday gives absolute radio and landing priority over all other air traffic." },
+                { id: "nr2", phrase: "PAN PAN PAN PAN PAN PAN", match: "Urgency call: Safety of flight affected but no immediate loss of life/craft imminent.", explanation: "Pan Pan demands priority handling, such as medical emergencies or system faults." },
+                { id: "nr3", phrase: "SQUAWK 7700", match: "Emergency transponder code indicating aircraft distress to all radar stations.", explanation: "7700 automatically triggers visual and audible alerts across ATC radar screens." },
+                { id: "nr4", phrase: "WINDSHEAR GO-ARROUND", match: "Discontinue landing due to rapid loss of airspeed and microburst downdraft.", explanation: "Windshear causes catastrophic lift loss; crew must execute immediate maximum power go-around." },
+                { id: "nr5", phrase: "SQUAWK 7600", match: "Transponder code signaling complete loss of two-way radio communications.", explanation: "7600 informs ATC that pilot cannot speak or hear radio transmissions." },
+                { id: "nr6", phrase: "ENGINE FLAMEOUT", match: "Sudden extinction of jet engine combustion resulting in complete thrust failure.", explanation: "Requires immediate emergency drift-down procedure and re-light/relocation vectors." }
+            ]
+        };
+
+        // 3. GAP FILL EXERCISES DATA
+        const GAPFILL_DATA = {
+            routine_clearance: {
+                title: "Routine: Pushback & Taxi Clearance",
+                desc: "Standard ground operations dialogue at Frankfurt (EDDF) between Lufthansa 450 and Ground Controller.",
+                script: [
+                    { speaker: "PILOT", text: "Frankfurt Ground, Lufthansa 450, gate A12, request {gap1} and start up, information Charlie." },
+                    { speaker: "ATC", text: "Lufthansa 450, Frankfurt Ground, pushback and start up {gap2}, face south." },
+                    { speaker: "PILOT", text: "Pushback approved, face south, Lufthansa 450." },
+                    { speaker: "ATC", text: "Lufthansa 450, taxi to {gap3} runway 25R via taxiway November and Alpha." },
+                    { speaker: "PILOT", text: "Taxi to holding point runway 25R via November and Alpha, Lufthansa 450." }
+                ],
+                gaps: {
+                    gap1: { answer: "pushback", options: ["pushback", "takeoff", "cleared", "hold"] },
+                    gap2: { answer: "approved", options: ["approved", "wilco", "cleared", "standby"] },
+                    gap3: { answer: "holding point", options: ["holding point", "runway", "gate", "apron"] }
+                }
+            },
+            emergency_engine: {
+                title: "Emergency: Engine Failure & MAYDAY Declaration",
+                desc: "Airbus A320 experiences No.1 engine shutdown during initial climb at 2,000 ft.",
+                script: [
+                    { speaker: "PILOT", text: "{gap1}, Speedbird 202, engine failure number 1, maintaining 3000 feet, turning right heading 090, requesting immediate return!" },
+                    { speaker: "ATC", text: "Speedbird 202, roger MAYDAY, radar contact, turn right heading 090, climb 3000 feet, {gap2} 7700." },
+                    { speaker: "PILOT", text: "Turning right heading 090, squawking 7700, Speedbird 202." },
+                    { speaker: "ATC", text: "Speedbird 202, cleared {gap3} runway 27 Right, wind 260 at 14 knots." },
+                    { speaker: "PILOT", text: "Cleared ILS runway 27 Right, Speedbird 202." }
+                ],
+                gaps: {
+                    gap1: { answer: "MAYDAY MAYDAY MAYDAY", options: ["MAYDAY MAYDAY MAYDAY", "PAN PAN PAN", "ATTENTION", "SECURITY"] },
+                    gap2: { answer: "squawk", options: ["squawk", "code", "select", "transmit"] },
+                    gap3: { answer: "ILS approach", options: ["ILS approach", "visual takeoff", "orbit", "holding point"] }
+                }
+            },
+            urgency_medical: {
+                title: "Urgency: Medical Diversion PAN PAN",
+                desc: "In-flight medical emergency over Zurich airspace requiring priority landing.",
+                script: [
+                    { speaker: "PILOT", text: "{gap1}, Swiss 118, passenger experiencing severe cardiac distress, request priority descent and medical ambulance upon arrival." },
+                    { speaker: "ATC", text: "Swiss 118, roger PAN PAN, descend immediately {gap2} 100, QNH 1015." },
+                    { speaker: "PILOT", text: "Descend FL100, QNH 1015, Swiss 118." },
+                    { speaker: "ATC", text: "Swiss 118, expect {gap3} routing direct airfield runway 14." }
+                ],
+                gaps: {
+                    gap1: { answer: "PAN PAN PAN PAN PAN PAN", options: ["PAN PAN PAN PAN PAN PAN", "MAYDAY MAYDAY", "URGENT URGENT", "BREAK BREAK"] },
+                    gap2: { answer: "flight level", options: ["flight level", "altitude", "feet", "height"] },
+                    gap3: { answer: "direct", options: ["direct", "holding", "backtrack", "orbit"] }
+                }
+            }
+        };
+
+        // 4. PRACTICE QUIZ DATA
+        const QUIZ_QUESTIONS = [
+            {
+                q: "What is the mandatory pilot action upon receiving the instruction 'HOLD SHORT OF RUNWAY 28'?",
+                options: [
+                    "Slow down and taxi slowly onto the runway.",
+                    "Stop completely prior to the runway holding line and await explicit clearance.",
+                    "Line up on the runway centerline and wait.",
+                    "Cross the runway immediately if no traffic is visible."
+                ],
+                correct: 1,
+                explanation: "HOLD SHORT is a mandatory stop instruction. You must stay entirely behind the yellow runway holding position markings."
+            },
+            {
+                q: "Under standard ICAO rules, which phraseology MUST be read back verbatim by pilots?",
+                options: [
+                    "Altimeter settings, Runway in use, Taxi instructions, Level clearances.",
+                    "Weather reports, ATIS broadcast code, Pilot name.",
+                    "En-route traffic advisories and wind direction.",
+                    "Controller greetings and radar terminal names."
+                ],
+                correct: 0,
+                explanation: "ICAO Doc 9432 requires strict readback of safety-critical elements: Clearances, Altimeter (QNH), Runways, Speed/Heading/Level instructions."
+            },
+            {
+                q: "What transponder squawk code signifies complete Loss of Two-Way Radio Communication?",
+                options: ["Squawk 7500", "Squawk 7600", "Squawk 7700", "Squawk 2000"],
+                correct: 1,
+                explanation: "7600 indicates radio comms failure. 7500 is Hijack, 7700 is General Emergency."
+            },
+            {
+                q: "How does 'MAYDAY' differ from 'PAN PAN' in radio communications?",
+                options: [
+                    "MAYDAY is used for weather; PAN PAN is used for engine faults.",
+                    "MAYDAY indicates grave and imminent danger; PAN PAN indicates an urgency state where safety is affected.",
+                    "PAN PAN has absolute priority over MAYDAY.",
+                    "There is no practical difference between them."
+                ],
+                correct: 1,
+                explanation: "MAYDAY = Distress (imminent danger). PAN PAN = Urgency (safety concern, but no immediate catastrophic threat)."
+            },
+            {
+                q: "What does the phrase 'WILCO' mean?",
+                options: [
+                    "I have received all your last transmission.",
+                    "I understand your message and will comply with it.",
+                    "Permission granted for maneuver.",
+                    "Repeat your last instruction."
+                ],
+                correct: 1,
+                explanation: "WILCO = Will Comply. It confirms both receipt AND intent to execute the instruction."
+            }
+        ];
+
+
+        /* ==========================================================================
+           2. APP STATE MANAGEMENT
+           ========================================================================== */
+        let state = {
+            currentCardIndex: 0,
+            masteredCards: new Set(JSON.parse(localStorage.getItem('rtf_mastered') || '[]')),
+            audioFx: true,
+            currentTab: 'flashcards',
+            filteredCards: [...FLASHCARDS_DATA],
+            
+            // Matching State
+            matchingMode: 'ROUTINE',
+            selectedColA: null,
+            matchingAttempts: 0,
+            matchingScore: 0,
+
+            // Gap Fill State
+            currentGfKey: 'routine_clearance',
+
+            // Quiz State
+            quizIndex: 0,
+            quizScore: 0,
+            quizAnswered: false
+        };
+
+        /* ==========================================================================
+           3. INITIALIZATION & NAVIGATION LOGIC
+           ========================================================================== */
+        window.onload = function() {
+            renderFlashcard();
+            renderGridIndex();
+            updateMasteryUI();
+
+            // Setup Card Flip Listener
+            const cardEl = document.getElementById('flashcard');
+            cardEl.addEventListener('click', function(e) {
+                // Prevent flip if clicking audio button or mastery checkbox
+                if (e.target.closest('button')) return;
+                cardEl.classList.toggle('rotate-y-180');
+            });
+
+            // Init Drills
+            initMatchingGame('ROUTINE');
+            loadGapFillScenario('routine_clearance');
+            loadQuizQuestion(0);
+        };
+
+        function switchTab(tabId) {
+            state.currentTab = tabId;
+            
+            // Hide all sections
+            ['flashcards', 'matching', 'gapfill', 'quiz'].forEach(sec => {
+                document.getElementById(`section-${sec}`).classList.add('hidden');
+                
+                // Desktop nav highlight
+                const btn = document.getElementById(`tab-${sec}`);
+                if (btn) {
+                    btn.className = "nav-btn flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all " +
+                        (sec === tabId ? "text-cockpit-cyan bg-cockpit-card border border-cockpit-cyan/30" : "text-slate-400 hover:text-white");
+                }
+            });
+
+            // Show target section
+            document.getElementById(`section-${tabId}`).classList.remove('hidden');
+        }
+
+        function toggleAudioFx() {
+            state.audioFx = !state.audioFx;
+            const btn = document.getElementById('audio-toggle');
+            btn.innerHTML = `<i class="fa-solid fa-walkie-talkie ${state.audioFx ? 'text-cockpit-cyan' : 'text-slate-500'}"></i>
+                             <span class="text-xs font-mono ml-1 hidden sm:inline">RADIO FX: ${state.audioFx ? 'ON' : 'OFF'}</span>`;
+        }
+
+
+        /* ==========================================================================
+           4. FLASHCARD SYSTEM LOGIC
+           ========================================================================== */
+        function renderFlashcard() {
+            if (state.filteredCards.length === 0) return;
+            const card = state.filteredCards[state.currentCardIndex];
+
+            // Update UI elements
+            document.getElementById('card-front-category').innerText = card.category;
+            document.getElementById('card-front-code').innerText = `ICAO-RTF-${String(card.id).padStart(2, '0')}`;
+            document.getElementById('card-front-term').innerText = card.term;
+            document.getElementById('card-front-phonetic').innerText = card.phonetic;
+            document.getElementById('card-front-svg').innerHTML = card.svg;
+
+            document.getElementById('card-back-term').innerText = card.term;
+            document.getElementById('card-back-definition').innerText = card.def;
+
+            // Render Back Dialogue formatted
+            document.getElementById('card-back-dialogue').innerHTML = `
+                <div class="text-cockpit-amber"><span class="text-white font-bold">PILOT:</span> "${card.pilot}"</div>
+                <div class="text-cockpit-cyan"><span class="text-white font-bold">ATC:</span> "${card.atc}"</div>
+            `;
+
+            // Deck counter
+            document.getElementById('deck-position').innerText = `Card ${state.currentCardIndex + 1} of ${state.filteredCards.length}`;
+            document.getElementById('deck-category-badge').innerText = card.category;
+
+            // Mastery button style
+            const masteryBtn = document.getElementById('mastery-toggle-btn');
+            if (state.masteredCards.has(card.id)) {
+                masteryBtn.className = "p-2 rounded-lg bg-cockpit-green/20 border border-cockpit-green text-cockpit-green transition";
+            } else {
+                masteryBtn.className = "p-2 rounded-lg bg-cockpit-bg border border-cockpit-border hover:border-cockpit-green transition text-slate-500";
+            }
+
+            // Ensure card is front facing on navigate
+            document.getElementById('flashcard').classList.remove('rotate-y-180');
+        }
+
+        function navigateDeck(dir) {
+            state.currentCardIndex += dir;
+            if (state.currentCardIndex < 0) state.currentCardIndex = state.filteredCards.length - 1;
+            if (state.currentCardIndex >= state.filteredCards.length) state.currentCardIndex = 0;
+            renderFlashcard();
+        }
+
+        function filterFlashcards(cat) {
+            if (cat === 'ALL') {
+                state.filteredCards = [...FLASHCARDS_DATA];
+            } else {
+                state.filteredCards = FLASHCARDS_DATA.filter(c => c.category === cat);
+            }
+            state.currentCardIndex = 0;
+            renderFlashcard();
+            renderGridIndex();
+        }
+
+        function searchFlashcards(query) {
+            const q = query.toLowerCase();
+            state.filteredCards = FLASHCARDS_DATA.filter(c => 
+                c.term.toLowerCase().includes(q) || 
+                c.def.toLowerCase().includes(q) ||
+                c.category.toLowerCase().includes(q)
+            );
+            state.currentCardIndex = 0;
+            renderFlashcard();
+            renderGridIndex();
+        }
+
+        function toggleCardMastery(e) {
+            e.stopPropagation();
+            const card = state.filteredCards[state.currentCardIndex];
+            if (state.masteredCards.has(card.id)) {
+                state.masteredCards.delete(card.id);
+            } else {
+                state.masteredCards.add(card.id);
+            }
+            localStorage.setItem('rtf_mastered', JSON.stringify([...state.masteredCards]));
+            updateMasteryUI();
+            renderFlashcard();
+        }
+
+        function updateMasteryUI() {
+            const count = state.masteredCards.size;
+            const total = FLASHCARDS_DATA.length;
+            const pct = Math.round((count / total) * 100);
+
+            document.getElementById('mastery-counter').innerText = `${count} / ${total} Learned (${pct}%)`;
+            document.getElementById('mastery-bar').style.width = `${pct}%`;
+        }
+
+        function renderGridIndex() {
+            const container = document.getElementById('flashcard-grid');
+            document.getElementById('grid-count').innerText = `Showing ${state.filteredCards.length} Terms`;
+
+            container.innerHTML = state.filteredCards.map(card => `
+                <div onclick="selectCardById(${card.id})" class="p-4 rounded-xl bg-cockpit-card border border-cockpit-border hover:border-cockpit-cyan/50 cursor-pointer transition flex items-start justify-between group">
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cockpit-bg border border-cockpit-border text-slate-400">${card.category}</span>
+                        <h4 class="font-mono text-sm font-bold text-white group-hover:text-cockpit-cyan transition">${card.term}</h4>
+                        <p class="text-xs text-slate-400 line-clamp-2">${card.def}</p>
+                    </div>
+                    ${state.masteredCards.has(card.id) ? '<i class="fa-solid fa-circle-check text-cockpit-green text-lg"></i>' : ''}
+                </div>
+            `).join('');
+        }
+
+        function selectCardById(id) {
+            const idx = state.filteredCards.findIndex(c => c.id === id);
+            if (idx !== -1) {
+                state.currentCardIndex = idx;
+                renderFlashcard();
+                window.scrollTo({ top: 100, behavior: 'smooth' });
+            }
+        }
+
+        // Speech Synthesis with Radio Noise Sidetone
+        function speakCurrentTerm(e) {
+            if (e) e.stopPropagation();
+            const card = state.filteredCards[state.currentCardIndex];
+            speakText(card.term);
+        }
+
+        function speakCurrentDialogue(e) {
+            if (e) e.stopPropagation();
+            const card = state.filteredCards[state.currentCardIndex];
+            speakText(`Pilot says: ${card.pilot}. Air Traffic Control responds: ${card.atc}`);
+        }
+
+        function speakText(text) {
+            if (!('speechSynthesis' in window)) {
+                alert("Web Speech API synthesizer not supported in this browser.");
+                return;
+            }
+
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.95;
+            utterance.pitch = 0.9;
+
+            // Standard aviation radio filter effect via Web Audio API if enabled
+            if (state.audioFx) {
+                playRadioBeep();
+            }
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function playRadioBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1200, ctx.currentTime);
+                gain.gain.setValueAtTime(0.05, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.15);
+            } catch(e) {}
+        }
+
+
+        /* ==========================================================================
+           5. MULTIPLE MATCHING GAME LOGIC
+           ========================================================================== */
+        function initMatchingGame(mode) {
+            state.matchingMode = mode;
+            state.selectedColA = null;
+            state.matchingAttempts = 0;
+            state.matchingScore = 0;
+
+            document.getElementById('match-mode-routine').className = mode === 'ROUTINE' ? 
+                "px-4 py-2 rounded-xl text-xs font-mono font-bold border transition bg-cockpit-cyan/20 border-cockpit-cyan text-cockpit-cyan" :
+                "px-4 py-2 rounded-xl text-xs font-mono font-bold border transition bg-cockpit-bg border-cockpit-border text-slate-400 hover:text-white";
+
+            document.getElementById('match-mode-emergency').className = mode === 'NON_ROUTINE' ? 
+                "px-4 py-2 rounded-xl text-xs font-mono font-bold border transition bg-cockpit-amber/20 border-cockpit-amber text-cockpit-amber" :
+                "px-4 py-2 rounded-xl text-xs font-mono font-bold border transition bg-cockpit-bg border-cockpit-border text-slate-400 hover:text-white";
+
+            updateMatchingScoreboard();
+            document.getElementById('matching-feedback').classList.add('hidden');
+
+            const pairs = MATCHING_DATA[mode];
+            
+            // Shuffle Column A and Column B independently
+            const colAData = [...pairs].sort(() => Math.random() - 0.5);
+            const colBData = [...pairs].sort(() => Math.random() - 0.5);
+
+            // Render Column A
+            document.getElementById('matching-col-a').innerHTML = colAData.map(item => `
+                <div id="match-a-${item.id}" onclick="selectMatchingColA('${item.id}')" class="p-4 rounded-xl bg-cockpit-bg border border-cockpit-border hover:border-cockpit-cyan cursor-pointer transition flex items-center justify-between font-mono text-xs text-white">
+                    <span class="font-bold">${item.phrase}</span>
+                    <i class="fa-regular fa-circle text-slate-500"></i>
+                </div>
+            `).join('');
+
+            // Render Column B
+            document.getElementById('matching-col-b').innerHTML = colBData.map(item => `
+                <div id="match-b-${item.id}" onclick="selectMatchingColB('${item.id}')" class="p-4 rounded-xl bg-cockpit-bg border border-cockpit-border hover:border-cockpit-amber cursor-pointer transition flex items-center justify-between font-mono text-xs text-slate-300">
+                    <span>${item.match}</span>
+                    <i class="fa-regular fa-square text-slate-500"></i>
+                </div>
+            `).join('');
+        }
+
+        function selectMatchingColA(id) {
+            // Unselect previous
+            if (state.selectedColA) {
+                const prev = document.getElementById(`match-a-${state.selectedColA}`);
+                if (prev) prev.classList.remove('border-cockpit-cyan', 'bg-cockpit-cyan/10');
+            }
+
+            state.selectedColA = id;
+            const current = document.getElementById(`match-a-${id}`);
+            if (current) current.classList.add('border-cockpit-cyan', 'bg-cockpit-cyan/10');
+        }
+
+        function selectMatchingColB(id) {
+            if (!state.selectedColA) {
+                showMatchingFeedback("Select an RTF Phraseology item from the left column first!", "warning");
+                return;
+            }
+
+            state.matchingAttempts++;
+            const pairColA = state.selectedColA;
+            const targetPair = MATCHING_DATA[state.matchingMode].find(p => p.id === pairColA);
+
+            if (pairColA === id) {
+                // Correct Match
+                state.matchingScore++;
+                showMatchingFeedback(`CORRECT MATCH! ${targetPair.explanation}`, "success");
+                
+                // Disable matched cards
+                document.getElementById(`match-a-${pairColA}`).className = "p-4 rounded-xl bg-cockpit-green/10 border border-cockpit-green opacity-60 pointer-events-none font-mono text-xs text-cockpit-green flex justify-between";
+                document.getElementById(`match-b-${id}`).className = "p-4 rounded-xl bg-cockpit-green/10 border border-cockpit-green opacity-60 pointer-events-none font-mono text-xs text-cockpit-green flex justify-between";
+
+                state.selectedColA = null;
+            } else {
+                // Wrong Match
+                showMatchingFeedback(`INCORRECT MATCH. Keep trying! Hint: ${targetPair.explanation}`, "error");
+            }
+
+            updateMatchingScoreboard();
+        }
+
+        function showMatchingFeedback(msg, type) {
+            const box = document.getElementById('matching-feedback');
+            box.classList.remove('hidden', 'bg-cockpit-green/10', 'border-cockpit-green', 'text-cockpit-green', 'bg-cockpit-red/10', 'border-cockpit-red', 'text-cockpit-red', 'bg-cockpit-amber/10', 'border-cockpit-amber', 'text-cockpit-amber');
+
+            if (type === 'success') box.classList.add('bg-cockpit-green/10', 'border-cockpit-green', 'text-cockpit-green');
+            else if (type === 'error') box.classList.add('bg-cockpit-red/10', 'border-cockpit-red', 'text-cockpit-red');
+            else box.classList.add('bg-cockpit-amber/10', 'border-cockpit-amber', 'text-cockpit-amber');
+
+            box.innerText = msg;
+        }
+
+        function updateMatchingScoreboard() {
+            document.getElementById('match-score').innerText = `${state.matchingScore} / ${MATCHING_DATA[state.matchingMode].length}`;
+            document.getElementById('match-attempts').innerText = state.matchingAttempts;
+        }
+
+        function resetMatchingGame() {
+            initMatchingGame(state.matchingMode);
+        }
+
+
+        /* ==========================================================================
+           6. GAP-FILL EXERCISES LOGIC
+           ========================================================================== */
+        function loadGapFillScenario(key) {
+            state.currentGfKey = key;
+            const scenario = GAPFILL_DATA[key];
+
+            document.getElementById('gf-title').innerText = scenario.title;
+            document.getElementById('gf-desc').innerText = scenario.desc;
+
+            const container = document.getElementById('gf-transcript-container');
+            
+            container.innerHTML = scenario.script.map((line, idx) => {
+                let formattedText = line.text;
+
+                // Replace gaps with select dropdowns
+                Object.keys(scenario.gaps).forEach(gapKey => {
+                    const gapObj = scenario.gaps[gapKey];
+                    const optionsHTML = `<option value="">[ Select Phraseology ]</option>` + 
+                        gapObj.options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+
+                    const selectHTML = `<select id="${key}_${gapKey}" class="inline-block bg-cockpit-card text-cockpit-cyan font-bold border border-cockpit-border rounded-lg px-2 py-1 mx-1 outline-none focus:border-cockpit-cyan">
+                        ${optionsHTML}
+                    </select>`;
+
+                    formattedText = formattedText.replace(`{${gapKey}}`, selectHTML);
+                });
+
+                const isPilot = line.speaker === 'PILOT';
+                return `
+                    <div class="flex items-start space-x-3 p-3 rounded-xl ${isPilot ? 'bg-cockpit-card/80 border-l-4 border-cockpit-amber' : 'bg-cockpit-card/40 border-l-4 border-cockpit-cyan'}">
+                        <span class="font-bold text-xs ${isPilot ? 'text-cockpit-amber' : 'text-cockpit-cyan'} w-12">${line.speaker}:</span>
+                        <p class="text-slate-200 flex-1">${formattedText}</p>
+                    </div>
+                `;
+            }).join('');
+
+            updateGapFillScore(0, Object.keys(scenario.gaps).length);
+        }
+
+        function validateGapFill() {
+            const scenario = GAPFILL_DATA[state.currentGfKey];
+            let correctCount = 0;
+            const totalGaps = Object.keys(scenario.gaps).length;
+
+            Object.keys(scenario.gaps).forEach(gapKey => {
+                const selectEl = document.getElementById(`${state.currentGfKey}_${gapKey}`);
+                if (!selectEl) return;
+
+                const userVal = selectEl.value;
+                const correctVal = scenario.gaps[gapKey].answer;
+
+                if (userVal === correctVal) {
+                    correctCount++;
+                    selectEl.className = "inline-block bg-cockpit-green/20 text-cockpit-green font-bold border border-cockpit-green rounded-lg px-2 py-1 mx-1";
+                } else {
+                    selectEl.className = "inline-block bg-cockpit-red/20 text-cockpit-red font-bold border border-cockpit-red rounded-lg px-2 py-1 mx-1";
+                }
+            });
+
+            updateGapFillScore(correctCount, totalGaps);
+        }
+
+        function revealGapFillAnswers() {
+            const scenario = GAPFILL_DATA[state.currentGfKey];
+            Object.keys(scenario.gaps).forEach(gapKey => {
+                const selectEl = document.getElementById(`${state.currentGfKey}_${gapKey}`);
+                if (selectEl) {
+                    selectEl.value = scenario.gaps[gapKey].answer;
+                    selectEl.className = "inline-block bg-cockpit-cyan/20 text-cockpit-cyan font-bold border border-cockpit-cyan rounded-lg px-2 py-1 mx-1";
+                }
+            });
+            updateGapFillScore(Object.keys(scenario.gaps).length, Object.keys(scenario.gaps).length);
+        }
+
+        function updateGapFillScore(score, total) {
+            document.getElementById('gf-score').innerText = `${score} / ${total} Correct`;
+        }
+
+        function speakFullScript() {
+            const scenario = GAPFILL_DATA[state.currentGfKey];
+            const fullText = scenario.script.map(s => `${s.speaker}: ${s.text}`).join('. ');
+            // Clean gap tags for speech
+            const cleanText = fullText.replace(/\{gap\d+\}/g, "blank");
+            speakText(cleanText);
+        }
+
+
+        /* ==========================================================================
+           7. PRACTICE QUIZ LOGIC
+           ========================================================================== */
+        function loadQuizQuestion(idx) {
+            state.quizIndex = idx;
+            state.quizAnswered = false;
+
+            const qData = QUIZ_QUESTIONS[idx];
+            document.getElementById('quiz-q-num').innerText = `QUESTION ${idx + 1} OF ${QUIZ_QUESTIONS.length}`;
+            document.getElementById('quiz-question-text').innerText = qData.q;
+            document.getElementById('quiz-progress').style.width = `${((idx + 1) / QUIZ_QUESTIONS.length) * 100}%`;
+
+            document.getElementById('quiz-explanation-box').classList.add('hidden');
+
+            const container = document.getElementById('quiz-options-container');
+            container.innerHTML = qData.options.map((opt, optIdx) => `
+                <div onclick="selectQuizOption(${optIdx})" id="quiz-opt-${optIdx}" class="p-4 rounded-xl bg-cockpit-bg border border-cockpit-border hover:border-cockpit-cyan cursor-pointer transition font-mono text-sm text-slate-200 flex items-center justify-between">
+                    <span>${opt}</span>
+                    <i class="fa-regular fa-circle text-slate-500"></i>
+                </div>
+            `).join('');
+        }
+
+        function selectQuizOption(optIdx) {
+            if (state.quizAnswered) return;
+            state.quizAnswered = true;
+
+            const qData = QUIZ_QUESTIONS[state.quizIndex];
+            const isCorrect = optIdx === qData.correct;
+
+            if (isCorrect) {
+                state.quizScore++;
+                document.getElementById(`quiz-opt-${optIdx}`).className = "p-4 rounded-xl bg-cockpit-green/20 border border-cockpit-green font-mono text-sm text-cockpit-green font-bold flex justify-between items-center";
+            } else {
+                document.getElementById(`quiz-opt-${optIdx}`).className = "p-4 rounded-xl bg-cockpit-red/20 border border-cockpit-red font-mono text-sm text-cockpit-red font-bold flex justify-between items-center";
+                document.getElementById(`quiz-opt-${qData.correct}`).className = "p-4 rounded-xl bg-cockpit-green/20 border border-cockpit-green font-mono text-sm text-cockpit-green font-bold flex justify-between items-center";
+            }
+
+            // Explanation box
+            const expBox = document.getElementById('quiz-explanation-box');
+            expBox.classList.remove('hidden');
+            document.getElementById('quiz-result-title').innerText = isCorrect ? "CORRECT ANSWER!" : "INCORRECT";
+            document.getElementById('quiz-result-title').className = isCorrect ? "font-bold text-sm text-cockpit-green" : "font-bold text-sm text-cockpit-red";
+            document.getElementById('quiz-explanation-text').innerText = qData.explanation;
+
+            document.getElementById('quiz-score-display').innerText = `${state.quizScore} / ${QUIZ_QUESTIONS.length}`;
+        }
+
+        function nextQuizQuestion() {
+            if (state.quizIndex < QUIZ_QUESTIONS.length - 1) {
+                loadQuizQuestion(state.quizIndex + 1);
+            } else {
+                alert(`Quiz Complete! Final Score: ${state.quizScore} / ${QUIZ_QUESTIONS.length}`);
+                state.quizScore = 0;
+                loadQuizQuestion(0);
+            }
+        }
+
+
+        /* ==========================================================================
+           8. EXPORT & UTILITIES
+           ========================================================================== */
+        function exportProgress() {
+            const progressData = {
+                masteredCardIds: [...state.masteredCards],
+                masteryCount: state.masteredCards.size,
+                timestamp: new Date().toISOString()
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(progressData, null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", `RTF_Masterclass_Progress_${Date.now()}.json`);
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+        }
+    </script>
+</body>
+</html>
