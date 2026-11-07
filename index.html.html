@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviation RTF & ICAO Phraseology Masterclass</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0b0f19; color: #e2e8f0; }
+        .font-cockpit { font-family: 'Chakra Petch', monospace; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-slate-900">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900/90 border-b border-slate-800 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-cyan-500/10 border border-cyan-500/30 p-2.5 rounded-lg text-cyan-400">
+                    <i class="fa-solid fa-plane-departure text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-cockpit font-bold text-lg md:text-xl text-slate-100 tracking-wide uppercase">
+                        ICAO RTF <span class="text-cyan-400">Masterclass</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Digit-by-Digit NATO & ICAO Doc 8400 Decoder</p>
+                </div>
+            </div>
+
+            <!-- Voice Controls & Navigation -->
+            <div class="flex items-center space-x-3">
+                <div class="flex items-center space-x-2 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs">
+                    <i class="fa-solid fa-microphone text-cyan-400"></i>
+                    <select id="voiceSelect" class="bg-transparent text-slate-200 outline-none cursor-pointer max-w-[140px] md:max-w-[180px] truncate">
+                        <option value="">Loading Voices...</option>
+                    </select>
+                </div>
+
+                <nav class="flex bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs font-medium">
+                    <button id="tabFlashcards" onclick="switchTab('flashcards')" class="px-3 py-1.5 rounded-md bg-cyan-500 text-slate-950 font-semibold transition-all">
+                        <i class="fa-solid fa-layer-group mr-1.5"></i>Cards
+                    </button>
+                    <button id="tabMatching" onclick="switchTab('matching')" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 transition-all">
+                        <i class="fa-solid fa-puzzle-piece mr-1.5"></i>Match
+                    </button>
+                    <button id="tabGapFill" onclick="switchTab('gapfill')" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 transition-all">
+                        <i class="fa-solid fa-pen-to-square mr-1.5"></i>Fill-In
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+
+        <!-- FLASHCARDS TAB -->
+        <section id="flashcardsView" class="space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
+                <div class="flex items-center space-x-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
+                    <button onclick="filterCategory('ALL')" class="cat-btn active border border-cyan-500/50 bg-cyan-500/10 text-cyan-400 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all">All Categories</button>
+                    <button onclick="filterCategory('EMERGENCY')" class="cat-btn border border-slate-700 bg-slate-800/50 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all">Emergency & Urgency</button>
+                    <button onclick="filterCategory('CLEARANCE')" class="cat-btn border border-slate-700 bg-slate-800/50 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all">ATC Clearances</button>
+                    <button onclick="filterCategory('WEATHER')" class="cat-btn border border-slate-700 bg-slate-800/50 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all">Weather & Aerodrome</button>
+                </div>
+
+                <div class="relative w-full md:w-64">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                    <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="Search terms or acronyms (e.g. QNH, FL200)..." class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500">
+                </div>
+            </div>
+
+            <div id="cardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- MATCHING VIEW -->
+        <section id="matchingView" class="hidden space-y-6">
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl text-center space-y-2">
+                <h2 class="font-cockpit text-lg text-cyan-400 font-bold uppercase tracking-wider">ICAO Phraseology & Acronym Decoder</h2>
+                <p class="text-xs text-slate-400">Match each RTF term with its precise ICAO Doc 8400 definition.</p>
+            </div>
+            <div id="matchingBoard" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+        </section>
+
+        <!-- GAP FILL VIEW -->
+        <section id="gapfillView" class="hidden space-y-6">
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl space-y-2">
+                <div class="flex justify-between items-center">
+                    <h2 class="font-cockpit text-lg text-amber-400 font-bold uppercase tracking-wider">Pilot-ATC Digit-by-Digit Dialogues</h2>
+                    <span class="text-xs bg-amber-500/10 border border-amber-500/30 text-amber-400 px-2.5 py-1 rounded-md">ICAO Annex 10 Compliant</span>
+                </div>
+                <p class="text-xs text-slate-400">Examine standard readbacks where all flight levels, numbers, and runway designators are spoken digit-by-digit.</p>
+            </div>
+            <div id="gapfillContainer" class="space-y-6"></div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-900 py-4 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
+            <p>ICAO Radiotelephony (RTF) Masterclass • Strict NATO Alphanumeric & Acronym Decoding</p>
+            <p class="font-cockpit text-cyan-500/80">Ref: ICAO Doc 8400 & Doc 9432</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- NATO ALPHANUMERIC & ICAO NUMBER SPELLER ---
+        const NATO_MAP = {
+            'A': 'ALFA', 'B': 'BRAVO', 'C': 'CHARLIE', 'D': 'DELTA', 'E': 'ECHO',
+            'F': 'FOXTROT', 'G': 'GOLF', 'H': 'HOTEL', 'I': 'INDIA', 'J': 'JULIETT',
+            'K': 'KILO', 'L': 'LIMA', 'M': 'MIKE', 'N': 'NOVEMBER', 'O': 'OSCAR',
+            'P': 'PAPA', 'Q': 'QUEBEC', 'R': 'ROMEO', 'S': 'SIERRA', 'T': 'TANGO',
+            'U': 'UNIFORM', 'V': 'VICTOR', 'W': 'WHISKEY', 'X': 'XRAY', 'Y': 'YANKEE', 'Z': 'ZULU',
+            '0': 'ZEE-RO', '1': 'WUN', '2': 'TOO', '3': 'TREE', '4': 'FOW-ER',
+            '5': 'FIFE', '6': 'SIX', '7': 'SEV-EN', '8': 'AIT', '9': 'NINER'
+        };
+
+        const ICAO_DECODES = {
+            'QNH': 'Question Nil Height (Altimeter subscale setting to obtain elevation when on ground)',
+            'QFE': 'Question Field Elevation (Altimeter subscale setting to obtain height above airport elevation)',
+            'ATIS': 'Automatic Terminal Information Service (Continuous broadcast of recorded aerodrome info)',
+            'TCAS': 'Traffic Alert and Collision Avoidance System',
+            'ILS': 'Instrument Landing System (Precision runway approach guidance)',
+            'VOR': 'VHF Omnidirectional Range (Radio navigation station)',
+            'SID': 'Standard Instrument Departure (Published instrument flight procedure)',
+            'STAR': 'Standard Terminal Arrival Route',
+            'WILCO': 'Will Comply with received instructions',
+            'ROGER': 'I have received all of your last transmission',
+            'FL': 'Flight Level (A surface of constant atmospheric pressure referenced to 1013.2 hPa)'
+        };
+
+        // Strict digit-by-digit and acronym expansion function
+        function encodeNATOSpeech(text) {
+            let speakable = text;
+
+            // Expand Flight Levels (e.g. FL200 -> Flight Level Two Zero Zero)
+            speakable = speakable.replace(/FL\s*(\d+)/gi, (match, p1) => {
+                let digitWords = p1.split('').map(d => NATO_MAP[d] || d).join(' ');
+                return `Flight Level ${digitWords}`;
+            });
+
+            // Expand Runway Designators (e.g. Runway 27L -> Runway Two Seven Left)
+            speakable = speakable.replace(/Runway\s*(\d+)([LCR]?)/gi, (match, digits, letter) => {
+                let dSpoken = digits.split('').map(d => NATO_MAP[d] || d).join(' ');
+                let lSpoken = letter === 'L' ? ' Left' : letter === 'C' ? ' Center' : letter === 'R' ? ' Right' : '';
+                return `Runway ${dSpoken}${lSpoken}`;
+            });
+
+            // Expand general numbers digit by digit (e.g. 1013 -> One Zero One Three)
+            speakable = speakable.replace(/\b(\d{2,5})\b/g, (match) => {
+                return match.split('').map(d => NATO_MAP[d] || d).join(' ');
+            });
+
+            // Expand Acronyms / Callsigns letter by letter if not common words
+            speakable = speakable.replace(/\b([A-Z]{2,5})\b/g, (match) => {
+                if (ICAO_DECODES[match] || match === 'MAYDAY' || match === 'PAN') return match;
+                return match.split('').map(char => NATO_MAP[char] || char).join(' ');
+            });
+
+            return speakable;
+        }
+
+        let synth = window.speechSynthesis;
+        let voices = [];
+
+        function populateVoiceList() {
+            voices = synth.getVoices().filter(voice => voice.lang.includes('en'));
+            const voiceSelect = document.getElementById('voiceSelect');
+            voiceSelect.innerHTML = '';
+            
+            if (voices.length === 0) {
+                let opt = document.createElement('option');
+                opt.textContent = 'Default English Voice';
+                voiceSelect.appendChild(opt);
+                return;
+            }
+
+            voices.forEach((voice, index) => {
+                let option = document.createElement('option');
+                option.textContent = `${voice.name} (${voice.lang})`;
+                option.value = index;
+                if (voice.default || voice.name.includes('Natural') || voice.name.includes('UK') || voice.name.includes('US')) {
+                    option.selected = true;
+                }
+                voiceSelect.appendChild(option);
+            });
+        }
+
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = populateVoiceList;
+        }
+
+        function speakText(rawText) {
+            if (synth.speaking) synth.cancel();
+            const phoneticText = encodeNATOSpeech(rawText);
+            const utterance = new SpeechSynthesisUtterance(phoneticText);
+            const selectedVoiceIndex = document.getElementById('voiceSelect').value;
+            if (voices[selectedVoiceIndex]) {
+                utterance.voice = voices[selectedVoiceIndex];
+            }
+            utterance.rate = 0.88;
+            utterance.pitch = 1.0;
+            synth.speak(utterance);
+        }
+
+        // RTF Database with full ICAO acronym decodings
+        const rtfDatabase = [
+            {
+                id: 1, term: "MAYDAY", category: "EMERGENCY", phonetic: "MAY-DAY",
+                decode: "Distress signal (Priority 1). Immediate threat to aircraft or lives.",
+                dialogue: "MAYDAY MAYDAY MAYDAY, Fastair 345, Engine Fire, Request Return Runway 27L.", color: "red"
+            },
+            {
+                id: 2, term: "QNH", category: "WEATHER", phonetic: "QUEBEC NOVEMBER HOTEL",
+                decode: ICAO_DECODES['QNH'],
+                dialogue: "Tower, Speedbird 102, Request QNH 1013.", color: "blue"
+            },
+            {
+                id: 3, term: "FL200", category: "CLEARANCE", phonetic: "FLIGHT LEVEL TWO ZERO ZERO",
+                decode: ICAO_DECODES['FL'],
+                dialogue: "Climb and maintain FL200.", color: "cyan"
+            },
+            {
+                id: 4, term: "ATIS", category: "WEATHER", phonetic: "ALFA TANGO INDIA SIERRA",
+                decode: ICAO_DECODES['ATIS'],
+                dialogue: "Information Papa received, QNH 1013 active.", color: "emerald"
+            },
+            {
+                id: 5, term: "ILS", category: "CLEARANCE", phonetic: "INDIA LIMA SIERRA",
+                decode: ICAO_DECODES['ILS'],
+                dialogue: "Cleared ILS approach Runway 27L.", color: "purple"
+            },
+            {
+                id: 6, term: "VOR", category: "CLEARANCE", phonetic: "VICTOR OSCAR ROMEO",
+                decode: ICAO_DECODES['VOR'],
+                dialogue: "Proceed direct to Tbilisi VOR 115.5.", color: "amber"
+            }
+        ];
+
+        function renderCards(cards) {
+            const grid = document.getElementById('cardGrid');
+            grid.innerHTML = cards.map(c => `
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-cyan-500/50 transition-all space-y-4 flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-start">
+                            <span class="text-[10px] font-cockpit font-bold px-2 py-0.5 rounded border border-${c.color}-500/30 bg-${c.color}-500/10 text-${c.color}-400">
+                                ${c.category}
+                            </span>
+                            <button onclick="speakText('${c.term}. ${c.dialogue}')" class="text-slate-400 hover:text-cyan-400 p-1.5 rounded-lg bg-slate-950 border border-slate-800 transition-all" title="Read with ICAO Spoken Rules">
+                                <i class="fa-solid fa-volume-high text-xs"></i>
+                            </button>
+                        </div>
+                        <div>
+                            <h3 class="font-cockpit text-xl font-bold text-slate-100 tracking-wide">${c.term}</h3>
+                            <p class="text-xs text-slate-500 font-mono">${c.phonetic}</p>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed bg-slate-950/60 p-3 rounded-lg border border-slate-800/80">
+                            ${c.decode}
+                        </p>
+                    </div>
+                    <div class="space-y-2 pt-3 border-t border-slate-800/80">
+                        <span class="text-[10px] uppercase font-bold text-slate-500">ICAO Transmission Readback:</span>
+                        <p class="text-xs font-mono text-cyan-300/90 italic bg-cyan-950/20 p-2.5 rounded border border-cyan-900/30">
+                            "${c.dialogue}"
+                        </p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function switchTab(tab) {
+            document.getElementById('flashcardsView').classList.add('hidden');
+            document.getElementById('matchingView').classList.add('hidden');
+            document.getElementById('gapfillView').classList.add('hidden');
+
+            document.getElementById('tabFlashcards').className = "px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 transition-all";
+            document.getElementById('tabMatching').className = "px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 transition-all";
+            document.getElementById('tabGapFill').className = "px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200 transition-all";
+
+            if (tab === 'flashcards') {
+                document.getElementById('flashcardsView').classList.remove('hidden');
+                document.getElementById('tabFlashcards').className = "px-3 py-1.5 rounded-md bg-cyan-500 text-slate-950 font-semibold transition-all";
+            } else if (tab === 'matching') {
+                document.getElementById('matchingView').classList.remove('hidden');
+                document.getElementById('tabMatching').className = "px-3 py-1.5 rounded-md bg-cyan-500 text-slate-950 font-semibold transition-all";
+                renderMatchingGame();
+            } else if (tab === 'gapfill') {
+                document.getElementById('gapfillView').classList.remove('hidden');
+                document.getElementById('tabGapFill').className = "px-3 py-1.5 rounded-md bg-cyan-500 text-slate-950 font-semibold transition-all";
+                renderGapFill();
+            }
+        }
+
+        function filterCategory(cat) {
+            if (cat === 'ALL') renderCards(rtfDatabase);
+            else renderCards(rtfDatabase.filter(c => c.category === cat));
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = rtfDatabase.filter(c => 
+                c.term.toLowerCase().includes(query) || 
+                c.decode.toLowerCase().includes(query) ||
+                c.category.toLowerCase().includes(query)
+            );
+            renderCards(filtered);
+        }
+
+        function renderGapFill() {
+            const container = document.getElementById('gapfillContainer');
+            container.innerHTML = `
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-cockpit text-amber-400 uppercase font-bold">Scenario: FL200 climb & QNH 1013</span>
+                        <button onclick="speakText('Speedbird 102, climb and maintain FL200, altimeter QNH 1013, Runway 27L.')" class="text-xs text-slate-400 hover:text-amber-400">
+                            <i class="fa-solid fa-volume-high mr-1"></i>Listen Spoken Spelled Digits
+                        </button>
+                    </div>
+                    <p class="text-sm font-mono text-slate-200">
+                        ATC Transmission: "Speedbird 102, climb and maintain <span class="text-cyan-400 font-bold">FL200</span>, QNH <span class="text-amber-400 font-bold">1013</span>, Runway <span class="text-emerald-400 font-bold">27L</span>."
+                    </p>
+                    <p class="text-xs text-slate-400 italic">
+                        Spoken NATO Output: "Speedbird WUN ZEE-RO TOO, climb and maintain Flight Level TOO ZEE-RO ZEE-RO, QNH WUN ZEE-RO WUN TREE, Runway TOO SEV-EN Left."
+                    </p>
+                </div>
+            `;
+        }
+
+        function renderMatchingGame() {
+            const board = document.getElementById('matchingBoard');
+            board.innerHTML = `
+                <div class="space-y-3">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">ICAO RTF / Acronym</h3>
+                    ${rtfDatabase.map(item => `
+                        <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-lg text-sm font-cockpit font-bold text-cyan-400 flex justify-between items-center">
+                            <span>${item.term}</span>
+                            <button onclick="speakText('${item.term}')" class="text-slate-500 hover:text-cyan-400"><i class="fa-solid fa-volume-high text-xs"></i></button>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="space-y-3">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">ICAO Doc 8400 Definition</h3>
+                    ${rtfDatabase.map(item => `
+                        <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-lg text-xs text-slate-300">
+                            ${item.decode}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        window.onload = () => {
+            renderCards(rtfDatabase);
+            setTimeout(populateVoiceList, 500);
+        };
+    </script>
+</body>
+</html>
