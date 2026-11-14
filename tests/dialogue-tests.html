@@ -180,6 +180,56 @@
           assert(JSON.stringify(JSON.parse(localStorage.getItem('icao_rtf_cards'))) === JSON.stringify(imported), 'Invalid import replaced saved data');
         });
 
+        test('Expanded vocabulary follows the current deck and can be searched', () => {
+          const previousCards = flashcardsData;
+          const previousStorage = localStorage.getItem('icao_rtf_cards');
+          const input = document.getElementById('vocabulary-search');
+          const previousSearch = input.value;
+          const items = id => [...document.querySelectorAll(`#${id} [data-vocabulary-item]`)].map(item => item.textContent);
+          const count = id => document.getElementById(id).textContent;
+          try {
+            flashcardsData = cards;
+            input.value = '';
+            switchTab('collocations');
+            const expected = field => new Set(cards.flatMap(card => getCardVocabulary(card)[field]).map(item => item.trim().toLowerCase())).size;
+            const collocations = items('vocabulary-collocations');
+            const nouns = items('vocabulary-nouns');
+            assert(collocations.length === expected('collocations') && collocations.length > 100, 'Default collocations are incomplete');
+            assert(nouns.length === expected('compoundNouns') && nouns.length > 70, 'Default compound nouns are incomplete');
+            assert(new Set(collocations.map(item => item.toLowerCase())).size === collocations.length, 'Duplicate collocations were displayed');
+            assert(collocations.includes('request immediate assistance') && nouns.includes('landing gear'), 'Representative aviation vocabulary is missing');
+            assert(count('vocabulary-collocation-count') === `(${collocations.length})` && count('vocabulary-noun-count') === `(${nouns.length})`, 'Vocabulary counts are incorrect');
+
+            input.value = 'PUSHBACK';
+            input.dispatchEvent(new Event('input'));
+            const filtered = [...items('vocabulary-collocations'), ...items('vocabulary-nouns')];
+            assert(filtered.length >= 3 && filtered.every(item => item.toLowerCase().includes('pushback')), 'Vocabulary search is not case-insensitive');
+            input.value = 'no-such-vocabulary-term';
+            input.dispatchEvent(new Event('input'));
+            assert(items('vocabulary-collocations').length === 0 && items('vocabulary-nouns').length === 0, 'Unmatched vocabulary was displayed');
+            assert(count('vocabulary-collocation-count') === '(0)' && document.getElementById('vocabulary-nouns').textContent.includes('No matching terms.'), 'Empty search state is missing');
+
+            input.value = '';
+            input.dispatchEvent(new Event('input'));
+            const first = { id: 910, cat: 'CUSTOM', phrase: 'First', icaoAudio: 'First', meaning: 'First', svgType: 'GENERAL', collocations: ['Request <inspection>', 'request <inspection>'], compoundNouns: ['inspection request'] };
+            const second = { id: 911, cat: 'CUSTOM', phrase: 'Second', icaoAudio: 'Second', meaning: 'Second', svgType: 'GENERAL', collocations: ['REQUEST <INSPECTION>', 'conduct a briefing'], compoundNouns: ['Inspection request'] };
+            category.value = 'ALL';
+            search.value = '';
+            document.getElementById('deck-json-area').value = JSON.stringify([first, second]);
+            importCustomDeck();
+            assert(items('vocabulary-collocations').length === 2 && items('vocabulary-nouns').length === 1, 'Imported vocabulary was not deduplicated');
+            assert(items('vocabulary-collocations').includes('Request <inspection>') && !document.querySelector('#vocabulary-collocations inspection'), 'Imported vocabulary was not rendered as text');
+            resetDefaultDeck();
+            assert(items('vocabulary-collocations').length === expected('collocations') && !items('vocabulary-collocations').includes('Request <inspection>'), 'Reset did not refresh the vocabulary list');
+          } finally {
+            flashcardsData = previousCards;
+            if (previousStorage === null) localStorage.removeItem('icao_rtf_cards');
+            else localStorage.setItem('icao_rtf_cards', previousStorage);
+            input.value = previousSearch;
+            renderVocabularyList();
+          }
+        });
+
         test('Scenario sequences include requests and complete readbacks', () => {
           const filled = line => line.text || line.blanks.reduce((text, blank, index) => text.replace(`{${index}}`, blank.answer), line.template);
           const pushback = SCENARIOS[0].lines;

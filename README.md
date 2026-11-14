@@ -1,6 +1,6 @@
 # English-for-Aviation-Radiotelephony
 
-Practice radiotelephony with flashcards, matching, gap-fill scenarios and quizzes. Each card's dialogue side includes related collocations and compound nouns in general aviation English; these are not necessarily prescribed radio transmissions. The collocations section separates radio examples from general aviation English.
+Practice radiotelephony with flashcards, matching, gap-fill scenarios and quizzes. Each card's dialogue side includes related collocations and compound nouns in general aviation English; these are not necessarily prescribed radio transmissions. The collocations section separates radio examples from general aviation English and provides a searchable vocabulary list from the current deck.
 
 These are illustrative training examples, not a complete or authoritative set of procedures. Follow current local publications, operator procedures and ATC instructions. References: [SKYbrary's ICAO Annex 11 readback summary](https://skybrary.aero/articles/read-back-or-hear-back), [ICAO SID/STAR guidance](https://www.icao.int/airnavigation/faq-atco), and the [UK CAA Radiotelephony Manual, CAP 413](https://www.caa.co.uk/media/km2juvmx/cap413-edition-24-radio-telephony.pdf) (which includes UK-specific requirements).
 

@@ -71,7 +71,7 @@
 
   <!-- TOP NAVIGATION HEADER -->
   <header class="border-b border-slate-800 bg-cockpit-card/90 backdrop-blur sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <div class="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-1 sm:space-x-3 min-w-0">
         <div class="sm:p-2 sm:bg-cyan-500/10 sm:border border-cyan-500/30 rounded-lg text-cyan-400 glow-cyan">
           <svg viewBox="0 0 32 32" class="w-4 h-4 sm:w-6 sm:h-6" fill="none" aria-hidden="true">
@@ -93,7 +93,7 @@
       </div>
 
       <!-- MAIN TABS NAVIGATION -->
-      <nav class="hidden xl:flex items-center space-x-1 font-mono text-sm whitespace-nowrap">
+      <nav class="hidden min-[1600px]:flex items-center space-x-1 font-mono text-sm whitespace-nowrap">
         <button onclick="switchTab('flashcards')" id="tab-flashcards" class="nav-tab px-4 py-2 rounded-lg flex items-center gap-2 transition text-cyan-400 bg-cyan-950/40 border border-cyan-500/40 font-bold">
           <i class="fa-solid fa-layer-group"></i> Flashcards (<span id="flashcard-count-badge">70</span>)
         </button>
@@ -124,7 +124,7 @@
         <button onclick="openExportModal()" title="Export/Import Decks" class="p-2 text-slate-400 hover:text-cyan-400 hover:bg-slate-800 rounded-lg transition border border-slate-700">
           <i class="fa-solid fa-file-import"></i>
         </button>
-        <div class="text-right font-mono text-xs hidden 2xl:block border-l border-slate-800 pl-3">
+        <div class="text-right font-mono text-xs hidden min-[1800px]:block border-l border-slate-800 pl-3">
           <div class="text-slate-400">SPEECH ENGINE</div>
           <div id="speech-status" class="text-emerald-400 flex items-center justify-end gap-1">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> ICAO NAT-SPEECH READY
@@ -135,7 +135,7 @@
   </header>
 
   <!-- MOBILE NAVIGATION TOOLBAR -->
-  <div class="xl:hidden border-b border-slate-800 bg-slate-900 px-2 py-2 flex justify-start sm:justify-around gap-1 overflow-x-auto text-xs font-mono">
+  <div class="min-[1600px]:hidden sticky top-16 z-40 border-b border-slate-800 bg-slate-900 px-2 py-2 flex justify-start sm:justify-around gap-1 overflow-x-auto text-xs font-mono">
     <button onclick="switchTab('flashcards')" id="mtab-flashcards" class="mobile-tab px-2 py-1.5 rounded whitespace-nowrap shrink-0 text-cyan-400 bg-cyan-950/40 font-bold">Flashcards</button>
     <button onclick="switchTab('matching')" id="mtab-matching" class="mobile-tab px-2 py-1.5 rounded whitespace-nowrap shrink-0 text-slate-400">Matching</button>
     <button onclick="switchTab('scenarios')" id="mtab-scenarios" class="mobile-tab px-2 py-1.5 rounded whitespace-nowrap shrink-0 text-slate-400">Scenarios</button>
@@ -270,6 +270,28 @@
       <div class="border-b border-slate-800 pb-4">
         <h2 class="text-2xl font-bold tracking-tight text-slate-100">Common aviation collocations</h2>
         <p class="text-sm text-slate-400">Learn word combinations used in aviation and distinguish radio examples from general English.</p>
+      </div>
+      <div class="bg-cockpit-card border border-slate-800 rounded-xl p-6 space-y-4">
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div>
+            <h3 class="font-bold text-cyan-400">Explore flashcard vocabulary</h3>
+            <p class="text-xs text-slate-400">Browse the current deck, including category examples for cards without their own vocabulary. These are study phrases, not necessarily radio transmissions.</p>
+          </div>
+          <div class="w-full md:w-64">
+            <label for="vocabulary-search" class="block text-xs text-slate-400 mb-1">Search flashcard vocabulary</label>
+            <input id="vocabulary-search" type="search" oninput="renderVocabularyList()" placeholder="Search collocations or nouns..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-cyan-500 focus:outline-none">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <h4 class="font-bold text-sm text-slate-100">Collocations <span id="vocabulary-collocation-count" class="text-slate-400" aria-live="polite"></span></h4>
+            <ul id="vocabulary-collocations" tabindex="0" aria-label="Flashcard collocations" class="flex flex-wrap content-start gap-2 max-h-80 overflow-y-auto rounded-lg bg-slate-950 border border-slate-800 p-3"></ul>
+          </div>
+          <div class="space-y-2">
+            <h4 class="font-bold text-sm text-slate-100">Compound nouns <span id="vocabulary-noun-count" class="text-slate-400" aria-live="polite"></span></h4>
+            <ul id="vocabulary-nouns" tabindex="0" aria-label="Flashcard compound nouns" class="flex flex-wrap content-start gap-2 max-h-80 overflow-y-auto rounded-lg bg-slate-950 border border-slate-800 p-3"></ul>
+          </div>
+        </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-cockpit-card border border-slate-800 rounded-xl p-6 space-y-4">
@@ -884,6 +906,36 @@
 
     let flashcardsData = JSON.parse(localStorage.getItem('icao_rtf_cards')) || DEFAULT_FLASHCARDS;
 
+    function renderVocabularyList() {
+      const search = document.getElementById('vocabulary-search');
+      const lists = [
+        { field: 'collocations', list: document.getElementById('vocabulary-collocations'), count: document.getElementById('vocabulary-collocation-count') },
+        { field: 'compoundNouns', list: document.getElementById('vocabulary-nouns'), count: document.getElementById('vocabulary-noun-count') }
+      ];
+      if (!search || lists.some(item => !item.list || !item.count)) return;
+
+      const unique = { collocations: new Map(), compoundNouns: new Map() };
+      flashcardsData.forEach(card => {
+        const vocabulary = getCardVocabulary(card);
+        lists.forEach(({ field }) => vocabulary[field].forEach(item => {
+          const text = item.trim();
+          const key = text.toLowerCase();
+          if (!unique[field].has(key)) unique[field].set(key, text);
+        }));
+      });
+
+      const query = search.value.trim().toLowerCase();
+      lists.forEach(({ field, list, count }) => {
+        const items = [...unique[field].values()]
+          .filter(item => item.toLowerCase().includes(query))
+          .sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
+        count.textContent = `(${items.length})`;
+        list.innerHTML = items.length
+          ? items.map(item => `<li data-vocabulary-item class="max-w-full break-words rounded bg-slate-800 px-2 py-1 text-xs text-slate-200">${escapeHTML(item)}</li>`).join('')
+          : '<li class="text-xs text-slate-500">No matching terms.</li>';
+      });
+    }
+
     /* =========================================================================
        4. SCENARIOS & QUIZ LOGIC
        ========================================================================= */
@@ -1403,6 +1455,8 @@
         initMatchingDrills();
       } else if (tabId === 'scenarios') {
         loadScenario(currentScenarioIdx);
+      } else if (tabId === 'collocations') {
+        renderVocabularyList();
       } else if (tabId === 'quiz') {
         currentQuizIndex = 0;
         quizScore = 0;
@@ -1662,6 +1716,7 @@
           flashcardsData = imported;
           localStorage.setItem('icao_rtf_cards', JSON.stringify(flashcardsData));
           filterFlashcards();
+          renderVocabularyList();
           closeExportModal();
           speakICAOText("Deck imported successfully");
         } else {
@@ -1676,6 +1731,7 @@
       flashcardsData = DEFAULT_FLASHCARDS;
       localStorage.removeItem('icao_rtf_cards');
       filterFlashcards();
+      renderVocabularyList();
       closeExportModal();
       speakICAOText("Reset to default deck");
     }
@@ -1686,6 +1742,7 @@
     window.onload = function() {
       populateVoices();
       renderFlashcards(flashcardsData);
+      renderVocabularyList();
       populateScenarioDropdown();
     };
   </script>
