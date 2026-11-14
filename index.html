@@ -720,9 +720,10 @@
       return voiceEnginePromise;
     }
 
-    async function synthesizeTurn(text, voice, context, generation) {
+    async function synthesizeTurn(text, voice, context, generation, role) {
       const engine = await getVoiceEngine(context);
       if (generation !== playbackGeneration) return [];
+      setVoiceFeedback(`Generating ${role} audio on your device; this may take a moment...`);
       await engine.setup({ voice, language: 'en-us', speed: 0.95, audioEncoding: 'wav' });
       if (generation !== playbackGeneration) return [];
       const messages = await withVoiceTimeout(engine.synthesize({ input: text }), 180000);
@@ -755,7 +756,7 @@
         for (const turn of turns) {
           const role = turn.speaker === 'PILOT' ? 'pilot' : 'controller';
           setVoiceFeedback(`Generating ${role} audio on your device; this may take a moment...`);
-          const buffers = await synthesizeTurn(convertTextToICAOSpeech(turn.text), voices[turn.speaker], context, generation);
+          const buffers = await synthesizeTurn(convertTextToICAOSpeech(turn.text), voices[turn.speaker], context, generation, role);
           if (generation !== playbackGeneration) return;
           setVoiceFeedback(`Playing ${role} voice...`);
           for (const buffer of buffers) {

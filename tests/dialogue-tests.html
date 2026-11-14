@@ -79,6 +79,23 @@
           }
         });
 
+        await test('Voice status changes from download to generation', async () => {
+          const originalGetVoiceEngine = getVoiceEngine;
+          try {
+            getVoiceEngine = async () => {
+              setVoiceFeedback('Downloading independent voice data: 85 MB received.');
+              return {
+                setup: async () => {},
+                synthesize: async () => [{ type: 'audio', data: { audio: {} } }]
+              };
+            };
+            await originalSynthesize('TEST', selectedVoice, {}, playbackGeneration, 'controller');
+            assert(document.getElementById('voice-feedback').textContent.startsWith('Generating controller audio'), 'Download status remained after the voice engine was ready');
+          } finally {
+            getVoiceEngine = originalGetVoiceEngine;
+          }
+        });
+
         await test('Rendered dialogue and speech use the same speaker order', async () => {
           const pilotFirst = [5, 7, 15, 31, 40, 42, 44, 51, 52, 54, 69, 70];
           for (const id of [6, ...pilotFirst]) {
