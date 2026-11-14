@@ -585,6 +585,150 @@
     /* =========================================================================
        3. FLASHCARDS DATASET
        ========================================================================= */
+    const DEFAULT_CARD_COLLOCATIONS = {
+      1: ["climb to a flight level", "maintain a flight level"],
+      2: ["monitor the emergency frequency", "transmit a distress call"],
+      3: ["land on a runway", "read back the runway"],
+      4: ["acknowledge an instruction", "comply with an instruction"],
+      5: ["acknowledge a report", "confirm receipt"],
+      6: ["request a repetition", "repeat the clearance"],
+      7: ["stand by for further instructions", "request taxi clearance"],
+      8: ["read back a clearance", "verify a readback"],
+      9: ["monitor a frequency", "change radio frequency"],
+      10: ["set a transponder code", "read back a squawk code"],
+      11: ["taxi to a holding point", "follow a taxi route"],
+      12: ["hold short of a runway", "read back a hold-short instruction"],
+      13: ["cross a runway", "obtain a crossing clearance"],
+      14: ["vacate a runway", "report the runway vacated"],
+      15: ["request pushback", "receive pushback approval"],
+      16: ["approve pushback", "acknowledge pushback approval"],
+      17: ["give way to traffic", "identify conflicting traffic"],
+      18: ["line up on the runway", "wait for takeoff clearance"],
+      19: ["expedite taxi", "follow the taxi route"],
+      20: ["vacate via a taxiway", "clear the runway"],
+      21: ["issue a takeoff clearance", "read back the runway"],
+      22: ["reject a takeoff", "stop immediately"],
+      23: ["climb via a SID", "comply with published restrictions"],
+      24: ["cancel level restrictions", "comply with speed restrictions"],
+      25: ["contact radar", "change frequency"],
+      26: ["report passing a flight level", "continue climbing"],
+      27: ["turn right to a heading", "read back a heading"],
+      28: ["rejoin a SID", "maintain the assigned flight level"],
+      29: ["climb unrestricted", "follow the SID route"],
+      30: ["climb straight ahead", "reach the specified altitude"],
+      31: ["establish radar contact", "report passing a flight level"],
+      32: ["press the IDENT button", "identify a radar target"],
+      33: ["proceed direct to a waypoint", "read back the route"],
+      34: ["maintain a Mach number", "comply with a speed restriction"],
+      35: ["enter a holding pattern", "hold as published"],
+      36: ["descend to a flight level", "maintain the assigned level"],
+      37: ["cross a waypoint", "comply with a level restriction"],
+      38: ["terminate radar service", "contact the tower"],
+      39: ["resume own navigation", "proceed direct to a waypoint"],
+      40: ["request a higher flight level", "deny a level request"],
+      41: ["fly an ILS approach", "read back the approach clearance"],
+      42: ["become established on the localizer", "report established"],
+      43: ["issue a landing clearance", "read back the runway"],
+      44: ["go around", "execute a missed approach"],
+      45: ["continue the approach", "prepare for a go-around"],
+      46: ["fly a visual approach", "maintain visual reference"],
+      47: ["maintain an assigned speed", "comply with a speed restriction"],
+      48: ["report passing the final approach fix", "cross the final approach fix"],
+      49: ["observe the landing gear", "report gear position"],
+      50: ["make a three-sixty turn", "maintain traffic spacing"],
+      51: ["report an engine fire", "request immediate assistance"],
+      52: ["report a sick passenger", "request priority landing"],
+      53: ["set an emergency code", "read back the squawk code"],
+      54: ["select the radio failure code", "restore radio communication"],
+      56: ["set the QNH", "read back the altimeter setting"],
+      57: ["set the QFE", "read back pressure units"],
+      58: ["report surface wind", "observe wind gusts"],
+      59: ["report CAVOK conditions", "check aerodrome weather"],
+      60: ["report windshear", "warn of windshear"],
+      61: ["climb to eight hundred feet", "read back an altitude"],
+      62: ["descend to four thousand feet", "read back the QNH"],
+      63: ["maintain an altitude", "read back an assigned level"],
+      64: ["climb to an altitude", "read back an altitude"],
+      65: ["maintain a flight level", "read back the assigned level"],
+      66: ["cross a runway without delay", "read back the crossing clearance"],
+      67: ["climb via a SID", "comply with SID restrictions"],
+      68: ["descend via a STAR", "read back the QNH"],
+      69: ["request a runway backtrack", "read back a backtrack clearance"],
+      70: ["cancel a distress call", "report that the emergency has ended"]
+    };
+
+    const DEFAULT_CARD_COMPOUND_NOUNS = {
+      1: ["flight level"],
+      2: ["emergency frequency"],
+      3: ["runway designator"],
+      4: ["radio instruction"],
+      5: ["position report"],
+      6: ["heading instruction"],
+      7: ["taxi request"],
+      8: ["climb clearance"],
+      9: ["tower frequency"],
+      10: ["transponder code"],
+      11: ["holding point", "taxi route"],
+      12: ["runway holding position"],
+      13: ["runway crossing"],
+      14: ["runway exit"],
+      15: ["pushback request", "parking stand"],
+      16: ["pushback approval"],
+      17: ["ground traffic"],
+      18: ["runway entry", "takeoff clearance"],
+      19: ["taxi speed"],
+      20: ["taxiway exit"],
+      21: ["takeoff clearance"],
+      22: ["takeoff roll"],
+      23: ["departure route"],
+      24: ["level restriction", "speed restriction"],
+      25: ["radar frequency"],
+      26: ["flight level"],
+      27: ["heading instruction"],
+      28: ["departure route", "rejoin point"],
+      29: ["departure route", "level restriction"],
+      30: ["runway heading", "departure altitude"],
+      31: ["radar contact"],
+      32: ["radar target"],
+      33: ["route clearance"],
+      34: ["Mach number", "speed restriction"],
+      35: ["holding pattern", "holding fix"],
+      36: ["descent clearance", "flight level"],
+      37: ["waypoint restriction", "flight level"],
+      38: ["radar service", "tower frequency"],
+      39: ["navigation route"],
+      40: ["traffic conflict", "level request"],
+      41: ["instrument approach", "approach clearance"],
+      42: ["localizer signal", "final approach"],
+      43: ["landing clearance"],
+      44: ["missed approach"],
+      45: ["final approach", "go-around"],
+      46: ["visual approach", "terrain clearance"],
+      47: ["speed restriction", "traffic sequencing"],
+      48: ["final approach fix"],
+      49: ["landing gear", "gear position"],
+      50: ["traffic spacing", "approach sequence"],
+      51: ["engine fire", "distress call"],
+      52: ["urgency call", "priority landing"],
+      53: ["emergency code", "transponder code"],
+      54: ["radio failure", "transponder code"],
+      56: ["altimeter setting", "mean sea level"],
+      57: ["altimeter setting", "aerodrome elevation"],
+      58: ["surface wind", "wind gust"],
+      59: ["weather conditions", "aerodrome weather"],
+      60: ["windshear alert"],
+      61: ["altitude readback"],
+      62: ["altimeter setting", "descent clearance"],
+      63: ["altitude readback"],
+      64: ["climb clearance", "altitude readback"],
+      65: ["flight level"],
+      66: ["runway crossing", "crossing clearance"],
+      67: ["departure route", "level restriction"],
+      68: ["arrival route", "altimeter setting"],
+      69: ["runway backtrack", "backtrack clearance"],
+      70: ["distress call", "emergency condition"]
+    };
+
     const DEFAULT_FLASHCARDS = [
       // 1-10 General Principles & Numbers
       { id: 1, cat: "GENERAL", phrase: "FL200", icaoAudio: "Flight Level two zero zero", atcLine: "Speedbird 109, climb Flight Level two zero zero.", pilotLine: "Climb Flight Level two zero zero, Speedbird 109.", meaning: "Flight Level 20,000 feet. Spoken digit-by-digit after FL prefix.", svgType: "ALTIMETER" },
@@ -669,7 +813,58 @@
       { id: 68, cat: "APPROACH", phrase: "DESCEND VIA STAR TO 4000 FEET", icaoAudio: "DESCEND VIA Standard Terminal Arrival TO four thousand FEET", meaning: "Follow the STAR lateral route and applicable level and speed restrictions while descending to 4,000 ft QNH.", atcLine: "KLM 671, DESCEND VIA STAR TO four thousand FEET QNH 1012.", pilotLine: "DESCEND VIA STAR TO four thousand FEET QNH 1012, KLM 671.", svgType: "HOLDING" },
       { id: 69, cat: "AIRPORT", phrase: "REQUEST BACKTRACK RUNWAY 09R", icaoAudio: "REQUEST BACKTRACK Runway zero niner Right", meaning: "Taxiing on active runway in opposite direction of takeoff to reach departure threshold.", firstSpeaker: "PILOT", pilotLine: "Tower, G-ABCD, REQUEST BACKTRACK Runway zero niner Right.", atcLine: "G-ABCD, BACKTRACK Runway zero niner Right.", followUp: [{ speaker: "PILOT", text: "BACKTRACK Runway zero niner Right, G-ABCD." }], svgType: "RUNWAY" },
       { id: 70, cat: "EMERGENCY", phrase: "CANCEL MAYDAY", icaoAudio: "CANCEL MAYDAY", meaning: "Formal pilot notification that distress emergency condition has ended.", firstSpeaker: "PILOT", pilotLine: "Tower, Speedbird 44, fire extinguished, CANCEL MAYDAY.", atcLine: "Speedbird 44, ROGER MAYDAY CANCELLED.", svgType: "MAYDAY" }
-    ];
+    ].map(card => ({
+      ...card,
+      collocations: DEFAULT_CARD_COLLOCATIONS[card.id],
+      compoundNouns: DEFAULT_CARD_COMPOUND_NOUNS[card.id]
+    }));
+
+    const CATEGORY_VOCABULARY = {
+      GENERAL: { collocations: ["make a radio call", "read back a clearance"], compoundNouns: ["radio call", "ATC clearance"] },
+      AIRPORT: { collocations: ["taxi to a holding point", "follow ground instructions"], compoundNouns: ["taxi route", "runway clearance"] },
+      DEPARTURE: { collocations: ["receive a departure clearance", "climb to an assigned level"], compoundNouns: ["departure clearance", "flight level"] },
+      ENROUTE: { collocations: ["maintain a flight level", "report a position"], compoundNouns: ["position report", "flight level"] },
+      APPROACH: { collocations: ["fly an approach", "report established"], compoundNouns: ["approach clearance", "landing runway"] },
+      EMERGENCY: { collocations: ["declare an emergency", "request assistance"], compoundNouns: ["distress call", "emergency frequency"] },
+      WEATHER: { collocations: ["report weather conditions", "check the altimeter setting"], compoundNouns: ["weather report", "altimeter setting"] }
+    };
+
+    function getCardVocabulary(card) {
+      const readField = value => {
+        if (value === undefined || value === null) return { items: null, invalid: false };
+        if (typeof value === 'string' && value.trim()) return { items: [value], invalid: false };
+        if (Array.isArray(value) && value.every(item => typeof item === 'string' && item.trim())) {
+          return { items: value.length ? value : null, invalid: false };
+        }
+        return { items: null, invalid: true };
+      };
+      const collocations = readField(card.collocations);
+      const nouns = readField(card.compoundNouns);
+      const ownCollocations = collocations.items;
+      const ownNouns = nouns.items;
+      const defaultCard = ownCollocations && ownNouns ? null : DEFAULT_FLASHCARDS.find(item =>
+        item.id === card.id && item.cat === card.cat && item.phrase === card.phrase
+      );
+      const hasCategory = Object.prototype.hasOwnProperty.call(CATEGORY_VOCABULARY, card.cat);
+      const fallback = hasCategory ? CATEGORY_VOCABULARY[card.cat] : CATEGORY_VOCABULARY.GENERAL;
+      const defaultCollocations = defaultCard && defaultCard.collocations;
+      const defaultNouns = defaultCard && defaultCard.compoundNouns;
+      const note = (field, defaultItems) => {
+        const source = field.items || defaultItems ? '' : (hasCategory ? 'category' : 'general');
+        if (field.invalid) return ` (${source ? source + '; ' : ''}invalid deck value)`;
+        return source ? ` (${source})` : '';
+      };
+      return {
+        collocations: ownCollocations || defaultCollocations || fallback.collocations,
+        compoundNouns: ownNouns || defaultNouns || fallback.compoundNouns,
+        collocationsNote: note(collocations, defaultCollocations),
+        nounsNote: note(nouns, defaultNouns),
+        invalidFields: [
+          ...(collocations.invalid ? ['collocations'] : []),
+          ...(nouns.invalid ? ['compoundNouns'] : [])
+        ]
+      };
+    }
 
     let flashcardsData = JSON.parse(localStorage.getItem('icao_rtf_cards')) || DEFAULT_FLASHCARDS;
 
@@ -1295,12 +1490,15 @@
 
       cardsToRender.forEach(card => {
         const cardWrapper = document.createElement('div');
-        cardWrapper.className = 'flip-card h-[380px] cursor-pointer select-none';
+        cardWrapper.className = 'flip-card h-[480px] cursor-pointer select-none';
         const dialogueHtml = getCardDialogue(card).map(turn => `
           <div data-speaker="${turn.speaker}" class="text-slate-300 leading-tight">
             <span class="${turn.speaker === 'PILOT' ? 'text-cyan-400' : 'text-emerald-400'} font-bold">${turn.speaker}:</span> "${escapeHTML(turn.text)}"
           </div>
         `).join('');
+        const vocabulary = getCardVocabulary(card);
+        const collocationsHtml = vocabulary.collocations.map(escapeHTML).join('; ');
+        const compoundNounsHtml = vocabulary.compoundNouns.map(escapeHTML).join('; ');
 
         cardWrapper.innerHTML = `
           <div class="flip-card-inner rounded-xl border border-slate-800 bg-cockpit-card shadow-lg hover:border-cyan-500/50 transition-colors" onclick="toggleCardFlip(this.parentElement)">
@@ -1328,8 +1526,8 @@
             </div>
 
             <!-- BACK SIDE: ICAO Phraseology, Dialogue & Audio Playback -->
-            <div class="flip-card-back p-4 flex flex-col justify-between bg-slate-900 rounded-xl border border-cyan-500/40">
-              <div class="space-y-3">
+            <div class="flip-card-back p-4 flex flex-col bg-slate-900 rounded-xl border border-cyan-500/40">
+              <div class="flex flex-col gap-3 flex-1 min-h-0">
                 <div class="flex items-center justify-between">
                   <span class="text-[10px] font-mono uppercase bg-emerald-950 border border-emerald-500/40 text-emerald-400 px-2 py-0.5 rounded font-bold">
                     PRACTICE PHRASE
@@ -1344,20 +1542,24 @@
                   </div>
                 </div>
 
-                <div class="space-y-2">
-                  <h3 class="text-sm font-bold font-mono text-white tracking-wide">${escapeHTML(card.phrase)}</h3>
-                  
-                  <!-- SHORT VOICED DIALOGUE BOX -->
-                  <div class="p-2.5 max-h-48 overflow-y-auto rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono space-y-1.5">
-                    <div class="text-[10px] text-cyan-400 font-bold uppercase border-b border-slate-800 pb-1 flex items-center gap-1">
-                      <i class="fa-solid fa-headset text-[10px]"></i> ATC & PILOT EXCHANGE
-                    </div>
-                    ${dialogueHtml}
+                <h3 class="text-sm font-bold font-mono text-white tracking-wide shrink-0">${escapeHTML(card.phrase)}</h3>
+
+                <!-- SHORT VOICED DIALOGUE BOX -->
+                <div class="p-2.5 flex-1 min-h-0 overflow-y-auto rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono space-y-1.5">
+                  <div class="text-[10px] text-cyan-400 font-bold uppercase border-b border-slate-800 pb-1 flex items-center gap-1">
+                    <i class="fa-solid fa-headset text-[10px]"></i> ATC & PILOT EXCHANGE
                   </div>
+                  ${dialogueHtml}
                 </div>
+
+                <section data-vocabulary class="shrink-0 max-h-32 overflow-y-auto p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-[11px] leading-snug text-slate-300">
+                  <h4 class="text-[10px] text-emerald-400 font-bold uppercase">RELATED AVIATION ENGLISH</h4>
+                  <p class="mt-1"><strong class="text-slate-200">Collocations${vocabulary.collocationsNote}:</strong> <span data-collocations>${collocationsHtml}</span></p>
+                  <p class="mt-1"><strong class="text-slate-200">Compound nouns${vocabulary.nounsNote}:</strong> <span data-compound-nouns>${compoundNounsHtml}</span></p>
+                </section>
               </div>
 
-              <div class="text-[10px] font-mono text-slate-400 flex items-center justify-between border-t border-slate-800 pt-2">
+              <div class="text-[10px] font-mono text-slate-400 flex items-center justify-between border-t border-slate-800 pt-2 mt-3 shrink-0">
                 <span>TRAINING EXAMPLE</span>
                 <span class="text-cyan-400 font-semibold">FLIP BACK <i class="fa-solid fa-arrow-rotate-left"></i></span>
               </div>
@@ -1386,10 +1588,13 @@
 
       const filtered = flashcardsData.filter(card => {
         const matchesCat = cat === 'ALL' || card.cat === cat;
+        const vocabulary = search ? getCardVocabulary(card) : null;
         const matchesSearch = !search || 
           card.phrase.toLowerCase().includes(search) || 
           card.meaning.toLowerCase().includes(search) ||
-          card.icaoAudio.toLowerCase().includes(search);
+          card.icaoAudio.toLowerCase().includes(search) ||
+          [...vocabulary.collocations, ...vocabulary.compoundNouns]
+            .some(item => item.toLowerCase().includes(search));
         return matchesCat && matchesSearch;
       });
 
@@ -1431,7 +1636,13 @@
       try {
         const imported = JSON.parse(area.value);
         if (Array.isArray(imported) && imported.length > 0) {
-          imported.forEach(getCardDialogue);
+          imported.forEach(card => {
+            getCardDialogue(card);
+            const vocabulary = getCardVocabulary(card);
+            if (vocabulary.invalidFields.length) {
+              throw new Error(`${vocabulary.invalidFields.join(', ')} must be a non-empty string or an array of non-empty strings.`);
+            }
+          });
           flashcardsData = imported;
           localStorage.setItem('icao_rtf_cards', JSON.stringify(flashcardsData));
           filterFlashcards();

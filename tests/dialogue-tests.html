@@ -89,25 +89,75 @@
           assert(contains(findCard(54).pilotLine, ['communications restored', 'seven six zero zero']) && !findCard(54).atcLine.includes('observes'), 'Radio failure exchange is not a real transmission');
         });
 
+        test('Every default card displays its related vocabulary on the dialogue side', () => {
+          const previousCards = flashcardsData;
+          try {
+            flashcardsData = cards;
+            category.value = 'ALL';
+            search.value = '';
+            renderFlashcards(cards);
+            const rendered = [...document.querySelectorAll('#flashcards-grid .flip-card')];
+            assert(rendered.length === cards.length, 'Not every default card was rendered');
+            cards.forEach((card, index) => {
+              const back = rendered[index].querySelector('.flip-card-back');
+              const section = back.querySelector('[data-vocabulary]');
+              const dialogue = back.querySelector('[data-speaker]').parentElement;
+              assert(card.collocations.length >= 2 && card.compoundNouns.length >= 1, `Card ${card.id} lacks related vocabulary`);
+              assert(dialogue.compareDocumentPosition(section) & Node.DOCUMENT_POSITION_FOLLOWING, `Card ${card.id} vocabulary is not below the dialogue`);
+              assert(section.querySelector('[data-collocations]').textContent === card.collocations.join('; '), `Card ${card.id} collocations were not shown`);
+              assert(section.querySelector('[data-compound-nouns]').textContent === card.compoundNouns.join('; '), `Card ${card.id} compound nouns were not shown`);
+              assert(!section.textContent.includes('(category)') && !section.textContent.includes('(general)'), `Card ${card.id} uses generic vocabulary`);
+            });
+
+            search.value = 'comply with published restrictions';
+            filterFlashcards();
+            assert(document.querySelectorAll('#flashcards-grid .flip-card').length === 1 && document.getElementById('flashcards-grid').textContent.includes('CARD ID: #23'), 'Collocation search did not find the matching card');
+            search.value = 'runway designator';
+            filterFlashcards();
+            assert(document.querySelectorAll('#flashcards-grid .flip-card').length === 1 && document.getElementById('flashcards-grid').textContent.includes('CARD ID: #3'), 'Compound noun search did not find the matching card');
+          } finally {
+            flashcardsData = previousCards;
+            search.value = '';
+          }
+        });
+
         test('Legacy and custom decks round-trip without changing dialogue order', () => {
           const legacy = { id: 901, cat: 'CUSTOM', phrase: 'Legacy phrase', icaoAudio: 'Legacy audio', meaning: 'Legacy', svgType: 'GENERAL' };
           const custom = {
             id: 902, cat: 'CUSTOM', phrase: 'Pilot "request"', icaoAudio: 'Pilot request', meaning: 'Custom', svgType: 'GENERAL',
             firstSpeaker: 'PILOT', pilotLine: "Pilot's <request>.", atcLine: 'Approved & acknowledged.',
+            collocations: ['request <pushback>', 'receive approval'], compoundNouns: ['parking <stand>'],
             followUp: [{ speaker: 'PILOT', text: 'Approved, Pilot.' }]
           };
+          const legacyDefault = { ...findCard(15) };
+          delete legacyDefault.collocations;
+          delete legacyDefault.compoundNouns;
+          const stringVocabulary = { ...legacy, id: 903, collocations: 'report a position', compoundNouns: 'position report' };
+          const categoryLegacy = { ...legacy, id: 904, cat: 'AIRPORT' };
+          const imported = [legacy, custom, legacyDefault, stringVocabulary, categoryLegacy];
           category.value = 'ALL';
           search.value = '';
-          document.getElementById('deck-json-area').value = JSON.stringify([legacy, custom]);
+          document.getElementById('deck-json-area').value = JSON.stringify(imported);
           importCustomDeck();
-          assert(flashcardsData.length === 2, 'Legacy deck did not import');
+          assert(flashcardsData.length === 5, 'Legacy deck did not import');
           const legacyLines = [...document.querySelectorAll('.flip-card')][0].querySelectorAll('[data-speaker]');
           assert(legacyLines[0].dataset.speaker === 'ATC' && legacyLines[0].textContent.includes('Legacy phrase'), 'Legacy ATC fallback changed');
           assert(legacyLines[1].dataset.speaker === 'PILOT' && legacyLines[1].textContent.includes('Legacy audio'), 'Legacy pilot fallback changed');
+          const legacyVocabulary = [...document.querySelectorAll('.flip-card')][0].querySelector('[data-vocabulary]');
+          assert(legacyVocabulary.textContent.includes('Collocations (general)') && legacyVocabulary.textContent.includes('Compound nouns (general)'), 'Legacy vocabulary fallback was not labeled');
           const customCard = [...document.querySelectorAll('.flip-card')][1];
           const customLines = [...customCard.querySelectorAll('[data-speaker]')];
           assert(customLines.map(line => line.dataset.speaker).join(',') === 'PILOT,ATC,PILOT', 'Custom order was not rendered');
           assert(customLines[0].textContent.includes("Pilot's <request>.") && !customLines[0].querySelector('request'), 'Custom text was not rendered as text');
+          const customVocabulary = customCard.querySelector('[data-vocabulary]');
+          assert(customVocabulary.querySelector('[data-collocations]').textContent === custom.collocations.join('; ') && !customVocabulary.querySelector('pushback'), 'Custom collocations were not rendered as text');
+          assert(customVocabulary.querySelector('[data-compound-nouns]').textContent === custom.compoundNouns.join('; ') && !customVocabulary.querySelector('stand'), 'Custom compound nouns were not rendered as text');
+          const defaultVocabulary = [...document.querySelectorAll('.flip-card')][2].querySelector('[data-vocabulary]');
+          assert(defaultVocabulary.textContent.includes('request pushback') && defaultVocabulary.textContent.includes('parking stand'), 'Older default card did not receive its related vocabulary');
+          const stringSection = [...document.querySelectorAll('.flip-card')][3].querySelector('[data-vocabulary]');
+          assert(stringSection.textContent.includes('report a position') && stringSection.textContent.includes('position report'), 'String vocabulary was not preserved');
+          const categorySection = [...document.querySelectorAll('.flip-card')][4].querySelector('[data-vocabulary]');
+          assert(categorySection.textContent.includes('Collocations (category)') && categorySection.textContent.includes('taxi to a holding point'), 'Category vocabulary fallback was not labeled');
           spoken.length = 0;
           customCard.querySelector('[data-card-action="phrase"]').click();
           assert(spoken.length === 1 && spoken[0].text === convertTextToICAOSpeech(custom.icaoAudio) && !customCard.classList.contains('flipped'), 'Custom phrase audio or card interaction changed');
@@ -116,13 +166,18 @@
           assert(spoken.length === 3 && spoken[0].text === convertTextToICAOSpeech(custom.pilotLine) && !customCard.classList.contains('flipped'), 'Custom dialogue audio or card interaction changed');
           openExportModal();
           const exported = JSON.parse(document.getElementById('deck-json-area').value);
-          assert(JSON.stringify(exported) === JSON.stringify([legacy, custom]), 'Export did not preserve the imported deck');
+          assert(JSON.stringify(exported) === JSON.stringify(imported), 'Export did not preserve the imported deck');
 
           document.getElementById('deck-json-area').value = JSON.stringify([{ ...legacy, firstSpeaker: 'INVALID' }]);
           importCustomDeck();
           assert(alerts.some(message => message.includes('firstSpeaker')), 'Invalid speaker order was not reported');
-          assert(JSON.stringify(flashcardsData) === JSON.stringify([legacy, custom]), 'Invalid import replaced the existing deck');
-          assert(JSON.stringify(JSON.parse(localStorage.getItem('icao_rtf_cards'))) === JSON.stringify([legacy, custom]), 'Invalid import replaced saved data');
+          renderFlashcards([{ ...legacy, compoundNouns: [42] }]);
+          assert(document.querySelector('[data-vocabulary]').textContent.includes('invalid deck value'), 'Invalid saved vocabulary was not flagged');
+          document.getElementById('deck-json-area').value = JSON.stringify([{ ...legacy, compoundNouns: [42] }]);
+          importCustomDeck();
+          assert(alerts.some(message => message.includes('compoundNouns')), 'Invalid vocabulary was not reported');
+          assert(JSON.stringify(flashcardsData) === JSON.stringify(imported), 'Invalid import replaced the existing deck');
+          assert(JSON.stringify(JSON.parse(localStorage.getItem('icao_rtf_cards'))) === JSON.stringify(imported), 'Invalid import replaced saved data');
         });
 
         test('Scenario sequences include requests and complete readbacks', () => {
