@@ -467,6 +467,16 @@
           assert(Number(property('og:image:width')) === preview.width && Number(property('og:image:height')) === preview.height, 'Share image metadata dimensions are incorrect');
           assert(/pilot/i.test(property('og:image:alt')) && /headset/i.test(property('og:image:alt')) && /radar/i.test(property('og:image:alt')), 'Share image alternative text is incomplete');
         });
+
+        await test('Page header displays the LinkedIn pilot and radar image', async () => {
+          const headerImage = document.querySelector('header img');
+          const shareImage = new URL(document.querySelector('meta[property="og:image"]').content);
+          const expectedImage = new URL(`assets/radar-preview.png${shareImage.search}`, document.baseURI);
+          assert(headerImage && headerImage.src === expectedImage.href, 'Header is not using the versioned share image');
+          assert(/pilot/i.test(headerImage.alt) && /headset/i.test(headerImage.alt) && /radar/i.test(headerImage.alt), 'Header image alternative text is incomplete');
+          await headerImage.decode();
+          assert(headerImage.naturalWidth === preview.width && headerImage.naturalHeight === preview.height, 'Header image could not be decoded');
+        });
       } finally {
         playbackGeneration++;
         if (synthesis) synthesis.speak = originalNativeSpeak;

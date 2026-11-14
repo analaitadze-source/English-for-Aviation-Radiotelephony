@@ -4,7 +4,7 @@ Practice radiotelephony with flashcards, matching, gap-fill scenarios and quizze
 
 These are illustrative training examples, not a complete or authoritative set of procedures. Follow current local publications, operator procedures and ATC instructions. References: [SKYbrary's ICAO Annex 11 readback summary](https://skybrary.aero/articles/read-back-or-hear-back), [ICAO SID/STAR guidance](https://www.icao.int/airnavigation/faq-atco), and the [UK CAA Radiotelephony Manual, CAP 413](https://www.caa.co.uk/media/km2juvmx/cap413-edition-24-radio-telephony.pdf) (which includes UK-specific requirements).
 
-The LinkedIn link preview depicts a headset-wearing pilot with radar and uses `assets\radar-preview.png` through the page's Open Graph metadata. `assets\radar-preview.svg` retains the earlier radar-only vector artwork. If the preview changes, export the PNG at 1200 x 627 pixels, update the image version in the metadata, and keep the dimensions in sync.
+The header and LinkedIn link preview use `assets\radar-preview.png`, depicting a headset-wearing pilot with radar. The header crops the image to focus on the pilot and radar; the Open Graph metadata uses the full image. `assets\radar-preview.svg` retains the earlier radar-only vector artwork. If the preview changes, export the PNG at 1200 x 627 pixels, update the image version in the header and metadata, and keep the dimensions in sync.
 
 ## Voices and interface
 
