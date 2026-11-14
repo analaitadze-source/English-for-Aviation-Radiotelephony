@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Dialogue regression tests</title>
+</head>
+<body>
+  <h1>Dialogue regression tests</h1>
+  <pre id="results">Running...</pre>
+  <iframe id="app" src="../index.html" hidden></iframe>
+  <script>
+    function runTests() {
+      const results = [];
+      const assert = (condition, message) => {
+        if (!condition) throw new Error(message);
+      };
+      const test = (name, fn) => {
+        try {
+          fn();
+          results.push({ name, passed: true });
+        } catch (error) {
+          results.push({ name, passed: false, error: error.message });
+        }
+      };
+      const cards = DEFAULT_FLASHCARDS;
+      const findCard = id => cards.find(card => card.id === id);
+      const synthesis = window.speechSynthesis;
+      const originalSpeak = synthesis.speak;
+      const originalCancel = synthesis.cancel;
+      const originalAlert = window.alert;
+      const originalTimeout = window.setTimeout;
+      const originalCards = flashcardsData;
+      const originalStorage = localStorage.getItem('icao_rtf_cards');
+      const category = document.getElementById('flashcard-category');
+      const search = document.getElementById('flashcard-search');
+      const originalCategory = category.value;
+      const originalSearch = search.value;
+      const spoken = [];
+      const alerts = [];
+
+      synthesis.speak = utterance => spoken.push({ text: utterance.text, pitch: utterance.pitch });
+      synthesis.cancel = () => {};
+      window.alert = message => alerts.push(message);
+
+      try {
+        test('Rendered dialogue and speech use the same speaker order', () => {
+          const pilotFirst = [5, 7, 15, 31, 40, 42, 44, 51, 52, 54, 69, 70];
+          for (const id of [6, ...pilotFirst]) {
+            const card = findCard(id);
+            assert(card, `Missing card ${id}`);
+            renderFlashcards([card]);
+            const lines = [...document.querySelectorAll('#flashcards-grid [data-speaker]')];
+            assert(lines[0].dataset.speaker === (id === 6 ? 'ATC' : 'PILOT'), `Wrong first speaker on card ${id}`);
+            assert(lines[1].dataset.speaker === (id === 6 ? 'PILOT' : 'ATC'), `Wrong second speaker on card ${id}`);
+            if (id === 6) {
+              assert(lines.length === 4 && lines[2].dataset.speaker === 'ATC' && lines[3].dataset.speaker === 'PILOT', 'Say-again exchange is incomplete');
+            }
+            spoken.length = 0;
+            document.querySelector('[data-card-action="dialogue"]').click();
+            assert(spoken.length === lines.length, `Audio turn count differs on card ${id}`);
+            lines.forEach((line, index) => {
+              const text = line.textContent.trim().replace(/^(?:ATC|PILOT):\s*"/, '').replace(/"$/, '');
+              assert(spoken[index].text === convertTextToICAOSpeech(text), `Audio order or text differs on card ${id}, turn ${index + 1}`);
+              assert(Math.abs(spoken[index].pitch - (line.dataset.speaker === 'PILOT' ? 1.15 : 0.85)) < 0.01, `Wrong speaker voice on card ${id}`);
+            });
+          }
+          assert(convertTextToICAOSpeech('Contact Tower 118.1.').includes('one one eight point one'), 'Frequency decimal is missing from speech');
+        });
+
+        test('Safety-critical flashcard instructions are read back', () => {
+          const contains = (text, parts) => parts.every(part => text.toUpperCase().includes(part.toUpperCase()));
+          [3, 21, 43].forEach(id => {
+            const card = findCard(id);
+            const clearance = id === 21 ? 'CLEARED FOR TAKEOFF' : 'CLEARED TO LAND';
+            [card.atcLine, card.pilotLine].forEach(text => {
+              const upper = text.toUpperCase();
+              assert(upper.includes('RUNWAY ZERO NINER') && upper.indexOf('RUNWAY ZERO NINER') < upper.indexOf(clearance), `Runway clearance order is wrong on card ${id}`);
+            });
+          });
+          assert(contains(findCard(8).pilotLine, ['climb', 'one two zero']) && !findCard(8).pilotLine.includes('READ BACK'), 'Card 8 does not read back the clearance');
+          assert(contains(findCard(28).pilotLine, ['MERLU 1A', 'AT MERLU', 'one two zero']), 'SID, rejoin point or level missing');
+          assert(contains(findCard(30).pilotLine, ['straight ahead', 'three thousand feet']), 'Departure level missing');
+          assert(contains(findCard(35).pilotLine, ['ZULU V O R', 'AS PUBLISHED', 'FL120']), 'Published holding pattern or level missing');
+          assert(contains(findCard(57).pilotLine, ['niner niner eight', 'HECTOPASCALS']), 'Low QFE units missing');
+          assert(contains(findCard(68).pilotLine, ['four thousand', 'QNH 1012']), 'Arrival level or QNH missing');
+          assert(contains(findCard(44).followUp[0].text, ['straight ahead', 'three thousand feet']), 'Go-around level readback missing');
+          assert(contains(findCard(51).followUp[0].text, ['heading 090', 'three thousand feet']), 'Distress heading or level readback missing');
+          assert(contains(findCard(69).followUp[0].text, ['BACKTRACK', 'zero niner Right']), 'Runway backtrack readback missing');
+          assert(contains(findCard(54).pilotLine, ['communications restored', 'seven six zero zero']) && !findCard(54).atcLine.includes('observes'), 'Radio failure exchange is not a real transmission');
+        });
+
+        test('Legacy and custom decks round-trip without changing dialogue order', () => {
+          const legacy = { id: 901, cat: 'CUSTOM', phrase: 'Legacy phrase', icaoAudio: 'Legacy audio', meaning: 'Legacy', svgType: 'GENERAL' };
+          const custom = {
+            id: 902, cat: 'CUSTOM', phrase: 'Pilot "request"', icaoAudio: 'Pilot request', meaning: 'Custom', svgType: 'GENERAL',
+            firstSpeaker: 'PILOT', pilotLine: "Pilot's <request>.", atcLine: 'Approved & acknowledged.',
+            followUp: [{ speaker: 'PILOT', text: 'Approved, Pilot.' }]
+          };
+          category.value = 'ALL';
+          search.value = '';
+          document.getElementById('deck-json-area').value = JSON.stringify([legacy, custom]);
+          importCustomDeck();
+          assert(flashcardsData.length === 2, 'Legacy deck did not import');
+          const legacyLines = [...document.querySelectorAll('.flip-card')][0].querySelectorAll('[data-speaker]');
+          assert(legacyLines[0].dataset.speaker === 'ATC' && legacyLines[0].textContent.includes('Legacy phrase'), 'Legacy ATC fallback changed');
+          assert(legacyLines[1].dataset.speaker === 'PILOT' && legacyLines[1].textContent.includes('Legacy audio'), 'Legacy pilot fallback changed');
+          const customCard = [...document.querySelectorAll('.flip-card')][1];
+          const customLines = [...customCard.querySelectorAll('[data-speaker]')];
+          assert(customLines.map(line => line.dataset.speaker).join(',') === 'PILOT,ATC,PILOT', 'Custom order was not rendered');
+          assert(customLines[0].textContent.includes("Pilot's <request>.") && !customLines[0].querySelector('request'), 'Custom text was not rendered as text');
+          spoken.length = 0;
+          customCard.querySelector('[data-card-action="phrase"]').click();
+          assert(spoken.length === 1 && spoken[0].text === convertTextToICAOSpeech(custom.icaoAudio) && !customCard.classList.contains('flipped'), 'Custom phrase audio or card interaction changed');
+          spoken.length = 0;
+          customCard.querySelector('[data-card-action="dialogue"]').click();
+          assert(spoken.length === 3 && spoken[0].text === convertTextToICAOSpeech(custom.pilotLine) && !customCard.classList.contains('flipped'), 'Custom dialogue audio or card interaction changed');
+          openExportModal();
+          const exported = JSON.parse(document.getElementById('deck-json-area').value);
+          assert(JSON.stringify(exported) === JSON.stringify([legacy, custom]), 'Export did not preserve the imported deck');
+
+          document.getElementById('deck-json-area').value = JSON.stringify([{ ...legacy, firstSpeaker: 'INVALID' }]);
+          importCustomDeck();
+          assert(alerts.some(message => message.includes('firstSpeaker')), 'Invalid speaker order was not reported');
+          assert(JSON.stringify(flashcardsData) === JSON.stringify([legacy, custom]), 'Invalid import replaced the existing deck');
+          assert(JSON.stringify(JSON.parse(localStorage.getItem('icao_rtf_cards'))) === JSON.stringify([legacy, custom]), 'Invalid import replaced saved data');
+        });
+
+        test('Scenario sequences include requests and complete readbacks', () => {
+          const filled = line => line.text || line.blanks.reduce((text, blank, index) => text.replace(`{${index}}`, blank.answer), line.template);
+          const pushback = SCENARIOS[0].lines;
+          const requestIndex = pushback.findIndex(line => line.speaker === 'PILOT' && /request pushback/i.test(filled(line)));
+          assert(requestIndex >= 0 && pushback[requestIndex + 1].speaker === 'ATC' && /pushback approved/i.test(filled(pushback[requestIndex + 1])), 'Pushback approval does not follow a request');
+          assert(pushback[requestIndex + 2].speaker === 'PILOT' && /pushback approved.*face west/i.test(filled(pushback[requestIndex + 2])), 'Pushback acknowledgement is missing');
+
+          const crossing = SCENARIOS[1].lines;
+          assert(crossing[crossing.length - 2].speaker === 'ATC' && /cross runway 09l/i.test(filled(crossing[crossing.length - 2])), 'Crossing clearance missing');
+          assert(crossing[crossing.length - 1].speaker === 'PILOT' && /cross runway 09l.*wilco/i.test(filled(crossing[crossing.length - 1])), 'Runway crossing readback missing');
+
+          const emergency = SCENARIOS[2];
+          const distress = filled(emergency.lines[0]);
+          const readback = filled(emergency.lines[2]);
+          assert(/^MAYDAY MAYDAY MAYDAY/.test(distress) && /engine fire/i.test(distress), 'Distress call is incomplete');
+          assert(/heading 090/i.test(readback) && /three thousand feet/i.test(readback) && /QNH 1014/i.test(readback) && /cleared approach Runway 09R/i.test(readback), 'Emergency clearance readback is incomplete');
+          assert(/known position, intentions/i.test(emergency.note), 'Emergency information guidance missing');
+
+          window.setTimeout = callback => { callback(); return 0; };
+          SCENARIOS.forEach((scenario, scenarioIndex) => {
+            loadScenario(scenarioIndex);
+            scenario.lines.forEach((line, step) => {
+              if (line.blanks) {
+                line.blanks.forEach((blank, index) => {
+                  const select = document.getElementById(`sc-sel-${step}-${index}`);
+                  select.value = index === 0 ? blank.options.find(option => option !== blank.answer) : blank.answer;
+                  select.dispatchEvent(new Event('change'));
+                });
+                checkCurrentScenarioStep();
+                assert(currentScenarioStep === step && /INCORRECT SELECTION/.test(document.getElementById('scenario-feedback').innerText), `Wrong answer advanced scenario ${scenarioIndex}`);
+                line.blanks.forEach((blank, index) => {
+                  const select = document.getElementById(`sc-sel-${step}-${index}`);
+                  select.value = blank.answer;
+                  select.dispatchEvent(new Event('change'));
+                });
+              }
+              checkCurrentScenarioStep();
+              if (step < scenario.lines.length - 1) {
+                assert(currentScenarioStep === step + 1, `Correct answer did not advance scenario ${scenarioIndex}`);
+              } else {
+                assert(/SCENARIO COMPLETED/.test(document.getElementById('scenario-feedback').innerText), `Scenario ${scenarioIndex} did not complete`);
+              }
+            });
+          });
+        });
+
+        test('Collocations are reachable and distinguish radio from general English', () => {
+          switchTab('collocations');
+          const section = document.getElementById('section-collocations');
+          assert(!section.classList.contains('hidden') && document.getElementById('section-flashcards').classList.contains('hidden'), 'Collocations tab did not open');
+          assert(section.textContent.includes('Radiotelephony examples') && section.textContent.includes('General aviation English'), 'Collocation categories are missing');
+          switchTab('matching');
+          assert(!document.getElementById('section-matching').classList.contains('hidden') && document.querySelectorAll('#matching-phrases button').length > 0, 'Matching tab no longer opens');
+          switchTab('quiz');
+          assert(!document.getElementById('section-quiz').classList.contains('hidden') && document.querySelector('#quiz-card-container button'), 'Quiz tab no longer opens');
+        });
+      } finally {
+        synthesis.speak = originalSpeak;
+        synthesis.cancel = originalCancel;
+        window.alert = originalAlert;
+        window.setTimeout = originalTimeout;
+        flashcardsData = originalCards;
+        if (originalStorage === null) localStorage.removeItem('icao_rtf_cards');
+        else localStorage.setItem('icao_rtf_cards', originalStorage);
+        category.value = originalCategory;
+        search.value = originalSearch;
+        switchTab('flashcards');
+        filterFlashcards();
+      }
+      return results;
+    }
+
+    document.getElementById('app').addEventListener('load', () => {
+      const output = document.getElementById('results');
+      try {
+        const run = document.getElementById('app').contentWindow.eval(`(${runTests.toString()})`);
+        const results = run();
+        const failures = results.filter(result => !result.passed);
+        output.textContent = results.map(result => `${result.passed ? 'PASS' : 'FAIL'} ${result.name}${result.error ? ': ' + result.error : ''}`).join('\n');
+        output.textContent += `\n\n${results.length - failures.length}/${results.length} passed`;
+        document.title = failures.length ? 'Dialogue tests failed' : 'Dialogue tests passed';
+      } catch (error) {
+        output.textContent = `Unable to run tests: ${error.message}`;
+        document.title = 'Dialogue tests failed';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aviation Radiotelephony (RTF) Masterclass - ICAO Standard</title>
+  <title>Aviation Radiotelephony (RTF) Practice</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>
@@ -62,21 +62,22 @@
   <!-- TOP NAVIGATION HEADER -->
   <header class="border-b border-slate-800 bg-cockpit-card/90 backdrop-blur sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="p-2 bg-cyan-500/10 border border-cyan-500/30 rounded-lg text-cyan-400 glow-cyan">
+      <div class="flex items-center space-x-3 min-w-0">
+        <div class="hidden sm:block p-2 bg-cyan-500/10 border border-cyan-500/30 rounded-lg text-cyan-400 glow-cyan">
           <i class="fa-solid fa-plane-departure text-xl"></i>
         </div>
-        <div>
-          <h1 class="font-bold text-lg tracking-wider text-slate-100 flex items-center gap-2">
-            ICAO RTF MASTERCLASS
-            <span class="text-xs bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 px-2 py-0.5 rounded-full font-mono">ANNEX 10</span>
+        <div class="min-w-0">
+          <h1 class="font-bold text-sm sm:text-lg tracking-wider text-slate-100 flex items-center gap-2 whitespace-nowrap">
+            <span class="sm:hidden">RTF PRACTICE</span>
+            <span class="hidden sm:inline">AVIATION RTF PRACTICE</span>
+            <span class="hidden xl:inline text-xs bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 px-2 py-0.5 rounded-full font-mono">TRAINING</span>
           </h1>
-          <p class="text-xs text-slate-400">Radiotelephony Phraseology & Speech Standardizer</p>
+          <p class="hidden lg:block text-xs text-slate-400 whitespace-nowrap">Radiotelephony Phraseology & Speech Standardizer</p>
         </div>
       </div>
 
       <!-- MAIN TABS NAVIGATION -->
-      <nav class="hidden md:flex items-center space-x-1 font-mono text-sm">
+      <nav class="hidden xl:flex items-center space-x-1 font-mono text-sm whitespace-nowrap">
         <button onclick="switchTab('flashcards')" id="tab-flashcards" class="nav-tab px-4 py-2 rounded-lg flex items-center gap-2 transition text-cyan-400 bg-cyan-950/40 border border-cyan-500/40 font-bold">
           <i class="fa-solid fa-layer-group"></i> Flashcards (<span id="flashcard-count-badge">70</span>)
         </button>
@@ -86,8 +87,11 @@
         <button onclick="switchTab('scenarios')" id="tab-scenarios" class="nav-tab px-4 py-2 rounded-lg flex items-center gap-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800">
           <i class="fa-solid fa-headset"></i> Gap-Fill Scenarios
         </button>
+        <button onclick="switchTab('collocations')" id="tab-collocations" class="nav-tab px-4 py-2 rounded-lg flex items-center gap-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+          <i class="fa-solid fa-book-open"></i> Collocations
+        </button>
         <button onclick="switchTab('quiz')" id="tab-quiz" class="nav-tab px-4 py-2 rounded-lg flex items-center gap-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800">
-          <i class="fa-solid fa-clipboard-question"></i> ICAO Exam Quiz
+          <i class="fa-solid fa-clipboard-question"></i> Practice Quiz
         </button>
       </nav>
 
@@ -96,7 +100,7 @@
         <!-- Voice Selector Dropdown -->
         <div class="flex items-center gap-2 bg-slate-900 border border-slate-700 px-2 py-1.5 rounded-lg">
           <i class="fa-solid fa-microphone text-cyan-400 text-xs"></i>
-          <select id="voice-select" onchange="onVoiceChanged()" class="bg-transparent text-slate-200 text-xs font-mono focus:outline-none w-32 sm:w-44 truncate">
+          <select id="voice-select" onchange="onVoiceChanged()" class="bg-transparent text-slate-200 text-xs font-mono focus:outline-none w-20 sm:w-32 truncate">
             <option value="">Default Voice</option>
           </select>
         </div>
@@ -104,7 +108,7 @@
         <button onclick="openExportModal()" title="Export/Import Decks" class="p-2 text-slate-400 hover:text-cyan-400 hover:bg-slate-800 rounded-lg transition border border-slate-700">
           <i class="fa-solid fa-file-import"></i>
         </button>
-        <div class="text-right font-mono text-xs hidden lg:block border-l border-slate-800 pl-3">
+        <div class="text-right font-mono text-xs hidden 2xl:block border-l border-slate-800 pl-3">
           <div class="text-slate-400">SPEECH ENGINE</div>
           <div id="speech-status" class="text-emerald-400 flex items-center justify-end gap-1">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> ICAO NAT-SPEECH READY
@@ -115,15 +119,17 @@
   </header>
 
   <!-- MOBILE NAVIGATION TOOLBAR -->
-  <div class="md:hidden border-b border-slate-800 bg-slate-900 px-2 py-2 flex justify-around text-xs font-mono">
-    <button onclick="switchTab('flashcards')" id="mtab-flashcards" class="mobile-tab px-2 py-1.5 rounded text-cyan-400 bg-cyan-950/40 font-bold">Flashcards</button>
-    <button onclick="switchTab('matching')" id="mtab-matching" class="mobile-tab px-2 py-1.5 rounded text-slate-400">Matching</button>
-    <button onclick="switchTab('scenarios')" id="mtab-scenarios" class="mobile-tab px-2 py-1.5 rounded text-slate-400">Scenarios</button>
-    <button onclick="switchTab('quiz')" id="mtab-quiz" class="mobile-tab px-2 py-1.5 rounded text-slate-400">ICAO Quiz</button>
+  <div class="xl:hidden border-b border-slate-800 bg-slate-900 px-2 py-2 flex justify-start sm:justify-around gap-1 overflow-x-auto text-xs font-mono">
+    <button onclick="switchTab('flashcards')" id="mtab-flashcards" class="mobile-tab px-2 py-1.5 rounded whitespace-nowrap shrink-0 text-cyan-400 bg-cyan-950/40 font-bold">Flashcards</button>
+    <button onclick="switchTab('matching')" id="mtab-matching" class="mobile-tab px-2 py-1.5 rounded whitespace-nowrap shrink-0 text-slate-400">Matching</button>
+    <button onclick="switchTab('scenarios')" id="mtab-scenarios" class="mobile-tab px-2 py-1.5 rounded whitespace-nowrap shrink-0 text-slate-400">Scenarios</button>
+    <button onclick="switchTab('collocations')" id="mtab-collocations" class="mobile-tab px-2 py-1.5 rounded whitespace-nowrap shrink-0 text-slate-400">Collocations</button>
+    <button onclick="switchTab('quiz')" id="mtab-quiz" class="mobile-tab px-2 py-1.5 rounded whitespace-nowrap shrink-0 text-slate-400">Quiz</button>
   </div>
 
   <!-- MAIN CONTENT CONTAINER -->
   <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+    <p class="mb-5 text-xs text-amber-300">Training examples only. Follow current local procedures, published instructions and ATC clearances.</p>
 
     <!-- 1. FLASHCARDS SECTION -->
     <section id="section-flashcards" class="space-y-6">
@@ -132,11 +138,11 @@
           <h2 class="text-2xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
             <i class="fa-solid fa-book-bookmark text-cyan-400"></i> Interactive RTF Flip Deck
           </h2>
-          <p class="text-sm text-slate-400">Cards show the <strong>Definition / Meaning on Front</strong>. Click card to flip and view standard <strong>ICAO Phraseology & Audio</strong>.</p>
+          <p class="text-sm text-slate-400">Cards show the <strong>Definition / Meaning on Front</strong>. Click a card to view practice <strong>Phraseology & Audio</strong>.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2 font-mono text-sm w-full md:w-auto">
           <select id="flashcard-category" onchange="filterFlashcards()" class="bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-cyan-500 focus:outline-none">
-            <option value="ALL">All Categories (70)</option>
+            <option value="ALL">All Categories</option>
             <option value="GENERAL">General Principles & Numbers</option>
             <option value="AIRPORT">Aerodrome Control & Taxi</option>
             <option value="DEPARTURE">Departure & Clearance</option>
@@ -229,7 +235,7 @@
           <h2 class="text-2xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
             <i class="fa-solid fa-headset text-cyan-400"></i> Interactive ATC - Pilot Scenarios
           </h2>
-          <p class="text-sm text-slate-400">Select standard ICAO readback clearances to complete operational radio dialogues step-by-step.</p>
+          <p class="text-sm text-slate-400">Complete practice radio dialogues and readbacks step-by-step.</p>
         </div>
         <div class="flex items-center gap-2">
           <select id="scenario-selector" onchange="loadScenario(parseInt(this.value))" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs font-mono rounded-lg px-3 py-2 focus:outline-none">
@@ -243,12 +249,47 @@
       </div>
     </section>
 
+    <!-- AVIATION ENGLISH COLLOCATIONS -->
+    <section id="section-collocations" class="space-y-6 hidden">
+      <div class="border-b border-slate-800 pb-4">
+        <h2 class="text-2xl font-bold tracking-tight text-slate-100">Common aviation collocations</h2>
+        <p class="text-sm text-slate-400">Learn word combinations used in aviation and distinguish radio examples from general English.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-cockpit-card border border-slate-800 rounded-xl p-6 space-y-4">
+          <h3 class="font-bold text-cyan-400">Radiotelephony examples</h3>
+          <p class="text-xs text-slate-400">These are fragments, not complete transmissions. Use the applicable local phraseology and readback procedures.</p>
+          <dl class="space-y-3 text-sm">
+            <div><dt class="font-mono font-bold text-slate-100">request pushback</dt><dd class="text-slate-400">A pilot asks for approval to move back from the stand.</dd></div>
+            <div><dt class="font-mono font-bold text-slate-100">taxi to holding point</dt><dd class="text-slate-400">A controller instructs an aircraft to move to a specified holding position.</dd></div>
+            <div><dt class="font-mono font-bold text-slate-100">hold short of runway</dt><dd class="text-slate-400">Stop before the specified runway and read back the instruction.</dd></div>
+            <div><dt class="font-mono font-bold text-slate-100">cross runway</dt><dd class="text-slate-400">A controller's runway crossing clearance must be read back.</dd></div>
+            <div><dt class="font-mono font-bold text-slate-100">cleared to land</dt><dd class="text-slate-400">A landing clearance includes the runway to be read back.</dd></div>
+            <div><dt class="font-mono font-bold text-slate-100">go around / going around</dt><dd class="text-slate-400">A controller may instruct a go-around; a pilot reports going around.</dd></div>
+          </dl>
+        </div>
+        <div class="bg-cockpit-card border border-slate-800 rounded-xl p-6 space-y-4">
+          <h3 class="font-bold text-emerald-400">General aviation English</h3>
+          <p class="text-xs text-slate-400">Useful ordinary English, not prescribed radio transmissions.</p>
+          <dl class="space-y-3 text-sm">
+            <div><dt class="font-mono font-bold text-slate-100">file a flight plan</dt><dd class="text-slate-400">Submit the planned flight details.</dd></div>
+            <div><dt class="font-mono font-bold text-slate-100">conduct a pre-flight inspection</dt><dd class="text-slate-400">Check the aircraft before departure.</dd></div>
+            <div><dt class="font-mono font-bold text-slate-100">encounter turbulence</dt><dd class="text-slate-400">Experience irregular air movement during flight.</dd></div>
+            <div><dt class="font-mono font-bold text-slate-100">extend the landing gear</dt><dd class="text-slate-400">Lower the landing gear.</dd></div>
+            <div><dt class="font-mono font-bold text-slate-100">perform an instrument approach</dt><dd class="text-slate-400">Fly an approach using instrument guidance.</dd></div>
+            <div><dt class="font-mono font-bold text-slate-100">divert to an alternate aerodrome</dt><dd class="text-slate-400">Fly to another suitable aerodrome instead.</dd></div>
+            <div><dt class="font-mono font-bold text-slate-100">maintain situational awareness</dt><dd class="text-slate-400">Keep track of the aircraft and its surroundings.</dd></div>
+          </dl>
+        </div>
+      </div>
+    </section>
+
     <!-- 3. ICAO EXAM QUIZ SECTION -->
     <section id="section-quiz" class="space-y-6 hidden">
       <div class="border-b border-slate-800 pb-4 flex justify-between items-center">
         <div>
           <h2 class="text-2xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
-            <i class="fa-solid fa-clipboard-question text-emerald-400"></i> ICAO Annex 10 Radiotelephony Practice Exam
+            <i class="fa-solid fa-clipboard-question text-emerald-400"></i> Radiotelephony Practice Quiz
           </h2>
           <p class="text-sm text-slate-400">Test standard phraseology rules, emergency calls, and digit-by-digit readbacks.</p>
         </div>
@@ -274,11 +315,11 @@
         </h3>
         <button onclick="closeExportModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <p class="text-xs text-slate-400">Export deck to JSON or import custom flashcards for tailored training sessions.</p>
+      <p class="text-xs text-slate-400">Export or import custom flashcards. Saved decks are not updated automatically; export a copy before resetting to the revised defaults.</p>
       <textarea id="deck-json-area" class="w-full h-64 bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs font-mono text-emerald-400 focus:outline-none focus:border-cyan-500"></textarea>
       <div class="flex justify-between items-center pt-2">
         <button onclick="resetDefaultDeck()" class="px-3 py-2 bg-rose-950 border border-rose-800 text-rose-300 rounded-lg text-xs font-mono hover:bg-rose-900">
-          Reset Default (70 Cards)
+          Reset Default Deck
         </button>
         <div class="flex gap-2">
           <button onclick="exportCurrentDeck()" class="px-4 py-2 bg-slate-800 border border-slate-700 text-slate-200 rounded-lg text-xs font-mono hover:bg-slate-700">
@@ -389,7 +430,7 @@
 
       let words = speech.split(/\s+/);
       let convertedWords = words.map(word => {
-        let cleanWord = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
+        let cleanWord = word.replace(/[,\/#!$%\^&\*;:{}=\-_`~()]/g, "").replace(/^\.+|\.+$/g, "");
 
         if (ICAO_ACRONYMS[cleanWord.toUpperCase()]) {
           return ICAO_ACRONYMS[cleanWord.toUpperCase()];
@@ -444,35 +485,44 @@
       window.speechSynthesis.speak(utterance);
     }
 
+    function getCardDialogue(card) {
+      if (card.firstSpeaker !== undefined && !['ATC', 'PILOT'].includes(card.firstSpeaker)) {
+        throw new Error("firstSpeaker must be ATC or PILOT.");
+      }
+      if (card.followUp !== undefined && (!Array.isArray(card.followUp) || card.followUp.some(turn =>
+        !turn || !['ATC', 'PILOT'].includes(turn.speaker) || typeof turn.text !== 'string' || !turn.text.trim()
+      ))) {
+        throw new Error("followUp must be an array of ATC or PILOT turns with text.");
+      }
+
+      const atc = { speaker: 'ATC', text: card.atcLine || card.phrase };
+      const pilot = { speaker: 'PILOT', text: card.pilotLine || card.icaoAudio };
+      const opening = card.firstSpeaker === 'PILOT' ? [pilot, atc] : [atc, pilot];
+      return opening.concat(card.followUp || []);
+    }
+
     /* Multi-Speaker Dialogue Synthesizer (Simulates ATC & Pilot pitch/voice variance) */
-    function speakDialogue(atcText, pilotText) {
-      if (!('speechSynthesis' in window)) return;
+    function speakDialogue(card) {
+      if (!('speechSynthesis' in window)) {
+        alert("Web Speech API is not supported in this browser.");
+        return;
+      }
       window.speechSynthesis.cancel();
 
       const voices = availableVoices.length > 0 ? availableVoices : window.speechSynthesis.getVoices();
       const englishVoices = voices.filter(v => v.lang.startsWith('en'));
-
-      // Select distinct voices or pitch variations for ATC vs Pilot
       const atcVoice = selectedVoice || englishVoices[0] || null;
       const pilotVoice = englishVoices.length > 1 ? englishVoices[1] : atcVoice;
 
-      // 1. ATC Utterance
-      const atcSpeech = convertTextToICAOSpeech(atcText);
-      const uATC = new SpeechSynthesisUtterance(atcSpeech);
-      uATC.rate = 0.95;
-      uATC.pitch = 0.85; // Deeper pitch for controller/tower
-      if (atcVoice) uATC.voice = atcVoice;
-
-      // 2. Pilot Utterance
-      const pilotSpeech = convertTextToICAOSpeech(pilotText);
-      const uPilot = new SpeechSynthesisUtterance(pilotSpeech);
-      uPilot.rate = 0.90;
-      uPilot.pitch = 1.15; // Higher pitch for flight crew
-      if (pilotVoice) uPilot.voice = pilotVoice;
-
-      // Queue both sequentially
-      window.speechSynthesis.speak(uATC);
-      window.speechSynthesis.speak(uPilot);
+      getCardDialogue(card).forEach(turn => {
+        const isPilot = turn.speaker === 'PILOT';
+        const utterance = new SpeechSynthesisUtterance(convertTextToICAOSpeech(turn.text));
+        utterance.rate = isPilot ? 0.90 : 0.95;
+        utterance.pitch = isPilot ? 1.15 : 0.85;
+        const voice = isPilot ? pilotVoice : atcVoice;
+        if (voice) utterance.voice = voice;
+        window.speechSynthesis.speak(utterance);
+      });
     }
 
     /* =========================================================================
@@ -533,79 +583,79 @@
     }
 
     /* =========================================================================
-       3. FLASHCARDS DATASET (EXACTLY 70 CORE PHRASES WITH DIALOGUES)
+       3. FLASHCARDS DATASET
        ========================================================================= */
     const DEFAULT_FLASHCARDS = [
       // 1-10 General Principles & Numbers
       { id: 1, cat: "GENERAL", phrase: "FL200", icaoAudio: "Flight Level two zero zero", atcLine: "Speedbird 109, climb Flight Level two zero zero.", pilotLine: "Climb Flight Level two zero zero, Speedbird 109.", meaning: "Flight Level 20,000 feet. Spoken digit-by-digit after FL prefix.", svgType: "ALTIMETER" },
       { id: 2, cat: "GENERAL", phrase: "121.5 MHz", icaoAudio: "one two one point five", meaning: "International Aeronautical Emergency Frequency.", atcLine: "All stations, monitor emergency frequency one two one point five.", pilotLine: "Monitoring one two one point five, Lufthansa 421.", svgType: "GENERAL" },
-      { id: 3, cat: "GENERAL", phrase: "Runway 09R", icaoAudio: "Runway zero niner Right", meaning: "Runway orientation 090 degrees Right. '9' is pronounced NINER.", atcLine: "Cessna 172, cleared to land Runway zero niner Right.", pilotLine: "Cleared to land Runway zero niner Right, Cessna 172.", svgType: "RUNWAY" },
+      { id: 3, cat: "GENERAL", phrase: "Runway 09R", icaoAudio: "Runway zero niner Right", meaning: "Runway orientation 090 degrees Right. '9' is pronounced NINER.", atcLine: "Cessna 172, Runway zero niner Right, cleared to land.", pilotLine: "Runway zero niner Right, cleared to land, Cessna 172.", svgType: "RUNWAY" },
       { id: 4, cat: "GENERAL", phrase: "WILCO", icaoAudio: "WILCO", meaning: "I understand your message and will comply with it.", atcLine: "Lufthansa 421, report passing waypoint TANGO.", pilotLine: "WILCO, Lufthansa 421.", svgType: "GENERAL" },
-      { id: 5, cat: "GENERAL", phrase: "ROGER", icaoAudio: "ROGER", meaning: "I have received all of your last transmission. (Never means YES/WILL COMPLY).", atcLine: "Tower, Piper 34 passing 2000 feet.", pilotLine: "Piper 34, ROGER.", svgType: "GENERAL" },
-      { id: 6, cat: "GENERAL", phrase: "SAY AGAIN", icaoAudio: "SAY AGAIN", meaning: "Repeat all, or the specified part, of your last transmission.", atcLine: "Speedbird 109, turn right heading 040.", pilotLine: "SAY AGAIN heading, Speedbird 109.", svgType: "GENERAL" },
-      { id: 7, cat: "GENERAL", phrase: "STANDBY", icaoAudio: "STANDBY", meaning: "Wait and I will call you. The caller shall wait until station calls back.", atcLine: "Tower, Clipper 101 request taxi.", pilotLine: "Clipper 101, STANDBY for traffic.", svgType: "GENERAL" },
-      { id: 8, cat: "GENERAL", phrase: "READ BACK", icaoAudio: "READ BACK", meaning: "Repeat all, or specified part, of this message back to me exactly.", atcLine: "Air France 220, READ BACK clearance.", pilotLine: "READ BACK clearance, Air France 220.", svgType: "GENERAL" },
+      { id: 5, cat: "GENERAL", phrase: "ROGER", icaoAudio: "ROGER", meaning: "I have received all of your last transmission. (Never means YES/WILL COMPLY).", firstSpeaker: "PILOT", pilotLine: "Tower, Piper 34 passing two thousand feet.", atcLine: "Piper 34, ROGER.", svgType: "GENERAL" },
+      { id: 6, cat: "GENERAL", phrase: "SAY AGAIN", icaoAudio: "SAY AGAIN", meaning: "Repeat all, or the specified part, of your last transmission.", atcLine: "Speedbird 109, turn right heading 040.", pilotLine: "SAY AGAIN heading, Speedbird 109.", followUp: [{ speaker: "ATC", text: "Speedbird 109, turn right heading 040." }, { speaker: "PILOT", text: "Turn right heading 040, Speedbird 109." }], svgType: "GENERAL" },
+      { id: 7, cat: "GENERAL", phrase: "STANDBY", icaoAudio: "STANDBY", meaning: "Wait and I will call you. The caller shall wait until station calls back.", firstSpeaker: "PILOT", pilotLine: "Tower, Clipper 101 request taxi.", atcLine: "Clipper 101, STANDBY for traffic.", svgType: "GENERAL" },
+      { id: 8, cat: "GENERAL", phrase: "READ BACK", icaoAudio: "READ BACK", meaning: "Repeat all, or specified part, of this message back to me exactly.", atcLine: "Air France 220, climb Flight Level one two zero, READ BACK clearance.", pilotLine: "Climb Flight Level one two zero, Air France 220.", svgType: "GENERAL" },
       { id: 9, cat: "GENERAL", phrase: "MONITOR 118.1", icaoAudio: "MONITOR one one eight point one", meaning: "Listen on frequency 118.1 MHz without initiating calling.", atcLine: "Swiss 318, MONITOR Tower one one eight point one.", pilotLine: "MONITOR Tower one one eight point one, Swiss 318.", svgType: "TOWER" },
       { id: 10, cat: "GENERAL", phrase: "SQUAWK 7000", icaoAudio: "SQUAWK seven zero zero zero", meaning: "Set transponder code to 7000 (VFR Standard Conspicuity).", atcLine: "G-ABCD, SQUAWK seven zero zero zero.", pilotLine: "SQUAWK seven zero zero zero, G-ABCD.", svgType: "GENERAL" },
 
       // 11-20 Aerodrome Control & Taxi
       { id: 11, cat: "AIRPORT", phrase: "TAXI TO HOLDING POINT RWY 27", icaoAudio: "TAXI TO HOLDING POINT Runway two seven", meaning: "Instructions to proceed via taxiways to designated holding position.", atcLine: "Speedbird 44, TAXI TO HOLDING POINT Runway two seven via Alpha.", pilotLine: "TAXI TO HOLDING POINT Runway two seven via Alpha, Speedbird 44.", svgType: "RUNWAY" },
       { id: 12, cat: "AIRPORT", phrase: "HOLD SHORT OF RUNWAY 09", icaoAudio: "HOLD SHORT OF Runway zero niner", meaning: "Mandatory instruction: Stop prior to crossing runway clearance limit line.", atcLine: "Lufthansa 421, HOLD SHORT OF Runway zero niner.", pilotLine: "HOLD SHORT OF Runway zero niner, Lufthansa 421.", svgType: "RUNWAY" },
-      { id: 13, cat: "AIRPORT", phrase: "CROSS RUNWAY 14", icaoAudio: "CROSS Runway one four", meaning: "Permission granted to cross active runway without stopping.", atcLine: "Air France 81, CROSS Runway one four.", pilotLine: "CROSS Runway one four, Air France 81.", svgType: "RUNWAY" },
+      { id: 13, cat: "AIRPORT", phrase: "CROSS RUNWAY 14", icaoAudio: "CROSS Runway one four", meaning: "Permission to cross the specified runway, subject to any additional ATC instructions.", atcLine: "Air France 81, CROSS Runway one four.", pilotLine: "CROSS Runway one four, Air France 81.", svgType: "RUNWAY" },
       { id: 14, cat: "AIRPORT", phrase: "REPORT VACATED", icaoAudio: "REPORT VACATED", meaning: "Inform controller when entire aircraft is past runway holding mark.", atcLine: "Cessna 172, REPORT VACATED.", pilotLine: "WILCO, REPORT VACATED, Cessna 172.", svgType: "RUNWAY" },
-      { id: 15, cat: "AIRPORT", phrase: "REQUEST PUSHBACK", icaoAudio: "REQUEST PUSHBACK", meaning: "Pilot request to push back from stand prior to engine start.", atcLine: "Frankfurt Ground, Lufthansa 421, Stand A12, REQUEST PUSHBACK.", pilotLine: "Lufthansa 421, PUSHBACK APPROVED.", svgType: "TOWER" },
+      { id: 15, cat: "AIRPORT", phrase: "REQUEST PUSHBACK", icaoAudio: "REQUEST PUSHBACK", meaning: "Pilot request to push back from stand prior to engine start.", firstSpeaker: "PILOT", pilotLine: "Frankfurt Ground, Lufthansa 421, Stand A12, REQUEST PUSHBACK.", atcLine: "Lufthansa 421, PUSHBACK APPROVED.", followUp: [{ speaker: "PILOT", text: "PUSHBACK APPROVED, Lufthansa 421." }], svgType: "TOWER" },
       { id: 16, cat: "AIRPORT", phrase: "PUSHBACK APPROVED", icaoAudio: "PUSHBACK APPROVED", meaning: "ATC authorization to initiate pushback maneuver.", atcLine: "Speedbird 109, PUSHBACK APPROVED face North.", pilotLine: "PUSHBACK APPROVED face North, Speedbird 109.", svgType: "TOWER" },
-      { id: 17, cat: "AIRPORT", phrase: "GIVE WAY TO B737 LEFT TO RIGHT", icaoAudio: "GIVE WAY TO Bravo seven three seven LEFT TO RIGHT", meaning: "Hold taxiing position to yield right-of-way to specified traffic.", atcLine: "Swiss 40, GIVE WAY TO Boeing seven three seven LEFT TO RIGHT.", pilotLine: "GIVE WAY TO Boeing seven three seven, Swiss 40.", svgType: "TOWER" },
+      { id: 17, cat: "AIRPORT", phrase: "GIVE WAY TO B737 LEFT TO RIGHT", icaoAudio: "GIVE WAY TO Bravo seven three seven LEFT TO RIGHT", meaning: "Hold taxiing position to yield right-of-way to specified traffic.", atcLine: "Swiss 40, GIVE WAY TO Boeing seven three seven LEFT TO RIGHT.", pilotLine: "GIVE WAY TO Boeing seven three seven LEFT TO RIGHT, Swiss 40.", svgType: "TOWER" },
       { id: 18, cat: "AIRPORT", phrase: "LINE UP AND WAIT RWY 36", icaoAudio: "LINE UP AND WAIT Runway three six", meaning: "Instruction to enter runway and align, but await takeoff clearance.", atcLine: "Delta 102, LINE UP AND WAIT Runway three six.", pilotLine: "LINE UP AND WAIT Runway three six, Delta 102.", svgType: "RUNWAY" },
       { id: 19, cat: "AIRPORT", phrase: "EXPEDITE TAXI", icaoAudio: "EXPEDITE TAXI", meaning: "Speed up movement to avoid traffic delay or runway conflict.", atcLine: "Ryanair 312, EXPEDITE TAXI via Bravo.", pilotLine: "EXPEDITING TAXI via Bravo, Ryanair 312.", svgType: "TOWER" },
       { id: 20, cat: "AIRPORT", phrase: "VACATE VIA TAXIWAY CHARLIE", icaoAudio: "VACATE VIA TAXIWAY Charlie", meaning: "Turn off active runway onto specified taxiway exit.", atcLine: "United 901, VACATE VIA TAXIWAY Charlie.", pilotLine: "VACATE VIA TAXIWAY Charlie, United 901.", svgType: "RUNWAY" },
 
       // 21-30 Departure & Clearance
-      { id: 21, cat: "DEPARTURE", phrase: "CLEARED FOR TAKEOFF RWY 09", icaoAudio: "CLEARED FOR TAKEOFF Runway zero niner", meaning: "Authorization to commence takeoff roll on specified runway.", atcLine: "Speedbird 109, CLEARED FOR TAKEOFF Runway zero niner.", pilotLine: "CLEARED FOR TAKEOFF Runway zero niner, Speedbird 109.", svgType: "RUNWAY" },
+      { id: 21, cat: "DEPARTURE", phrase: "RUNWAY 09, CLEARED FOR TAKEOFF", icaoAudio: "Runway zero niner, CLEARED FOR TAKEOFF", meaning: "Authorization to commence takeoff roll on specified runway.", atcLine: "Speedbird 109, Runway zero niner, CLEARED FOR TAKEOFF.", pilotLine: "Runway zero niner, CLEARED FOR TAKEOFF, Speedbird 109.", svgType: "RUNWAY" },
       { id: 22, cat: "DEPARTURE", phrase: "STOP IMMEDIATELY!", icaoAudio: "STOP IMMEDIATELY", meaning: "Emergency ATC command to abort takeoff roll or ground movement.", atcLine: "Lufthansa 421, STOP IMMEDIATELY! Vehicle on runway!", pilotLine: "STOPPING IMMEDIATELY, Lufthansa 421.", svgType: "RUNWAY" },
-      { id: 23, cat: "DEPARTURE", phrase: "CLIMB VIA SID TO FL180", icaoAudio: "CLIMB VIA Standard Instrument Departure TO Flight Level one eight zero", meaning: "Follow SID profile vertical and lateral constraints up to FL180.", atcLine: "Swiss 312, CLIMB VIA SID TO Flight Level one eight zero.", pilotLine: "CLIMB VIA SID TO Flight Level one eight zero, Swiss 312.", svgType: "GENERAL" },
-      { id: 24, cat: "DEPARTURE", phrase: "CANCEL SID RESTRICTIONS", icaoAudio: "CANCEL Standard Instrument Departure RESTRICTIONS", meaning: "Disregard published SID speed/altitude constraints; climb unconstrained.", atcLine: "Air France 81, CANCEL SID RESTRICTIONS, climb Flight Level two four zero.", pilotLine: "CANCEL SID RESTRICTIONS, climb Flight Level two four zero, Air France 81.", svgType: "GENERAL" },
+      { id: 23, cat: "DEPARTURE", phrase: "CLIMB VIA SID TO FL180", icaoAudio: "CLIMB VIA Standard Instrument Departure TO Flight Level one eight zero", meaning: "Follow the SID lateral route and applicable level and speed restrictions while climbing to FL180.", atcLine: "Swiss 312, CLIMB VIA SID TO Flight Level one eight zero.", pilotLine: "CLIMB VIA SID TO Flight Level one eight zero, Swiss 312.", svgType: "GENERAL" },
+      { id: 24, cat: "DEPARTURE", phrase: "CLIMB VIA SID TO FL240, CANCEL LEVEL RESTRICTIONS", icaoAudio: "CLIMB VIA Standard Instrument Departure TO Flight Level two four zero, CANCEL LEVEL RESTRICTIONS", meaning: "Published SID level restrictions are cancelled; follow the lateral route and applicable speed restrictions.", atcLine: "Air France 81, CLIMB VIA SID TO Flight Level two four zero, CANCEL LEVEL RESTRICTIONS.", pilotLine: "CLIMB VIA SID TO Flight Level two four zero, CANCEL LEVEL RESTRICTIONS, Air France 81.", svgType: "GENERAL" },
       { id: 25, cat: "DEPARTURE", phrase: "CONTACT RADAR 124.35", icaoAudio: "CONTACT RADAR one two four point three five", meaning: "Change frequency and establish communication with Radar controller.", atcLine: "Delta 102, CONTACT RADAR one two four point three five.", pilotLine: "CONTACT RADAR one two four point three five, Delta 102.", svgType: "TOWER" },
       { id: 26, cat: "DEPARTURE", phrase: "REPORT PASSING FL100", icaoAudio: "REPORT PASSING Flight Level one zero zero", meaning: "Inform ATC immediately when aircraft altimeter passes 10,000 ft.", atcLine: "KLM 671, REPORT PASSING Flight Level one zero zero.", pilotLine: "WILCO, REPORT PASSING Flight Level one zero zero, KLM 671.", svgType: "ALTIMETER" },
       { id: 27, cat: "DEPARTURE", phrase: "TURN RIGHT HEADING 040", icaoAudio: "TURN RIGHT HEADING zero four zero", meaning: "Turn right to assigned magnetic heading of 040 degrees.", atcLine: "Clipper 44, TURN RIGHT HEADING zero four zero vector for ILS.", pilotLine: "TURN RIGHT HEADING zero four zero, Clipper 44.", svgType: "GENERAL" },
-      { id: 28, cat: "DEPARTURE", phrase: "REJOIN SID", icaoAudio: "REJOIN Standard Instrument Departure", meaning: "Navigating back onto published SID route after vectoring.", atcLine: "Alitalia 71, REJOIN SID cleared MERLU 1A.", pilotLine: "REJOIN SID, Alitalia 71.", svgType: "GENERAL" },
-      { id: 29, cat: "DEPARTURE", phrase: "CLIMB TO UNRESTRICTED FL250", icaoAudio: "CLIMB TO UNRESTRICTED Flight Level two five zero", meaning: "Climb straight to FL250 bypassing level-off restrictions.", atcLine: "Scandinavian 90, CLIMB TO UNRESTRICTED Flight Level two five zero.", pilotLine: "CLIMB TO UNRESTRICTED Flight Level two five zero, Scandinavian 90.", svgType: "GENERAL" },
-      { id: 30, cat: "DEPARTURE", phrase: "AFTER DEPARTURE CLIMB STRAIGHT AHEAD", icaoAudio: "AFTER DEPARTURE CLIMB STRAIGHT AHEAD", meaning: "Maintain runway alignment course after airborne until further vectors.", atcLine: "G-ABCD, AFTER DEPARTURE CLIMB STRAIGHT AHEAD until 3000 feet.", pilotLine: "AFTER DEPARTURE CLIMB STRAIGHT AHEAD, G-ABCD.", svgType: "RUNWAY" },
+      { id: 28, cat: "DEPARTURE", phrase: "REJOIN SID", icaoAudio: "REJOIN Standard Instrument Departure", meaning: "Navigating back onto published SID route after vectoring.", atcLine: "Alitalia 71, REJOIN SID MERLU 1A AT MERLU, MAINTAIN Flight Level one two zero.", pilotLine: "REJOIN SID MERLU 1A AT MERLU, MAINTAIN Flight Level one two zero, Alitalia 71.", svgType: "GENERAL" },
+      { id: 29, cat: "DEPARTURE", phrase: "CLIMB UNRESTRICTED TO FL250", icaoAudio: "CLIMB UNRESTRICTED TO Flight Level two five zero", meaning: "Climb to FL250 with SID level and speed restrictions cancelled up to that level; follow the lateral route and other applicable limits.", atcLine: "Scandinavian 90, CLIMB UNRESTRICTED TO Flight Level two five zero.", pilotLine: "CLIMB UNRESTRICTED TO Flight Level two five zero, Scandinavian 90.", svgType: "GENERAL" },
+      { id: 30, cat: "DEPARTURE", phrase: "AFTER DEPARTURE CLIMB STRAIGHT AHEAD", icaoAudio: "AFTER DEPARTURE CLIMB STRAIGHT AHEAD", meaning: "Maintain runway alignment course after airborne until the specified altitude.", atcLine: "G-ABCD, AFTER DEPARTURE CLIMB STRAIGHT AHEAD until three thousand feet.", pilotLine: "AFTER DEPARTURE CLIMB STRAIGHT AHEAD until three thousand feet, G-ABCD.", svgType: "RUNWAY" },
 
       // 31-40 En-Route & Level Changes
-      { id: 31, cat: "ENROUTE", phrase: "RADAR CONTACT", icaoAudio: "RADAR CONTACT", meaning: "Aircraft identified on ATC radar scope; flight monitoring active.", atcLine: "Radar, Speedbird 109 passing FL140 climbing FL330.", pilotLine: "Speedbird 109, RADAR CONTACT.", svgType: "TOWER" },
+      { id: 31, cat: "ENROUTE", phrase: "RADAR CONTACT", icaoAudio: "RADAR CONTACT", meaning: "Aircraft identified on ATC radar scope; flight monitoring active.", firstSpeaker: "PILOT", pilotLine: "Radar, Speedbird 109 passing FL140 climbing FL330.", atcLine: "Speedbird 109, RADAR CONTACT.", svgType: "TOWER" },
       { id: 32, cat: "ENROUTE", phrase: "SQUAWK IDENT", icaoAudio: "SQUAWK IDENT", meaning: "Press transponder IDENT button to highlight target on ATC display.", atcLine: "Lufthansa 421, SQUAWK IDENT.", pilotLine: "SQUAWK IDENT, Lufthansa 421.", svgType: "GENERAL" },
-      { id: 33, cat: "ENROUTE", phrase: "REPORT DIRECT TO TANGO KILO", icaoAudio: "REPORT DIRECT TO Tango Kilo", meaning: "Proceed navigation straight to waypoint TK and inform ATC.", atcLine: "Swiss 312, REPORT DIRECT TO Tango Kilo.", pilotLine: "DIRECT TO Tango Kilo, Swiss 312.", svgType: "HOLDING" },
+      { id: 33, cat: "ENROUTE", phrase: "PROCEED DIRECT TO TANGO KILO", icaoAudio: "PROCEED DIRECT TO Tango Kilo", meaning: "Proceed directly to the specified waypoint.", atcLine: "Swiss 312, PROCEED DIRECT TO Tango Kilo.", pilotLine: "DIRECT TO Tango Kilo, Swiss 312.", svgType: "HOLDING" },
       { id: 34, cat: "ENROUTE", phrase: "MAINTAIN MACH 0.78", icaoAudio: "MAINTAIN MACH zero point seven eight", meaning: "Fly at designated Mach speed number for en-route separation.", atcLine: "Air France 81, MAINTAIN MACH zero point seven eight.", pilotLine: "MAINTAIN MACH zero point seven eight, Air France 81.", svgType: "GENERAL" },
-      { id: 35, cat: "ENROUTE", phrase: "ENTER HOLD AT ZULU VOR", icaoAudio: "ENTER HOLD AT Zulu V O R", meaning: "Execute standard holding pattern over specified radio nav-aid.", atcLine: "KLM 671, ENTER HOLD AT Zulu V O R FL120.", pilotLine: "ENTER HOLD AT Zulu V O R FL120, KLM 671.", svgType: "HOLDING" },
+      { id: 35, cat: "ENROUTE", phrase: "HOLD AT ZULU VOR AS PUBLISHED", icaoAudio: "HOLD AT Zulu V O R AS PUBLISHED", meaning: "Enter the published holding pattern at the specified radio nav-aid and maintain the assigned level.", atcLine: "KLM 671, HOLD AT Zulu V O R AS PUBLISHED, MAINTAIN FL120.", pilotLine: "HOLD AT Zulu V O R AS PUBLISHED, MAINTAIN FL120, KLM 671.", svgType: "HOLDING" },
       { id: 36, cat: "ENROUTE", phrase: "DESCEND TO FL140", icaoAudio: "DESCEND TO Flight Level one four zero", meaning: "Initiate descent to Flight Level 140.", atcLine: "Delta 102, DESCEND TO Flight Level one four zero.", pilotLine: "DESCEND TO Flight Level one four zero, Delta 102.", svgType: "ALTIMETER" },
       { id: 37, cat: "ENROUTE", phrase: "CROSS MERLU AT OR ABOVE FL210", icaoAudio: "CROSS MERLU AT OR ABOVE Flight Level two one zero", meaning: "Waypoint constraint: arrive over MERLU at or above FL210.", atcLine: "United 901, CROSS MERLU AT OR ABOVE Flight Level two one zero.", pilotLine: "CROSS MERLU AT OR ABOVE Flight Level two one zero, United 901.", svgType: "HOLDING" },
       { id: 38, cat: "ENROUTE", phrase: "RADAR SERVICE TERMINATED", icaoAudio: "RADAR SERVICE TERMINATED", meaning: "ATC no longer providing radar vectors/monitoring. Resume standard nav.", atcLine: "G-ABCD, RADAR SERVICE TERMINATED, contact Tower 118.1.", pilotLine: "Contact Tower 118.1, G-ABCD.", svgType: "TOWER" },
       { id: 39, cat: "ENROUTE", phrase: "REVERT TO OWN NAVIGATION", icaoAudio: "REVERT TO OWN NAVIGATION", meaning: "Pilot resumes primary flight deck navigation after vectoring.", atcLine: "Scandinavian 90, REVERT TO OWN NAVIGATION direct MERLU.", pilotLine: "REVERT TO OWN NAVIGATION direct MERLU, Scandinavian 90.", svgType: "GENERAL" },
-      { id: 40, cat: "ENROUTE", phrase: "UNABLE FL370 DUE TRAFFIC", icaoAudio: "UNABLE Flight Level three seven zero DUE TRAFFIC", meaning: "ATC denial of requested altitude due to conflicting aircraft.", atcLine: "Control, Speedbird 109 request FL370.", pilotLine: "Speedbird 109, UNABLE Flight Level three seven zero DUE TRAFFIC.", svgType: "TOWER" },
+      { id: 40, cat: "ENROUTE", phrase: "UNABLE FL370 DUE TRAFFIC", icaoAudio: "UNABLE Flight Level three seven zero DUE TRAFFIC", meaning: "ATC denial of requested altitude due to conflicting aircraft.", firstSpeaker: "PILOT", pilotLine: "Control, Speedbird 109 request FL370.", atcLine: "Speedbird 109, UNABLE Flight Level three seven zero DUE TRAFFIC.", followUp: [{ speaker: "PILOT", text: "ROGER, Speedbird 109." }], svgType: "TOWER" },
 
       // 41-50 Approach & Landing
       { id: 41, cat: "APPROACH", phrase: "CLEARED ILS APPROACH RWY 27R", icaoAudio: "CLEARED I L S APPROACH Runway two seven Right", meaning: "Authorized to execute Instrument Landing System procedure on 27R.", atcLine: "Lufthansa 421, CLEARED I L S APPROACH Runway two seven Right.", pilotLine: "CLEARED I L S APPROACH Runway two seven Right, Lufthansa 421.", svgType: "RUNWAY" },
-      { id: 42, cat: "APPROACH", phrase: "ESTABLISHED ON LOCALIZER", icaoAudio: "ESTABLISHED ON LOCALIZER", meaning: "Aircraft tracked on runway center guidance beam.", atcLine: "Tower, Speedbird 109, ESTABLISHED ON LOCALIZER Runway 09R.", pilotLine: "Speedbird 109, ROGER, report 4 miles.", svgType: "RUNWAY" },
-      { id: 43, cat: "APPROACH", phrase: "CLEARED FOR LANDING RWY 09L", icaoAudio: "CLEARED FOR LANDING Runway zero niner Left", meaning: "ATC clearance to touch down on active runway 09L.", atcLine: "Swiss 312, CLEARED FOR LANDING Runway zero niner Left, wind 090 12 knots.", pilotLine: "CLEARED FOR LANDING Runway zero niner Left, Swiss 312.", svgType: "RUNWAY" },
-      { id: 44, cat: "APPROACH", phrase: "GOING AROUND / EXECUTING MISSED APPROACH", icaoAudio: "GOING AROUND EXECUTING MISSED APPROACH", meaning: "Aborting approach procedure, adding thrust to climb out safely.", atcLine: "Tower, Air France 81, GOING AROUND EXECUTING MISSED APPROACH.", pilotLine: "Air France 81, ROGER climb 3000 feet straight ahead.", svgType: "RUNWAY" },
+      { id: 42, cat: "APPROACH", phrase: "ESTABLISHED ON LOCALIZER", icaoAudio: "ESTABLISHED ON LOCALIZER", meaning: "Aircraft tracked on runway center guidance beam.", firstSpeaker: "PILOT", pilotLine: "Tower, Speedbird 109, ESTABLISHED ON LOCALIZER Runway 09R.", atcLine: "Speedbird 109, ROGER, report four miles.", followUp: [{ speaker: "PILOT", text: "WILCO, Speedbird 109." }], svgType: "RUNWAY" },
+      { id: 43, cat: "APPROACH", phrase: "RUNWAY 09L, CLEARED TO LAND", icaoAudio: "Runway zero niner Left, CLEARED TO LAND", meaning: "ATC clearance to touch down on active runway 09L.", atcLine: "Swiss 312, Runway zero niner Left, CLEARED TO LAND, wind zero niner zero degrees one two knots.", pilotLine: "Runway zero niner Left, CLEARED TO LAND, Swiss 312.", svgType: "RUNWAY" },
+      { id: 44, cat: "APPROACH", phrase: "GOING AROUND / EXECUTING MISSED APPROACH", icaoAudio: "GOING AROUND EXECUTING MISSED APPROACH", meaning: "Aborting approach procedure, adding thrust to climb out safely.", firstSpeaker: "PILOT", pilotLine: "Tower, Air France 81, GOING AROUND, EXECUTING MISSED APPROACH.", atcLine: "Air France 81, ROGER, climb straight ahead to three thousand feet.", followUp: [{ speaker: "PILOT", text: "Climb straight ahead to three thousand feet, Air France 81." }], svgType: "RUNWAY" },
       { id: 45, cat: "APPROACH", phrase: "CONTINUE APPROACH, PREPARE FOR POSSIBLE GO-AROUND", icaoAudio: "CONTINUE APPROACH PREPARE FOR POSSIBLE GO AROUND", meaning: "Proceed down glidepath; runway not clear yet, missed approach ready.", atcLine: "KLM 671, CONTINUE APPROACH, PREPARE FOR POSSIBLE GO AROUND.", pilotLine: "CONTINUE APPROACH, KLM 671.", svgType: "RUNWAY" },
       { id: 46, cat: "APPROACH", phrase: "CLEARED VISUAL APPROACH RWY 18", icaoAudio: "CLEARED VISUAL APPROACH Runway one eight", meaning: "Authorization to proceed visually to runway maintaining terrain clearance.", atcLine: "Delta 102, CLEARED VISUAL APPROACH Runway one eight.", pilotLine: "CLEARED VISUAL APPROACH Runway one eight, Delta 102.", svgType: "RUNWAY" },
       { id: 47, cat: "APPROACH", phrase: "MAINTAIN 160 KNOTS TO 4 MILES", icaoAudio: "MAINTAIN one six zero KNOTS TO four MILES", meaning: "Speed restriction to maintain radar sequencing behind preceding traffic.", atcLine: "United 901, MAINTAIN one six zero KNOTS TO four MILES.", pilotLine: "MAINTAIN one six zero KNOTS TO four MILES, United 901.", svgType: "GENERAL" },
       { id: 48, cat: "APPROACH", phrase: "REPORT FINAL APPROACH FIX", icaoAudio: "REPORT FINAL APPROACH FIX", meaning: "Notify ATC when crossing FAF position.", atcLine: "Scandinavian 90, REPORT FINAL APPROACH FIX.", pilotLine: "WILCO, REPORT FINAL APPROACH FIX, Scandinavian 90.", svgType: "HOLDING" },
-      { id: 49, cat: "APPROACH", phrase: "LANDING GEAR APPEARS DOWN AND LOCKED", icaoAudio: "LANDING GEAR APPEARS DOWN AND LOCKED", meaning: "Tower visual verification check of gear positioning.", atcLine: "Cessna 172, LANDING GEAR APPEARS DOWN AND LOCKED.", pilotLine: "ROGER, gear down, Cessna 172.", svgType: "TOWER" },
+      { id: 49, cat: "APPROACH", phrase: "LANDING GEAR APPEARS DOWN", icaoAudio: "LANDING GEAR APPEARS DOWN", meaning: "Tower reports the visible gear position; a visual observation cannot confirm the locks.", atcLine: "Cessna 172, LANDING GEAR APPEARS DOWN.", pilotLine: "ROGER, Cessna 172.", svgType: "TOWER" },
       { id: 50, cat: "APPROACH", phrase: "MAKE THREE SIXTY TURN LEFT FOR SPACING", icaoAudio: "MAKE three six zero TURN LEFT FOR SPACING", meaning: "Execute full 360-degree orbit to lose time for approach sequence.", atcLine: "G-ABCD, MAKE three six zero TURN LEFT FOR SPACING.", pilotLine: "THREE SIXTY TURN LEFT, G-ABCD.", svgType: "HOLDING" },
 
       // 51-60 Distress, Urgency & Altimetry
-      { id: 51, cat: "EMERGENCY", phrase: "MAYDAY MAYDAY MAYDAY", icaoAudio: "MAYDAY MAYDAY MAYDAY", meaning: "Distress signal indicating grave and imminent danger; immediate priority.", atcLine: "MAYDAY MAYDAY MAYDAY, Speedbird 44 engine fire, descending FL100.", pilotLine: "Speedbird 44, ROGER MAYDAY, turn right heading 090 cleared descent 3000 feet.", svgType: "MAYDAY" },
-      { id: 52, cat: "EMERGENCY", phrase: "PAN PAN PAN PAN PAN PAN", icaoAudio: "PAN PAN PAN PAN PAN PAN", meaning: "Urgency signal concerning safety of aircraft/person; no immediate danger.", atcLine: "PAN PAN PAN PAN PAN PAN, Lufthansa 421 sick passenger onboard, request priority landing.", pilotLine: "Lufthansa 421, ROGER PAN PAN, cleared direct to airport.", svgType: "MAYDAY" },
+      { id: 51, cat: "EMERGENCY", phrase: "MAYDAY MAYDAY MAYDAY", icaoAudio: "MAYDAY MAYDAY MAYDAY", meaning: "Distress signal indicating grave and imminent danger; immediate priority.", firstSpeaker: "PILOT", pilotLine: "MAYDAY MAYDAY MAYDAY, Speedbird 44, engine fire, descending FL100, request immediate assistance.", atcLine: "Speedbird 44, ROGER MAYDAY, turn right heading 090, descend to three thousand feet.", followUp: [{ speaker: "PILOT", text: "Turn right heading 090, descend to three thousand feet, Speedbird 44." }], svgType: "MAYDAY" },
+      { id: 52, cat: "EMERGENCY", phrase: "PAN PAN PAN PAN PAN PAN", icaoAudio: "PAN PAN PAN PAN PAN PAN", meaning: "Urgency signal concerning safety of aircraft/person; no immediate danger.", firstSpeaker: "PILOT", pilotLine: "PAN PAN PAN PAN PAN PAN, Lufthansa 421, sick passenger onboard, request priority landing.", atcLine: "Lufthansa 421, ROGER PAN PAN.", svgType: "MAYDAY" },
       { id: 53, cat: "EMERGENCY", phrase: "SQUAWK 7700", icaoAudio: "SQUAWK seven seven zero zero", meaning: "Emergency transponder code indicating general distress.", atcLine: "Speedbird 44, SQUAWK seven seven zero zero.", pilotLine: "SQUAWK seven seven zero zero, Speedbird 44.", svgType: "MAYDAY" },
-      { id: 54, cat: "EMERGENCY", phrase: "SQUAWK 7600", icaoAudio: "SQUAWK seven six zero zero", meaning: "Radio communication failure transponder code.", atcLine: "Tower observes target SQUAWK seven six zero zero.", pilotLine: "Transmitting in blind: SQUAWK seven six zero zero.", svgType: "MAYDAY" },
+      { id: 54, cat: "EMERGENCY", phrase: "SQUAWK 7600", icaoAudio: "SQUAWK seven six zero zero", meaning: "Radio communication failure transponder code, normally selected by the pilot. Follow applicable radio-failure procedures.", firstSpeaker: "PILOT", pilotLine: "Tower, G-ABCD, communications restored, squawking seven six zero zero following radio failure.", atcLine: "G-ABCD, ROGER.", svgType: "MAYDAY" },
       // 56-60 Distress, Urgency & Altimetry
       { id: 56, cat: "WEATHER", phrase: "QNH 1013 HPA", icaoAudio: "Q N H one zero one tree HECTOPASCALS", meaning: "Altimeter sub-scale setting for height above mean sea level.", atcLine: "Air France 81, descend fow-er thousand feet Q N H one zero one tree.", pilotLine: "Descend fow-er thousand feet Q N H one zero one tree, Air France 81.", svgType: "ALTIMETER" },
-      { id: 57, cat: "WEATHER", phrase: "QFE 998 HPA", icaoAudio: "Q F E niner niner eight HECTOPASCALS", meaning: "Altimeter sub-scale setting for height above aerodrome elevation.", atcLine: "Cessna 172, Q F E niner niner eight HECTOPASCALS.", pilotLine: "Q F E niner niner eight, Cessna 172.", svgType: "ALTIMETER" },
+      { id: 57, cat: "WEATHER", phrase: "QFE 998 HPA", icaoAudio: "Q F E niner niner eight HECTOPASCALS", meaning: "Altimeter sub-scale setting for height above aerodrome elevation.", atcLine: "Cessna 172, Q F E niner niner eight HECTOPASCALS.", pilotLine: "Q F E niner niner eight HECTOPASCALS, Cessna 172.", svgType: "ALTIMETER" },
       { id: 58, cat: "WEATHER", phrase: "WIND 270 DEGREES 15 KNOTS GUSTS 25", icaoAudio: "WIND two seven zero DEGREES one fife KNOTS GUSTS two fife", meaning: "Surface wind speed and direction report.", atcLine: "Swiss 312, WIND two seven zero DEGREES one fife KNOTS GUSTS two fife.", pilotLine: "ROGER, Swiss 312.", svgType: "GENERAL" },
-      { id: 59, cat: "WEATHER", phrase: "CAVOK", icaoAudio: "CAVOK", meaning: "Ceiling And Visibility OK (Vis > 10km, no cloud below 5000ft, no SIGMET).", atcLine: "Information Bravo: weather CAVOK, temperature 18.", pilotLine: "Information Bravo copied, Lufthansa 421.", svgType: "GENERAL" },
+      { id: 59, cat: "WEATHER", phrase: "CAVOK", icaoAudio: "CAVOK", meaning: "Visibility is at least 10 km, with no significant weather or cloud under the applicable CAVOK criteria.", atcLine: "Lufthansa 421, weather CAVOK, temperature 18.", pilotLine: "ROGER, Lufthansa 421.", svgType: "GENERAL" },
       { id: 60, cat: "WEATHER", phrase: "WINDSHEAR ALERT RUNWAY 09", icaoAudio: "WINDSHEAR ALERT Runway zero niner", meaning: "Drastic change in wind speed/direction reported on final/takeoff path.", atcLine: "KLM 671, WINDSHEAR ALERT Runway zero niner, reported by B777.", pilotLine: "ROGER, WINDSHEAR ALERT, KLM 671.", svgType: "RUNWAY" },
 
       // 61-65 Standardized Instrument & Altitude Readings
@@ -615,10 +665,10 @@
       { id: 64, cat: "WEATHER", phrase: "ALTITUDE 13,000 FT", icaoAudio: "One tree thousand feet", meaning: "Spoken reading for 13,000 ft using ICAO 'tree' for digit 3.", atcLine: "Lufthansa 421, climb one tree thousand feet.", pilotLine: "Climbing one tree thousand feet, Lufthansa 421.", svgType: "ALTIMETER" },
       { id: 65, cat: "WEATHER", phrase: "FL290 (HIGH AIRSPACE)", icaoAudio: "Flight level two niner zero", meaning: "High airspace flight level transmission digit-by-digit.", atcLine: "Swiss 312, maintain Flight level two niner zero.", pilotLine: "Maintaining Flight level two niner zero, Swiss 312.", svgType: "ALTIMETER" },
       { id: 66, cat: "AIRPORT", phrase: "CROSS RUNWAY 27L WITHOUT DELAY", icaoAudio: "CROSS Runway two seven Left WITHOUT DELAY", meaning: "Expedite crossing active runway 27L immediately without stopping on surface.", atcLine: "Air France 81, CROSS Runway two seven Left WITHOUT DELAY.", pilotLine: "CROSS Runway two seven Left WITHOUT DELAY, Air France 81.", svgType: "RUNWAY" },
-      { id: 67, cat: "DEPARTURE", phrase: "CLIMB VIA SID TO FL240", icaoAudio: "CLIMB VIA Standard Instrument Departure TO Flight Level two four zero", meaning: "Climb conforming to vertical profile constraints of SID up to FL240.", atcLine: "Lufthansa 421, CLIMB VIA SID TO Flight Level two four zero.", pilotLine: "CLIMB VIA SID TO Flight Level two four zero, Lufthansa 421.", svgType: "GENERAL" },
-      { id: 68, cat: "APPROACH", phrase: "DESCEND VIA STAR TO 4000 FEET", icaoAudio: "DESCEND VIA Standard Terminal Arrival TO four thousand FEET", meaning: "Follow published arrival route altitude restrictions down to 4,000 ft QNH.", atcLine: "KLM 671, DESCEND VIA STAR TO four thousand FEET QNH 1012.", pilotLine: "DESCEND VIA STAR TO four thousand FEET, KLM 671.", svgType: "HOLDING" },
-      { id: 69, cat: "AIRPORT", phrase: "REQUEST BACKTRACK RUNWAY 09R", icaoAudio: "REQUEST BACKTRACK Runway zero niner Right", meaning: "Taxiing on active runway in opposite direction of takeoff to reach departure threshold.", atcLine: "Tower, G-ABCD, REQUEST BACKTRACK Runway zero niner Right.", pilotLine: "G-ABCD, BACKTRACK Runway zero niner Right APPROVED.", svgType: "RUNWAY" },
-      { id: 70, cat: "EMERGENCY", phrase: "CANCEL MAYDAY", icaoAudio: "CANCEL MAYDAY", meaning: "Formal pilot notification that distress emergency condition has ended.", atcLine: "Tower, Speedbird 44, fire extinguished, CANCEL MAYDAY.", pilotLine: "Speedbird 44, ROGER MAYDAY CANCELLED, state intentions.", svgType: "MAYDAY" }
+      { id: 67, cat: "DEPARTURE", phrase: "CLIMB VIA SID TO FL240", icaoAudio: "CLIMB VIA Standard Instrument Departure TO Flight Level two four zero", meaning: "Follow the SID lateral route and applicable level and speed restrictions while climbing to FL240.", atcLine: "Lufthansa 421, CLIMB VIA SID TO Flight Level two four zero.", pilotLine: "CLIMB VIA SID TO Flight Level two four zero, Lufthansa 421.", svgType: "GENERAL" },
+      { id: 68, cat: "APPROACH", phrase: "DESCEND VIA STAR TO 4000 FEET", icaoAudio: "DESCEND VIA Standard Terminal Arrival TO four thousand FEET", meaning: "Follow the STAR lateral route and applicable level and speed restrictions while descending to 4,000 ft QNH.", atcLine: "KLM 671, DESCEND VIA STAR TO four thousand FEET QNH 1012.", pilotLine: "DESCEND VIA STAR TO four thousand FEET QNH 1012, KLM 671.", svgType: "HOLDING" },
+      { id: 69, cat: "AIRPORT", phrase: "REQUEST BACKTRACK RUNWAY 09R", icaoAudio: "REQUEST BACKTRACK Runway zero niner Right", meaning: "Taxiing on active runway in opposite direction of takeoff to reach departure threshold.", firstSpeaker: "PILOT", pilotLine: "Tower, G-ABCD, REQUEST BACKTRACK Runway zero niner Right.", atcLine: "G-ABCD, BACKTRACK Runway zero niner Right.", followUp: [{ speaker: "PILOT", text: "BACKTRACK Runway zero niner Right, G-ABCD." }], svgType: "RUNWAY" },
+      { id: 70, cat: "EMERGENCY", phrase: "CANCEL MAYDAY", icaoAudio: "CANCEL MAYDAY", meaning: "Formal pilot notification that distress emergency condition has ended.", firstSpeaker: "PILOT", pilotLine: "Tower, Speedbird 44, fire extinguished, CANCEL MAYDAY.", atcLine: "Speedbird 44, ROGER MAYDAY CANCELLED.", svgType: "MAYDAY" }
     ];
 
     let flashcardsData = JSON.parse(localStorage.getItem('icao_rtf_cards')) || DEFAULT_FLASHCARDS;
@@ -630,7 +680,7 @@
       {
         title: "Pushback & IFR Clearance Departure",
         lines: [
-          { speaker: "PILOT", text: "Frankfurt Tower, Lufthansa 421, Gate A12, request IFR clearance to London Heathrow." },
+          { speaker: "PILOT", text: "Ground, Lufthansa 421, stand A12, request IFR clearance to London Heathrow." },
           { 
             speaker: "ATC", 
             template: "Lufthansa 421, cleared to London Heathrow via {0}, climb Flight Level {1}, squawk {2}.",
@@ -649,9 +699,18 @@
               { answer: "4201", options: ["4201", "7700", "7000"] }
             ]
           },
-          { 
+          { speaker: "ATC", text: "Lufthansa 421, readback correct." },
+          { speaker: "PILOT", text: "Ground, Lufthansa 421, stand A12, request pushback." },
+          {
             speaker: "ATC", 
-            template: "Lufthansa 421, readback correct. {0} approved, face West.",
+            template: "Lufthansa 421, {0} approved, face West.",
+            blanks: [
+              { answer: "PUSHBACK", options: ["PUSHBACK", "TAKEOFF", "TAXI"] }
+            ]
+          },
+          {
+            speaker: "PILOT",
+            template: "{0} approved, face West, Lufthansa 421.",
             blanks: [
               { answer: "PUSHBACK", options: ["PUSHBACK", "TAKEOFF", "TAXI"] }
             ]
@@ -682,31 +741,42 @@
             blanks: [
               { answer: "CROSS", options: ["CROSS", "LAND", "TAKE OFF"] }
             ]
+          },
+          {
+            speaker: "PILOT",
+            template: "{0} Runway 09L, WILCO, Speedbird 109.",
+            blanks: [
+              { answer: "CROSS", options: ["CROSS", "LAND", "TAKE OFF"] }
+            ]
           }
         ]
       },
       {
         title: "Emergency Scenario - Engine Fire (MAYDAY)",
+        note: "Maintain aircraft control first. When able, give known position, intentions and other relevant information. This excerpt assumes the approach to be flown is already established; clarify it if uncertain.",
         lines: [
           { 
             speaker: "PILOT", 
-            template: "{0} MAYDAY MAYDAY, Speedbird 44, Engine Fire on engine number 1, turning right heading 090, descending FL100.",
+            template: "{0} MAYDAY MAYDAY, Speedbird 44, engine fire on engine number 1, turning right heading 090, descending FL100, request immediate assistance.",
             blanks: [
               { answer: "MAYDAY", options: ["MAYDAY", "PAN PAN", "SECURITE"] }
             ]
           },
           { 
             speaker: "ATC", 
-            template: "Speedbird 44, ROGER MAYDAY, turn right heading 090, descend to {0}, QNH 1014. Cleared emergency approach Runway 09R.",
+            template: "Speedbird 44, ROGER MAYDAY, turn right heading 090, descend to {0}, QNH 1014. Cleared approach Runway 09R.",
             blanks: [
-              { answer: "3000 FT", options: ["3000 FT", "FL390", "100 FT"] }
+              { answer: "three thousand feet", options: ["three thousand feet", "Flight Level three nine zero", "one hundred feet"] }
             ]
           },
           { 
             speaker: "PILOT", 
-            template: "Descend to {0}, QNH 1014, heading 090, Speedbird 44.",
+            template: "Turn right heading {0}, descend to {1}, QNH {2}, cleared {3} Runway 09R, Speedbird 44.",
             blanks: [
-              { answer: "3000 FT", options: ["3000 FT", "FL390", "50 FT"] }
+              { answer: "090", options: ["090", "180", "270"] },
+              { answer: "three thousand feet", options: ["three thousand feet", "Flight Level three nine zero", "fifty feet"] },
+              { answer: "1014", options: ["1014", "1013", "1004"] },
+              { answer: "APPROACH", options: ["APPROACH", "TAKEOFF", "CROSS"] }
             ]
           }
         ]
@@ -791,6 +861,7 @@
             Step ${currentScenarioStep + 1} of ${sc.lines.length}
           </span>
         </div>
+        ${sc.note ? `<p class="text-xs text-amber-300">${sc.note}</p>` : ''}
         <div class="space-y-3">${htmlLines}</div>
         <div class="flex items-center justify-between pt-4 border-t border-slate-800">
           <div id="scenario-feedback" class="font-mono text-xs"></div>
@@ -841,18 +912,18 @@
         if (!allCorrect) {
           if (feedback) {
             feedback.className = "font-mono text-xs text-rose-400 font-bold";
-            feedback.innerText = "READBACK ERROR! CHECK RED HIGHLIGHTED PHRASES.";
+            feedback.innerText = "INCORRECT SELECTION. CHECK RED HIGHLIGHTED PHRASES.";
           }
-          speakICAOText("Negative, readback incorrect");
+          speakICAOText("Incorrect selection");
           return;
         }
       }
 
       if (feedback) {
         feedback.className = "font-mono text-xs text-emerald-400 font-bold";
-        feedback.innerText = "READBACK CORRECT! TRANSMISSION AUTHORIZED.";
+        feedback.innerText = "LINE CORRECT.";
       }
-      speakICAOText("Readback correct");
+      speakICAOText("Correct");
 
       if (currentScenarioStep < sc.lines.length - 1) {
         currentScenarioStep++;
@@ -1093,7 +1164,7 @@
     }
 
     function switchTab(tabId) {
-      ['flashcards', 'matching', 'scenarios', 'quiz'].forEach(id => {
+      ['flashcards', 'matching', 'scenarios', 'collocations', 'quiz'].forEach(id => {
         const sec = document.getElementById(`section-${id}`);
         const tabBtn = document.getElementById(`tab-${id}`);
         const mTabBtn = document.getElementById(`mtab-${id}`);
@@ -1110,9 +1181,9 @@
 
         if (mTabBtn) {
           if (id === tabId) {
-            mTabBtn.className = "mobile-tab px-2 py-1.5 rounded text-cyan-400 bg-cyan-950/40 font-bold";
+            mTabBtn.className = "mobile-tab px-2 py-1.5 rounded whitespace-nowrap shrink-0 text-cyan-400 bg-cyan-950/40 font-bold";
           } else {
-            mTabBtn.className = "mobile-tab px-2 py-1.5 rounded text-slate-400";
+            mTabBtn.className = "mobile-tab px-2 py-1.5 rounded whitespace-nowrap shrink-0 text-slate-400";
           }
         }
       });
@@ -1197,6 +1268,12 @@
       cardEl.classList.toggle('flipped');
     }
 
+    function escapeHTML(value) {
+      return String(value).replace(/[&<>"']/g, character => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[character]);
+    }
+
     function renderFlashcards(cardsToRender) {
       const grid = document.getElementById('flashcards-grid');
       if (!grid) return;
@@ -1219,10 +1296,11 @@
       cardsToRender.forEach(card => {
         const cardWrapper = document.createElement('div');
         cardWrapper.className = 'flip-card h-[380px] cursor-pointer select-none';
-        
-        const safePhrase = card.phrase.replace(/'/g, "\\'");
-        const safeAtc = (card.atcLine || card.phrase).replace(/'/g, "\\'");
-        const safePilot = (card.pilotLine || card.icaoAudio).replace(/'/g, "\\'");
+        const dialogueHtml = getCardDialogue(card).map(turn => `
+          <div data-speaker="${turn.speaker}" class="text-slate-300 leading-tight">
+            <span class="${turn.speaker === 'PILOT' ? 'text-cyan-400' : 'text-emerald-400'} font-bold">${turn.speaker}:</span> "${escapeHTML(turn.text)}"
+          </div>
+        `).join('');
 
         cardWrapper.innerHTML = `
           <div class="flip-card-inner rounded-xl border border-slate-800 bg-cockpit-card shadow-lg hover:border-cyan-500/50 transition-colors" onclick="toggleCardFlip(this.parentElement)">
@@ -1231,7 +1309,7 @@
               <div class="space-y-3">
                 <div class="flex items-center justify-between">
                   <span class="text-[10px] font-mono uppercase bg-cyan-950 border border-cyan-500/40 text-cyan-400 px-2 py-0.5 rounded font-bold">
-                    ${card.cat}
+                    ${escapeHTML(card.cat)}
                   </span>
                   <span class="text-xs font-mono text-slate-500 flex items-center gap-1">
                     <i class="fa-solid fa-rotate text-[10px]"></i> FLIP FOR PHRASE
@@ -1240,11 +1318,11 @@
                 ${generateSVGGraphic(card.svgType)}
                 <div class="pt-1">
                   <h4 class="text-xs font-mono text-cyan-400 uppercase tracking-wider mb-1">DEFINITION / MEANING</h4>
-                  <p class="text-xs text-slate-300 leading-relaxed font-sans font-medium line-clamp-3">${card.meaning}</p>
+                  <p class="text-xs text-slate-300 leading-relaxed font-sans font-medium line-clamp-3">${escapeHTML(card.meaning)}</p>
                 </div>
               </div>
               <div class="text-[10px] font-mono text-slate-500 flex items-center justify-between border-t border-slate-800 pt-2">
-                <span>CARD ID: #${card.id}</span>
+                <span>CARD ID: #${escapeHTML(card.id)}</span>
                 <span class="text-cyan-400 font-semibold">CLICK TO FLIP <i class="fa-solid fa-arrow-rotate-right"></i></span>
               </div>
             </div>
@@ -1254,44 +1332,47 @@
               <div class="space-y-3">
                 <div class="flex items-center justify-between">
                   <span class="text-[10px] font-mono uppercase bg-emerald-950 border border-emerald-500/40 text-emerald-400 px-2 py-0.5 rounded font-bold">
-                    OFFICIAL ICAO PHRASE
+                    PRACTICE PHRASE
                   </span>
                   <div class="flex items-center gap-1">
-                    <button onclick="event.stopPropagation(); speakICAOText('${card.icaoAudio.replace(/'/g, "\\'")}')" class="px-2 py-1 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 transition text-[11px] font-mono font-bold" title="Listen Phrase Audio">
+                    <button data-card-action="phrase" class="px-2 py-1 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 transition text-[11px] font-mono font-bold" title="Listen Phrase Audio">
                       <i class="fa-solid fa-volume-high"></i> PHRASE
                     </button>
-                    <button onclick="event.stopPropagation(); speakDialogue('${safeAtc}', '${safePilot}')" class="px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition text-[11px] font-mono font-bold" title="Play Full ATC-Pilot Dialogue">
+                    <button data-card-action="dialogue" class="px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition text-[11px] font-mono font-bold" title="Play Full ATC-Pilot Dialogue">
                       <i class="fa-solid fa-comments"></i> DIALOGUE
                     </button>
                   </div>
                 </div>
 
                 <div class="space-y-2">
-                  <h3 class="text-sm font-bold font-mono text-white tracking-wide">${card.phrase}</h3>
+                  <h3 class="text-sm font-bold font-mono text-white tracking-wide">${escapeHTML(card.phrase)}</h3>
                   
                   <!-- SHORT VOICED DIALOGUE BOX -->
-                  <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono space-y-1.5">
+                  <div class="p-2.5 max-h-48 overflow-y-auto rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono space-y-1.5">
                     <div class="text-[10px] text-cyan-400 font-bold uppercase border-b border-slate-800 pb-1 flex items-center gap-1">
                       <i class="fa-solid fa-headset text-[10px]"></i> ATC & PILOT EXCHANGE
                     </div>
-                    <div class="text-slate-300 leading-tight">
-                      <span class="text-emerald-400 font-bold">ATC:</span> "${card.atcLine || card.phrase}"
-                    </div>
-                    <div class="text-slate-300 leading-tight">
-                      <span class="text-cyan-400 font-bold">PILOT:</span> "${card.pilotLine || card.icaoAudio}"
-                    </div>
+                    ${dialogueHtml}
                   </div>
                 </div>
               </div>
 
               <div class="text-[10px] font-mono text-slate-400 flex items-center justify-between border-t border-slate-800 pt-2">
-                <span>ICAO ANNEX 10 COMPLIANT</span>
+                <span>TRAINING EXAMPLE</span>
                 <span class="text-cyan-400 font-semibold">FLIP BACK <i class="fa-solid fa-arrow-rotate-left"></i></span>
               </div>
             </div>
           </div>
         `;
 
+        cardWrapper.querySelector('[data-card-action="phrase"]').addEventListener('click', event => {
+          event.stopPropagation();
+          speakICAOText(card.icaoAudio);
+        });
+        cardWrapper.querySelector('[data-card-action="dialogue"]').addEventListener('click', event => {
+          event.stopPropagation();
+          speakDialogue(card);
+        });
         fragment.appendChild(cardWrapper);
       });
 
@@ -1350,6 +1431,7 @@
       try {
         const imported = JSON.parse(area.value);
         if (Array.isArray(imported) && imported.length > 0) {
+          imported.forEach(getCardDialogue);
           flashcardsData = imported;
           localStorage.setItem('icao_rtf_cards', JSON.stringify(flashcardsData));
           filterFlashcards();
@@ -1359,7 +1441,7 @@
           alert("Invalid deck JSON structure. Must be an array of flashcard objects.");
         }
       } catch (err) {
-        alert("Failed to parse JSON string: " + err.message);
+        alert("Failed to import deck: " + err.message);
       }
     }
 
@@ -1368,7 +1450,7 @@
       localStorage.removeItem('icao_rtf_cards');
       filterFlashcards();
       closeExportModal();
-      speakICAOText("Reset to default 70 cards");
+      speakICAOText("Reset to default deck");
     }
 
     /* =========================================================================
