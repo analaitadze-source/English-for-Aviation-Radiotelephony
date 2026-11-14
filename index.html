@@ -278,8 +278,8 @@
             <p class="text-xs text-slate-400">Browse the current deck, including category examples for cards without their own vocabulary. These are study phrases, not necessarily radio transmissions.</p>
           </div>
           <div class="w-full md:w-64">
-            <label for="vocabulary-search" class="block text-xs text-slate-400 mb-1">Search flashcard vocabulary</label>
-            <input id="vocabulary-search" type="search" oninput="renderVocabularyList()" placeholder="Search collocations or nouns..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-cyan-500 focus:outline-none">
+            <label for="vocabulary-search" class="block text-xs text-slate-400 mb-1">Search vocabulary and examples</label>
+            <input id="vocabulary-search" type="search" oninput="renderVocabularyList()" placeholder="Search terms or examples..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-cyan-500 focus:outline-none">
           </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -295,29 +295,14 @@
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-cockpit-card border border-slate-800 rounded-xl p-6 space-y-4">
-          <h3 class="font-bold text-cyan-400">Radiotelephony examples</h3>
-          <p class="text-xs text-slate-400">These are fragments, not complete transmissions. Use the applicable local phraseology and readback procedures.</p>
-          <dl class="space-y-3 text-sm">
-            <div><dt class="font-mono font-bold text-slate-100">request pushback</dt><dd class="text-slate-400">A pilot asks for approval to move back from the stand.</dd></div>
-            <div><dt class="font-mono font-bold text-slate-100">taxi to holding point</dt><dd class="text-slate-400">A controller instructs an aircraft to move to a specified holding position.</dd></div>
-            <div><dt class="font-mono font-bold text-slate-100">hold short of runway</dt><dd class="text-slate-400">Stop before the specified runway and read back the instruction.</dd></div>
-            <div><dt class="font-mono font-bold text-slate-100">cross runway</dt><dd class="text-slate-400">A controller's runway crossing clearance must be read back.</dd></div>
-            <div><dt class="font-mono font-bold text-slate-100">cleared to land</dt><dd class="text-slate-400">A landing clearance includes the runway to be read back.</dd></div>
-            <div><dt class="font-mono font-bold text-slate-100">go around / going around</dt><dd class="text-slate-400">A controller may instruct a go-around; a pilot reports going around.</dd></div>
-          </dl>
+          <h3 class="font-bold text-cyan-400">Radiotelephony examples <span id="radio-example-count" class="text-slate-400" aria-live="polite"></span></h3>
+          <p class="text-xs text-slate-400">Illustrative exchanges from the current deck. Use applicable local phraseology and readback procedures.</p>
+          <div id="radio-examples" role="list" aria-label="Radiotelephony examples" tabindex="0" class="space-y-3 max-h-[36rem] overflow-y-auto pr-2"></div>
         </div>
         <div class="bg-cockpit-card border border-slate-800 rounded-xl p-6 space-y-4">
-          <h3 class="font-bold text-emerald-400">General aviation English</h3>
-          <p class="text-xs text-slate-400">Useful ordinary English, not prescribed radio transmissions.</p>
-          <dl class="space-y-3 text-sm">
-            <div><dt class="font-mono font-bold text-slate-100">file a flight plan</dt><dd class="text-slate-400">Submit the planned flight details.</dd></div>
-            <div><dt class="font-mono font-bold text-slate-100">conduct a pre-flight inspection</dt><dd class="text-slate-400">Check the aircraft before departure.</dd></div>
-            <div><dt class="font-mono font-bold text-slate-100">encounter turbulence</dt><dd class="text-slate-400">Experience irregular air movement during flight.</dd></div>
-            <div><dt class="font-mono font-bold text-slate-100">extend the landing gear</dt><dd class="text-slate-400">Lower the landing gear.</dd></div>
-            <div><dt class="font-mono font-bold text-slate-100">perform an instrument approach</dt><dd class="text-slate-400">Fly an approach using instrument guidance.</dd></div>
-            <div><dt class="font-mono font-bold text-slate-100">divert to an alternate aerodrome</dt><dd class="text-slate-400">Fly to another suitable aerodrome instead.</dd></div>
-            <div><dt class="font-mono font-bold text-slate-100">maintain situational awareness</dt><dd class="text-slate-400">Keep track of the aircraft and its surroundings.</dd></div>
-          </dl>
+          <h3 class="font-bold text-emerald-400">General aviation English <span id="general-example-count" class="text-slate-400" aria-live="polite"></span></h3>
+          <p class="text-xs text-slate-400">Example sentences for collocations and compound nouns, not prescribed radio transmissions.</p>
+          <dl id="general-examples" tabindex="0" aria-label="General aviation English examples" class="space-y-3 max-h-[36rem] overflow-y-auto pr-2 text-sm"></dl>
         </div>
       </div>
     </section>
@@ -904,6 +889,79 @@
       };
     }
 
+    const GENERAL_AVIATION_EXAMPLES = [
+      { kind: "Collocation", term: "file a flight plan", example: "The pilot filed a flight plan before departure." },
+      { kind: "Collocation", term: "conduct a pre-flight inspection", example: "The pilot conducted a pre-flight inspection before boarding." },
+      { kind: "Collocation", term: "check the weather forecast", example: "The crew checked the weather forecast during flight planning." },
+      { kind: "Collocation", term: "review the departure clearance", example: "The crew reviewed the departure clearance before taxi." },
+      { kind: "Collocation", term: "brief the departure procedure", example: "The pilots briefed the departure procedure before leaving the stand." },
+      { kind: "Collocation", term: "request pushback", example: "The crew requested pushback from the stand." },
+      { kind: "Collocation", term: "start the engines", example: "The crew started the engines after receiving the required approvals." },
+      { kind: "Collocation", term: "follow a taxi route", example: "The crew followed the assigned taxi route to the holding point." },
+      { kind: "Collocation", term: "give way to traffic", example: "The aircraft gave way to other ground traffic." },
+      { kind: "Collocation", term: "wait for takeoff clearance", example: "The crew waited for takeoff clearance at the holding point." },
+      { kind: "Collocation", term: "cross a runway", example: "The aircraft crossed the runway after receiving clearance." },
+      { kind: "Collocation", term: "line up on the runway", example: "The aircraft lined up on the assigned runway after the controller's instruction." },
+      { kind: "Collocation", term: "climb to a flight level", example: "The crew climbed to the assigned flight level." },
+      { kind: "Collocation", term: "comply with a level restriction", example: "The aircraft complied with the published level restriction." },
+      { kind: "Collocation", term: "maintain an assigned heading", example: "The crew maintained the assigned heading." },
+      { kind: "Collocation", term: "establish radar contact", example: "The controller established radar contact with the aircraft." },
+      { kind: "Collocation", term: "report a position", example: "The pilot reported the aircraft's position to ATC." },
+      { kind: "Collocation", term: "proceed direct to a waypoint", example: "The flight proceeded direct to the cleared waypoint." },
+      { kind: "Collocation", term: "enter a holding pattern", example: "The aircraft entered the published holding pattern at the assigned level." },
+      { kind: "Collocation", term: "monitor fuel consumption", example: "The crew monitored fuel consumption throughout the flight." },
+      { kind: "Collocation", term: "encounter turbulence", example: "The aircraft encountered turbulence during the climb." },
+      { kind: "Collocation", term: "avoid severe weather", example: "The crew changed course to avoid severe weather after coordinating with ATC." },
+      { kind: "Collocation", term: "maintain safe separation", example: "Controllers maintained safe separation between the aircraft." },
+      { kind: "Collocation", term: "receive a descent clearance", example: "The crew received a descent clearance before leaving the assigned flight level." },
+      { kind: "Collocation", term: "set the altimeter", example: "The pilot set the altimeter to the reported pressure setting." },
+      { kind: "Collocation", term: "brief the approach procedure", example: "The pilots briefed the approach procedure before descent." },
+      { kind: "Collocation", term: "perform an instrument approach", example: "The crew performed an instrument approach in low visibility." },
+      { kind: "Collocation", term: "become established on the localizer", example: "The aircraft became established on the localizer during the approach." },
+      { kind: "Collocation", term: "extend the landing gear", example: "The crew extended the landing gear during the approach." },
+      { kind: "Collocation", term: "maintain an assigned speed", example: "The aircraft maintained the assigned speed for sequencing." },
+      { kind: "Collocation", term: "execute a missed approach", example: "The crew executed a missed approach when landing was not possible." },
+      { kind: "Collocation", term: "receive landing clearance", example: "The pilot received landing clearance for the assigned runway." },
+      { kind: "Collocation", term: "vacate the runway", example: "The aircraft vacated the runway via the assigned taxiway." },
+      { kind: "Collocation", term: "report the runway vacated", example: "The pilot reported the runway vacated after clearing it." },
+      { kind: "Collocation", term: "taxi to the parking stand", example: "The aircraft taxied to its parking stand after landing." },
+      { kind: "Collocation", term: "divert to an alternate aerodrome", example: "The flight diverted to an alternate aerodrome because of weather." },
+      { kind: "Collocation", term: "declare an emergency", example: "The crew declared an emergency after detecting an engine fire." },
+      { kind: "Collocation", term: "request immediate assistance", example: "The pilot requested immediate assistance during the distress call." },
+      { kind: "Collocation", term: "restore radio communication", example: "The pilot reported that radio communication had been restored." },
+      { kind: "Collocation", term: "monitor the emergency frequency", example: "The pilot monitored the emergency frequency when appropriate." },
+      { kind: "Collocation", term: "maintain situational awareness", example: "The crew maintained situational awareness throughout the approach." },
+      { kind: "Collocation", term: "review the weather report", example: "The pilots reviewed the weather report before departure." },
+      { kind: "Collocation", term: "observe wind gusts", example: "The crew noted the wind gusts in the surface wind report." },
+      { kind: "Collocation", term: "read back a clearance", example: "The pilot read back the clearance for the controller to check." },
+      { kind: "Collocation", term: "check an altimeter setting", example: "The crew checked the altimeter setting before descent." },
+      { kind: "Collocation", term: "request priority landing", example: "The crew requested a priority landing for a sick passenger." },
+      { kind: "Collocation", term: "pass the final approach fix", example: "The aircraft passed the final approach fix while inbound." },
+      { kind: "Collocation", term: "review fuel reserves", example: "The crew reviewed fuel reserves during flight planning." },
+      { kind: "Collocation", term: "conduct a crew briefing", example: "The pilots conducted a crew briefing before departure." },
+      { kind: "Collocation", term: "check the runway condition", example: "The crew checked the runway condition before landing." },
+      { kind: "Collocation", term: "continue the approach", example: "The crew continued the approach while awaiting further instructions." },
+      { kind: "Compound noun", term: "flight level", example: "The controller assigned a higher flight level." },
+      { kind: "Compound noun", term: "emergency frequency", example: "The emergency frequency was available if needed." },
+      { kind: "Compound noun", term: "runway designator", example: "The pilot checked the runway designator in the clearance." },
+      { kind: "Compound noun", term: "transponder code", example: "The crew set the assigned transponder code." },
+      { kind: "Compound noun", term: "holding point", example: "The aircraft stopped at the runway holding point." },
+      { kind: "Compound noun", term: "runway crossing", example: "The pilot read back the runway crossing clearance." },
+      { kind: "Compound noun", term: "takeoff clearance", example: "The controller issued a takeoff clearance." },
+      { kind: "Compound noun", term: "departure route", example: "The crew checked the departure route before takeoff." },
+      { kind: "Compound noun", term: "radar contact", example: "The controller confirmed radar contact with the aircraft." },
+      { kind: "Compound noun", term: "holding pattern", example: "The crew reviewed the published holding pattern." },
+      { kind: "Compound noun", term: "speed restriction", example: "The aircraft complied with the speed restriction." },
+      { kind: "Compound noun", term: "landing gear", example: "The crew checked the landing gear indications." },
+      { kind: "Compound noun", term: "approach clearance", example: "The pilot read back the approach clearance." },
+      { kind: "Compound noun", term: "distress call", example: "The controller acknowledged the distress call." },
+      { kind: "Compound noun", term: "altimeter setting", example: "The pilot read back the altimeter setting." },
+      { kind: "Compound noun", term: "weather report", example: "The crew reviewed the latest weather report." },
+      { kind: "Compound noun", term: "windshear alert", example: "The controller passed a windshear alert to the approaching aircraft." },
+      { kind: "Compound noun", term: "missed approach", example: "The crew prepared for a possible missed approach." },
+      { kind: "Compound noun", term: "parking stand", example: "The aircraft taxied to its assigned parking stand." }
+    ];
+
     let flashcardsData = JSON.parse(localStorage.getItem('icao_rtf_cards')) || DEFAULT_FLASHCARDS;
 
     function renderVocabularyList() {
@@ -934,6 +992,50 @@
           ? items.map(item => `<li data-vocabulary-item class="max-w-full break-words rounded bg-slate-800 px-2 py-1 text-xs text-slate-200">${escapeHTML(item)}</li>`).join('')
           : '<li class="text-xs text-slate-500">No matching terms.</li>';
       });
+      renderVocabularyExamples(query);
+    }
+
+    function renderVocabularyExamples(query) {
+      const radioList = document.getElementById('radio-examples');
+      const radioCount = document.getElementById('radio-example-count');
+      const generalList = document.getElementById('general-examples');
+      const generalCount = document.getElementById('general-example-count');
+      if (!radioList || !radioCount || !generalList || !generalCount) return;
+
+      const radioExamples = flashcardsData.map(card => {
+        const dialogue = getCardDialogue(card);
+        const vocabulary = getCardVocabulary(card);
+        const related = [...vocabulary.collocations, ...vocabulary.compoundNouns];
+        const searchable = [card.phrase, card.meaning, ...dialogue.map(turn => turn.text), ...related].join(' ').toLowerCase();
+        return { card, dialogue, related, searchable };
+      }).filter(item => item.searchable.includes(query));
+
+      radioCount.textContent = `(${radioExamples.length})`;
+      radioList.innerHTML = radioExamples.length
+        ? radioExamples.map(({ card, dialogue, related }) => `
+            <article role="listitem" data-radio-example data-card-id="${escapeHTML(card.id)}" class="rounded-lg bg-slate-950 border border-slate-800 p-3 space-y-2">
+              <h4 class="font-mono font-bold text-xs text-slate-100 break-words">${escapeHTML(card.phrase)}</h4>
+              <p class="text-xs text-slate-400 break-words">${escapeHTML(card.meaning)}</p>
+              <div class="space-y-1 text-xs font-mono text-slate-300">
+                ${dialogue.map(turn => `<p data-speaker="${turn.speaker}" class="break-words"><strong class="${turn.speaker === 'PILOT' ? 'text-cyan-400' : 'text-emerald-400'}">${turn.speaker}:</strong> ${escapeHTML(turn.text)}</p>`).join('')}
+              </div>
+              <p class="text-xs text-slate-400 break-words"><strong>Related vocabulary:</strong> ${related.map(escapeHTML).join('; ')}</p>
+            </article>
+          `).join('')
+        : '<p class="text-xs text-slate-500">No matching examples.</p>';
+
+      const generalExamples = GENERAL_AVIATION_EXAMPLES.filter(item =>
+        [item.kind, item.term, item.example].join(' ').toLowerCase().includes(query)
+      );
+      generalCount.textContent = `(${generalExamples.length})`;
+      generalList.innerHTML = generalExamples.length
+        ? generalExamples.map(item => `
+            <div data-general-example class="border-b border-slate-800 pb-3">
+              <dt class="font-mono font-bold text-slate-100 break-words">${escapeHTML(item.term)} <span class="text-[10px] font-normal text-emerald-400">${escapeHTML(item.kind)}</span></dt>
+              <dd class="text-slate-400 mt-1 break-words">${escapeHTML(item.example)}</dd>
+            </div>
+          `).join('')
+        : '<div class="text-xs text-slate-500">No matching examples.</div>';
     }
 
     /* =========================================================================
