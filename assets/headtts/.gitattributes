@@ -1,0 +1,3 @@
+* text eol=lf
+modules/*.mjs -whitespace
+dictionaries/en-us.txt -whitespace

@@ -1,0 +1,9 @@
+{
+  "name": "@met4citizen/headtts",
+  "version": "1.3.0",
+  "revision": "c08f4ca8b3253b3e908e501486a1e068e606be5c",
+  "source": "https://github.com/met4citizen/HeadTTS",
+  "license": "MIT",
+  "dictionary": "CMU Pronouncing Dictionary, BSD-2-Clause",
+  "description": "Unmodified browser voice engine and English pronunciation dictionary."
+}

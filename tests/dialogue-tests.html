@@ -14,9 +14,9 @@
       const assert = (condition, message) => {
         if (!condition) throw new Error(message);
       };
-      const test = (name, fn) => {
+      const test = async (name, fn) => {
         try {
-          fn();
+          await fn();
           results.push({ name, passed: true });
         } catch (error) {
           results.push({ name, passed: false, error: error.message });
@@ -25,8 +25,12 @@
       const cards = DEFAULT_FLASHCARDS;
       const findCard = id => cards.find(card => card.id === id);
       const synthesis = window.speechSynthesis;
-      const originalSpeak = synthesis.speak;
-      const originalCancel = synthesis.cancel;
+      const originalNativeSpeak = synthesis && synthesis.speak;
+      const originalActivate = activateAudio;
+      const originalSynthesize = synthesizeTurn;
+      const originalPlayBuffer = playAudioBuffer;
+      const originalControllerVoice = selectedVoice;
+      const originalPilotVoice = selectedPilotVoice;
       const originalAlert = window.alert;
       const originalTimeout = window.setTimeout;
       const originalCards = flashcardsData;
@@ -37,13 +41,45 @@
       const originalSearch = search.value;
       const spoken = [];
       const alerts = [];
+      let nativeCalls = 0;
 
-      synthesis.speak = utterance => spoken.push({ text: utterance.text, pitch: utterance.pitch });
-      synthesis.cancel = () => {};
+      if (synthesis) synthesis.speak = () => { nativeCalls++; };
+      activateAudio = () => Promise.resolve({});
+      synthesizeTurn = async (text, voice) => [{ text, voice }];
+      playAudioBuffer = async buffer => { spoken.push(buffer); };
       window.alert = message => alerts.push(message);
 
       try {
-        test('Rendered dialogue and speech use the same speaker order', () => {
+        await test('Independent American and British voices are selectable', () => {
+          const controller = document.getElementById('voice-select');
+          const pilot = document.getElementById('pilot-voice-select');
+          for (const select of [controller, pilot]) {
+            const options = [...select.options];
+            assert(options.length >= 16, 'Independent voice choices are missing');
+            assert(options.filter(option => option.textContent.startsWith('American - ')).length >= 8, 'American voices are missing');
+            assert(options.filter(option => option.textContent.startsWith('British - ')).length >= 8, 'British voices are missing');
+            assert(options.every(option => !/microsoft|google/i.test(option.textContent)), 'A removed provider voice is present');
+          }
+          controller.value = 'am_michael';
+          pilot.value = 'bf_emma';
+          onVoiceChanged();
+          assert(selectedVoice === 'am_michael' && selectedPilotVoice === 'bf_emma', 'Speaker voice selection was not applied');
+          openVoiceSettings();
+          assert(!document.getElementById('voice-modal').classList.contains('hidden'), 'Voice settings did not open');
+          closeVoiceSettings();
+        });
+
+        await test('Independent voice assets are available from the site', async () => {
+          const moduleURL = new URL('assets/headtts/modules/headtts.mjs', document.baseURI);
+          const module = await import(moduleURL.href);
+          assert(typeof module.HeadTTS === 'function', 'Independent voice module could not be loaded');
+          for (const path of ['assets/headtts/modules/worker-tts.mjs', 'assets/headtts/modules/language-en-us.mjs', 'assets/headtts/dictionaries/en-us.txt']) {
+            const response = await fetch(path);
+            assert(response.ok && (await response.arrayBuffer()).byteLength > 0, `Voice asset is unavailable: ${path}`);
+          }
+        });
+
+        await test('Rendered dialogue and speech use the same speaker order', async () => {
           const pilotFirst = [5, 7, 15, 31, 40, 42, 44, 51, 52, 54, 69, 70];
           for (const id of [6, ...pilotFirst]) {
             const card = findCard(id);
@@ -57,17 +93,18 @@
             }
             spoken.length = 0;
             document.querySelector('[data-card-action="dialogue"]').click();
+            await activeSpeechTask;
             assert(spoken.length === lines.length, `Audio turn count differs on card ${id}`);
             lines.forEach((line, index) => {
               const text = line.textContent.trim().replace(/^(?:ATC|PILOT):\s*"/, '').replace(/"$/, '');
               assert(spoken[index].text === convertTextToICAOSpeech(text), `Audio order or text differs on card ${id}, turn ${index + 1}`);
-              assert(Math.abs(spoken[index].pitch - (line.dataset.speaker === 'PILOT' ? 1.15 : 0.85)) < 0.01, `Wrong speaker voice on card ${id}`);
+              assert(spoken[index].voice === (line.dataset.speaker === 'PILOT' ? selectedPilotVoice : selectedVoice), `Wrong speaker voice on card ${id}`);
             });
           }
           assert(convertTextToICAOSpeech('Contact Tower 118.1.').includes('one one eight point one'), 'Frequency decimal is missing from speech');
         });
 
-        test('Safety-critical flashcard instructions are read back', () => {
+        await test('Safety-critical flashcard instructions are read back', () => {
           const contains = (text, parts) => parts.every(part => text.toUpperCase().includes(part.toUpperCase()));
           [3, 21, 43].forEach(id => {
             const card = findCard(id);
@@ -89,7 +126,7 @@
           assert(contains(findCard(54).pilotLine, ['communications restored', 'seven six zero zero']) && !findCard(54).atcLine.includes('observes'), 'Radio failure exchange is not a real transmission');
         });
 
-        test('Every default card displays its related vocabulary on the dialogue side', () => {
+        await test('Every default card displays its related vocabulary on the dialogue side', () => {
           const previousCards = flashcardsData;
           try {
             flashcardsData = cards;
@@ -121,7 +158,7 @@
           }
         });
 
-        test('Legacy and custom decks round-trip without changing dialogue order', () => {
+        await test('Legacy and custom decks round-trip without changing dialogue order', async () => {
           const legacy = { id: 901, cat: 'CUSTOM', phrase: 'Legacy phrase', icaoAudio: 'Legacy audio', meaning: 'Legacy', svgType: 'GENERAL' };
           const custom = {
             id: 902, cat: 'CUSTOM', phrase: 'Pilot "request"', icaoAudio: 'Pilot request', meaning: 'Custom', svgType: 'GENERAL',
@@ -139,6 +176,7 @@
           search.value = '';
           document.getElementById('deck-json-area').value = JSON.stringify(imported);
           importCustomDeck();
+          await activeSpeechTask;
           assert(flashcardsData.length === 5, 'Legacy deck did not import');
           const legacyLines = [...document.querySelectorAll('.flip-card')][0].querySelectorAll('[data-speaker]');
           assert(legacyLines[0].dataset.speaker === 'ATC' && legacyLines[0].textContent.includes('Legacy phrase'), 'Legacy ATC fallback changed');
@@ -160,9 +198,11 @@
           assert(categorySection.textContent.includes('Collocations (category)') && categorySection.textContent.includes('taxi to a holding point'), 'Category vocabulary fallback was not labeled');
           spoken.length = 0;
           customCard.querySelector('[data-card-action="phrase"]').click();
+          await activeSpeechTask;
           assert(spoken.length === 1 && spoken[0].text === convertTextToICAOSpeech(custom.icaoAudio) && !customCard.classList.contains('flipped'), 'Custom phrase audio or card interaction changed');
           spoken.length = 0;
           customCard.querySelector('[data-card-action="dialogue"]').click();
+          await activeSpeechTask;
           assert(spoken.length === 3 && spoken[0].text === convertTextToICAOSpeech(custom.pilotLine) && !customCard.classList.contains('flipped'), 'Custom dialogue audio or card interaction changed');
           openExportModal();
           const exported = JSON.parse(document.getElementById('deck-json-area').value);
@@ -180,7 +220,7 @@
           assert(JSON.stringify(JSON.parse(localStorage.getItem('icao_rtf_cards'))) === JSON.stringify(imported), 'Invalid import replaced saved data');
         });
 
-        test('Expanded vocabulary and examples follow the current deck and search', () => {
+        await test('Expanded vocabulary and examples follow the current deck and search', async () => {
           const previousCards = flashcardsData;
           const previousStorage = localStorage.getItem('icao_rtf_cards');
           const input = document.getElementById('vocabulary-search');
@@ -238,10 +278,12 @@
             search.value = '';
             document.getElementById('deck-json-area').value = JSON.stringify([first, second]);
             importCustomDeck();
+            await activeSpeechTask;
             assert(items('vocabulary-collocations').length === 2 && items('vocabulary-nouns').length === 1, 'Imported vocabulary was not deduplicated');
             assert(items('vocabulary-collocations').includes('Request <inspection>') && !document.querySelector('#vocabulary-collocations inspection'), 'Imported vocabulary was not rendered as text');
             assert(radioExamples().length === 2 && radioExamples()[0].textContent.includes('Controller says <inspect>.') && !radioExamples()[0].querySelector('inspect, ready'), 'Imported dialogue examples were not safely rendered');
             resetDefaultDeck();
+            await activeSpeechTask;
             assert(items('vocabulary-collocations').length === expected('collocations') && !items('vocabulary-collocations').includes('Request <inspection>'), 'Reset did not refresh the vocabulary list');
             assert(radioExamples().length === cards.length && generalExamples().length === GENERAL_AVIATION_EXAMPLES.length, 'Reset did not refresh the example sections');
           } finally {
@@ -253,7 +295,7 @@
           }
         });
 
-        test('Scenario sequences include requests and complete readbacks', () => {
+        await test('Scenario sequences include requests and complete readbacks', async () => {
           const filled = line => line.text || line.blanks.reduce((text, blank, index) => text.replace(`{${index}}`, blank.answer), line.template);
           const pushback = SCENARIOS[0].lines;
           const requestIndex = pushback.findIndex(line => line.speaker === 'PILOT' && /request pushback/i.test(filled(line)));
@@ -272,34 +314,99 @@
           assert(/known position, intentions/i.test(emergency.note), 'Emergency information guidance missing');
 
           window.setTimeout = callback => { callback(); return 0; };
-          SCENARIOS.forEach((scenario, scenarioIndex) => {
-            loadScenario(scenarioIndex);
-            scenario.lines.forEach((line, step) => {
-              if (line.blanks) {
-                line.blanks.forEach((blank, index) => {
-                  const select = document.getElementById(`sc-sel-${step}-${index}`);
-                  select.value = index === 0 ? blank.options.find(option => option !== blank.answer) : blank.answer;
-                  select.dispatchEvent(new Event('change'));
-                });
+          try {
+            for (let scenarioIndex = 0; scenarioIndex < SCENARIOS.length; scenarioIndex++) {
+              const scenario = SCENARIOS[scenarioIndex];
+              loadScenario(scenarioIndex);
+              for (let step = 0; step < scenario.lines.length; step++) {
+                const line = scenario.lines[step];
+                if (line.blanks) {
+                  line.blanks.forEach((blank, index) => {
+                    const select = document.getElementById(`sc-sel-${step}-${index}`);
+                    select.value = index === 0 ? blank.options.find(option => option !== blank.answer) : blank.answer;
+                    select.dispatchEvent(new Event('change'));
+                  });
+                  checkCurrentScenarioStep();
+                  await activeSpeechTask;
+                  assert(currentScenarioStep === step && /INCORRECT SELECTION/.test(document.getElementById('scenario-feedback').innerText), `Wrong answer advanced scenario ${scenarioIndex}`);
+                  line.blanks.forEach((blank, index) => {
+                    const select = document.getElementById(`sc-sel-${step}-${index}`);
+                    select.value = blank.answer;
+                    select.dispatchEvent(new Event('change'));
+                  });
+                }
                 checkCurrentScenarioStep();
-                assert(currentScenarioStep === step && /INCORRECT SELECTION/.test(document.getElementById('scenario-feedback').innerText), `Wrong answer advanced scenario ${scenarioIndex}`);
-                line.blanks.forEach((blank, index) => {
-                  const select = document.getElementById(`sc-sel-${step}-${index}`);
-                  select.value = blank.answer;
-                  select.dispatchEvent(new Event('change'));
-                });
+                await activeSpeechTask;
+                if (step < scenario.lines.length - 1) {
+                  assert(currentScenarioStep === step + 1, `Correct answer did not advance scenario ${scenarioIndex}`);
+                } else {
+                  assert(/SCENARIO COMPLETED/.test(document.getElementById('scenario-feedback').innerText), `Scenario ${scenarioIndex} did not complete`);
+                }
               }
-              checkCurrentScenarioStep();
-              if (step < scenario.lines.length - 1) {
-                assert(currentScenarioStep === step + 1, `Correct answer did not advance scenario ${scenarioIndex}`);
-              } else {
-                assert(/SCENARIO COMPLETED/.test(document.getElementById('scenario-feedback').innerText), `Scenario ${scenarioIndex} did not complete`);
-              }
-            });
-          });
+            }
+          } finally {
+            window.setTimeout = originalTimeout;
+          }
         });
 
-        test('Collocations are reachable and distinguish radio from general English', () => {
+        await test('Scenario audio uses the selected speaker voices', async () => {
+          loadScenario(0);
+          spoken.length = 0;
+          speakLineContent(0);
+          await activeSpeechTask;
+          assert(spoken.length === 1 && spoken[0].voice === selectedPilotVoice, 'Pilot scenario line used the wrong voice');
+          spoken.length = 0;
+          speakLineContent(1);
+          await activeSpeechTask;
+          assert(spoken.length === 1 && spoken[0].voice === selectedVoice, 'Controller scenario line used the wrong voice');
+        });
+
+        await test('New playback cancels stale audio and errors are visible', async () => {
+          const savedSynthesize = synthesizeTurn;
+          const savedConsoleError = console.error;
+          let release;
+          let started;
+          const waiting = new Promise(resolve => { started = resolve; });
+          try {
+            synthesizeTurn = (text, voice) => text === 'OLD'
+              ? new Promise(resolve => { release = () => resolve([{ text, voice }]); started(); })
+              : Promise.resolve([{ text, voice }]);
+            spoken.length = 0;
+            const oldTask = speakICAOText('OLD');
+            await waiting;
+            await speakICAOText('NEW', 'PILOT');
+            release();
+            await oldTask;
+            assert(spoken.length === 1 && spoken[0].text === 'NEW' && spoken[0].voice === selectedPilotVoice, 'Cancelled speech was played');
+
+            let stopRelease;
+            let stopStarted;
+            const stopWaiting = new Promise(resolve => { stopStarted = resolve; });
+            synthesizeTurn = (text, voice) => new Promise(resolve => {
+              stopRelease = () => resolve([{ text, voice }]);
+              stopStarted();
+            });
+            spoken.length = 0;
+            const stoppedTask = speakICAOText('WAIT');
+            await stopWaiting;
+            assert(!document.getElementById('voice-stop-button').classList.contains('hidden'), 'Stop control was not shown');
+            stopVoicePlayback();
+            stopRelease();
+            await stoppedTask;
+            assert(spoken.length === 0 && document.getElementById('voice-stop-button').classList.contains('hidden') && document.getElementById('voice-feedback').textContent.includes('Audio stopped'), 'Stop did not cancel pending speech');
+
+            console.error = () => {};
+            synthesizeTurn = async () => { throw new Error('test failure'); };
+            await speakICAOText('Test');
+            assert(document.getElementById('voice-feedback').textContent.includes('Voice playback failed'), 'Speech failure was not shown');
+            assert(nativeCalls === 0, 'Playback fell back to a removed provider voice');
+          } finally {
+            synthesizeTurn = savedSynthesize;
+            console.error = savedConsoleError;
+          }
+        });
+
+        await test('Collocations are reachable and distinguish radio from general English', () => {
           switchTab('collocations');
           const section = document.getElementById('section-collocations');
           assert(!section.classList.contains('hidden') && document.getElementById('section-flashcards').classList.contains('hidden'), 'Collocations tab did not open');
@@ -330,20 +437,28 @@
         } catch (error) {
           preview = { error: error.message };
         }
-        test('LinkedIn metadata references a suitable radar preview', () => {
+        await test('LinkedIn metadata references a suitable radar preview', () => {
           const property = name => document.querySelector(`meta[property="${name}"]`)?.content;
           assert(!preview.error, preview.error);
           assert(property('og:title') && property('og:description'), 'Share title or description missing');
           const site = new URL(property('og:url'));
-          assert(site.protocol === 'https:' && property('og:image') === new URL('assets/radar-preview.png', site).href, 'Share image URL is not absolute or does not match the site');
+          const imageURL = new URL(property('og:image'));
+          const expectedImage = new URL('assets/radar-preview.png', site);
+          assert(site.protocol === 'https:' && imageURL.origin === expectedImage.origin && imageURL.pathname === expectedImage.pathname && imageURL.searchParams.has('v'), 'Share image URL is not absolute, versioned or matched to the site');
           assert(property('og:image:type') === 'image/png' && preview.type.startsWith('image/png'), 'Share image is not a PNG');
           assert(preview.width >= 1200 && preview.height >= 627 && preview.bytes <= 5 * 1024 * 1024, 'Share image does not meet LinkedIn dimensions or size');
           assert(Number(property('og:image:width')) === preview.width && Number(property('og:image:height')) === preview.height, 'Share image metadata dimensions are incorrect');
-          assert(property('og:image:alt'), 'Share image alternative text missing');
+          assert(/pilot/i.test(property('og:image:alt')) && /headset/i.test(property('og:image:alt')) && /radar/i.test(property('og:image:alt')), 'Share image alternative text is incomplete');
         });
       } finally {
-        synthesis.speak = originalSpeak;
-        synthesis.cancel = originalCancel;
+        playbackGeneration++;
+        if (synthesis) synthesis.speak = originalNativeSpeak;
+        activateAudio = originalActivate;
+        synthesizeTurn = originalSynthesize;
+        playAudioBuffer = originalPlayBuffer;
+        selectedVoice = originalControllerVoice;
+        selectedPilotVoice = originalPilotVoice;
+        populateVoices();
         window.alert = originalAlert;
         window.setTimeout = originalTimeout;
         flashcardsData = originalCards;

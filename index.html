@@ -9,11 +9,14 @@
   <meta property="og:title" content="Aviation Radiotelephony Practice">
   <meta property="og:description" content="Practice pilot and air traffic control communication with flashcards, scenarios and aviation English.">
   <meta property="og:url" content="https://analaitadze-source.github.io/English-for-Aviation-Radiotelephony/">
-  <meta property="og:image" content="https://analaitadze-source.github.io/English-for-Aviation-Radiotelephony/assets/radar-preview.png">
+  <meta property="og:image" content="https://analaitadze-source.github.io/English-for-Aviation-Radiotelephony/assets/radar-preview.png?v=pilot-1">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="627">
-  <meta property="og:image:alt" content="Radar screen with aircraft targets alongside the Aviation Radiotelephony Practice title.">
+  <meta property="og:image:alt" content="A pilot wearing an aviation headset in front of a radar display beside the Aviation Radiotelephony Practice title.">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5.3.0/index.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/figtree@5.3.0/index.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-mono@5.3.0/400.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>
@@ -23,47 +26,119 @@
         extend: {
           colors: {
             cockpit: {
-              bg: '#0b0f19',
-              card: '#111827',
-              border: '#1f2937',
-              cyan: '#06b6d4',
-              amber: '#f59e0b',
-              emerald: '#10b981',
-              rose: '#f43f5e',
-              sky: '#0284c7'
+              bg: '#0b0c0e',
+              card: '#0e111b',
+              border: '#172540',
+              cyan: '#85a6e9',
+              amber: '#e8d2ad',
+              emerald: '#96d8c8',
+              rose: '#f4a3b8',
+              sky: '#85a6e9'
+            },
+            slate: {
+              50: '#ffffff', 100: '#f4f5f9', 200: '#e2e4eb', 300: '#c7c9d1',
+              400: '#abaebb', 500: '#87909f', 600: '#3c3f44', 700: '#172540',
+              800: '#0d172b', 900: '#0e111b', 950: '#0b0c0e'
+            },
+            cyan: {
+              200: '#e1e8ff', 300: '#c6d6ff', 400: '#a5bafe', 500: '#625fff',
+              600: '#305fbd', 700: '#244576', 800: '#1b3260', 900: '#12244f', 950: '#101832'
+            },
+            emerald: {
+              200: '#dbf7ef', 300: '#b7eee0', 400: '#96d8c8', 500: '#5cbba7',
+              600: '#358e7c', 700: '#2e7467', 800: '#235249', 900: '#17343c', 950: '#102326'
             }
           },
           fontFamily: {
-            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+            sans: ['Inter Variable', 'system-ui', 'sans-serif'],
+            display: ['Figtree Variable', 'system-ui', 'sans-serif'],
+            mono: ['IBM Plex Mono', 'ui-monospace', 'monospace']
           }
         }
       }
     };
   </script>
   <style>
-    /* Custom Scrollbar for HUD aesthetics */
+    body {
+      background-image:
+        radial-gradient(ellipse 70% 420px at 38% -5%, rgba(98, 95, 255, .28), transparent 70%),
+        radial-gradient(ellipse 42% 320px at 85% 2%, rgba(255, 125, 218, .12), transparent 70%);
+      background-repeat: no-repeat;
+      background-size: 100% 44rem;
+      letter-spacing: -.02em;
+    }
+    body h1[class], body h2[class] {
+      font-family: 'Figtree Variable', system-ui, sans-serif;
+      font-weight: 500;
+      letter-spacing: -.02em;
+    }
+    body button[class], body input[class], body select[class], body label[class] {
+      font-family: 'Inter Variable', system-ui, sans-serif;
+    }
+    body button[class], body .nav-tab, body .mobile-tab {
+      border-radius: 9999px;
+    }
+    body .nav-tab, body .mobile-tab {
+      font-weight: 500;
+    }
+    body .nav-tab.text-cyan-400, body .mobile-tab.text-cyan-400 {
+      color: #fff;
+    }
+    body input[class], body select[class], body textarea[class] {
+      border-radius: 8px;
+    }
+    body .border-slate-800 {
+      border-color: #172540;
+    }
+    body span[class*="bg-cyan-"], body span[class*="bg-emerald-"] {
+      border-radius: 9999px;
+    }
+    body .flip-card-inner, body #scenario-card-container, body #quiz-card-container {
+      box-shadow: 0 4px 30px rgba(0, 0, 0, .5);
+    }
+    body button.bg-cyan-600, body button.bg-emerald-600, body button.primary-action {
+      background-color: #fff;
+      border-color: #fff;
+      color: #0b0c0e;
+    }
+    body button.bg-cyan-600:hover, body button.bg-emerald-600:hover, body button.primary-action:hover {
+      background-color: #e2e4eb;
+    }
+    body [data-card-action] {
+      background-color: transparent;
+      border-color: #3c3f44;
+      color: #c7c9d1;
+    }
+    body [data-card-action]:hover {
+      background-color: #0d172b;
+      color: #fff;
+    }
+    body [class]:focus-visible {
+      outline: 2px solid #85a6e9;
+      outline-offset: 3px;
+    }
+    @media (min-width: 640px) {
+      main h2[class] {
+        font-size: 1.75rem;
+        line-height: 1.25;
+      }
+    }
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
     ::-webkit-scrollbar-track {
-      background: #0b0f19;
+      background: #0b0c0e;
     }
     ::-webkit-scrollbar-thumb {
-      background: #1f2937;
+      background: #24375a;
       border-radius: 3px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #06b6d4;
+      background: #85a6e9;
     }
-    .glow-cyan {
-      box-shadow: 0 0 15px rgba(6, 182, 212, 0.25);
-    }
-    .glow-amber {
-      box-shadow: 0 0 15px rgba(245, 158, 11, 0.25);
-    }
-    .glow-emerald {
-      box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+    .glow-cyan, .glow-amber, .glow-emerald {
+      box-shadow: none;
     }
   </style>
 </head>
@@ -113,13 +188,10 @@
 
       <!-- RIGHT UTILITIES -->
       <div class="flex items-center space-x-3">
-        <!-- Voice Selector Dropdown -->
-        <div class="flex items-center gap-2 bg-slate-900 border border-slate-700 px-2 py-1.5 rounded-lg">
+        <button id="voice-settings-button" type="button" onclick="openVoiceSettings()" class="flex items-center gap-2 bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-lg text-slate-200 text-xs" aria-haspopup="dialog">
           <i class="fa-solid fa-microphone text-cyan-400 text-xs"></i>
-          <select id="voice-select" onchange="onVoiceChanged()" class="bg-transparent text-slate-200 text-xs font-mono focus:outline-none w-16 sm:w-32 truncate">
-            <option value="">Default Voice</option>
-          </select>
-        </div>
+          <span>Voices</span>
+        </button>
 
         <button onclick="openExportModal()" title="Export/Import Decks" class="p-2 text-slate-400 hover:text-cyan-400 hover:bg-slate-800 rounded-lg transition border border-slate-700">
           <i class="fa-solid fa-file-import"></i>
@@ -127,7 +199,7 @@
         <div class="text-right font-mono text-xs hidden min-[1800px]:block border-l border-slate-800 pl-3">
           <div class="text-slate-400">SPEECH ENGINE</div>
           <div id="speech-status" class="text-emerald-400 flex items-center justify-end gap-1">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> ICAO NAT-SPEECH READY
+            INDEPENDENT VOICES
           </div>
         </div>
       </div>
@@ -144,8 +216,12 @@
   </div>
 
   <!-- MAIN CONTENT CONTAINER -->
-  <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+  <main class="flex-grow max-w-[1200px] w-full mx-auto p-4 sm:p-6 lg:p-8">
     <p class="mb-5 text-xs text-amber-300">Training examples only. Follow current local procedures, published instructions and ATC clearances.</p>
+    <div class="mb-5 flex flex-wrap items-center gap-2">
+      <p id="voice-feedback" role="status" aria-live="polite" class="flex-1 min-w-0 break-words text-xs text-slate-400">Independent voices run on your device. First playback downloads about 100 MB.</p>
+      <button id="voice-stop-button" type="button" onclick="stopVoicePlayback()" class="hidden px-3 py-1 bg-slate-800 border border-slate-700 text-slate-200 text-xs">Stop audio</button>
+    </div>
 
     <!-- 1. FLASHCARDS SECTION -->
     <section id="section-flashcards" class="space-y-6">
@@ -197,6 +273,11 @@
         }
         .flip-card-back {
           transform: rotateY(180deg);
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .flip-card-inner {
+            transition: none;
+          }
         }
       </style>
 
@@ -329,6 +410,36 @@
 
   </main>
 
+  <!-- VOICE SETTINGS -->
+  <div id="voice-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4 hidden" role="dialog" aria-modal="true" aria-labelledby="voice-modal-title">
+    <div class="bg-cockpit-card border border-slate-700 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 id="voice-modal-title" class="font-bold text-slate-100">Dialogue voices</h3>
+        <button type="button" onclick="closeVoiceSettings()" class="text-slate-400 hover:text-white" aria-label="Close voice settings"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="space-y-2">
+        <label for="voice-select" class="block text-xs text-slate-300">Controller / ATC</label>
+        <div class="flex gap-2">
+          <select id="voice-select" onchange="onVoiceChanged()" class="flex-1 min-w-0 bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm"></select>
+          <button type="button" onclick="speakICAOText('Speedbird one zero nine, pushback approved.', 'ATC')" class="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs">Preview</button>
+        </div>
+      </div>
+      <div class="space-y-2">
+        <label for="pilot-voice-select" class="block text-xs text-slate-300">Pilot</label>
+        <div class="flex gap-2">
+          <select id="pilot-voice-select" onchange="onVoiceChanged()" class="flex-1 min-w-0 bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm"></select>
+          <button type="button" onclick="speakICAOText('Ground, Speedbird one zero nine, request pushback.', 'PILOT')" class="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs">Preview</button>
+        </div>
+      </div>
+      <p class="text-xs text-slate-400">American and British voices are generated locally. The first playback downloads about 100 MB; dialogue text is not sent to a speech server.</p>
+      <p id="voice-modal-status" class="break-words text-xs text-slate-400" aria-live="polite"></p>
+      <div class="flex justify-end gap-2">
+        <button id="voice-modal-stop" type="button" onclick="stopVoicePlayback()" class="hidden px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs">Stop audio</button>
+        <button type="button" onclick="closeVoiceSettings()" class="primary-action px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs">Done</button>
+      </div>
+    </div>
+  </div>
+
   <!-- DECK IMPORT / EXPORT MODAL -->
   <div id="deck-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-cockpit-card border border-slate-700 rounded-xl max-w-2xl w-full p-6 space-y-4 shadow-2xl">
@@ -360,43 +471,104 @@
     /* =========================================================================
        1. VOICE & SPEECH ENGINE (ICAO & NATO PHONETIC STANDARDS)
        ========================================================================= */
-    let availableVoices = [];
-    let selectedVoice = null;
+    const INDEPENDENT_VOICES = [
+      { id: 'af_bella', name: 'Bella', accent: 'American' },
+      { id: 'af_heart', name: 'Heart', accent: 'American' },
+      { id: 'af_nicole', name: 'Nicole', accent: 'American' },
+      { id: 'af_sarah', name: 'Sarah', accent: 'American' },
+      { id: 'am_adam', name: 'Adam', accent: 'American' },
+      { id: 'am_fenrir', name: 'Fenrir', accent: 'American' },
+      { id: 'am_michael', name: 'Michael', accent: 'American' },
+      { id: 'am_onyx', name: 'Onyx', accent: 'American' },
+      { id: 'bf_alice', name: 'Alice', accent: 'British' },
+      { id: 'bf_emma', name: 'Emma', accent: 'British' },
+      { id: 'bf_isabella', name: 'Isabella', accent: 'British' },
+      { id: 'bf_lily', name: 'Lily', accent: 'British' },
+      { id: 'bm_daniel', name: 'Daniel', accent: 'British' },
+      { id: 'bm_fable', name: 'Fable', accent: 'British' },
+      { id: 'bm_george', name: 'George', accent: 'British' },
+      { id: 'bm_lewis', name: 'Lewis', accent: 'British' }
+    ];
+    let selectedVoice = 'bm_george';
+    let selectedPilotVoice = 'af_bella';
+    let audioContext = null;
+    let voiceEngine = null;
+    let voiceEnginePromise = null;
+    let playbackGeneration = 0;
+    let voiceBusy = false;
+    let activeAudioSource = null;
+    let activeSpeechTask = Promise.resolve();
 
     function populateVoices() {
-      if (!('speechSynthesis' in window)) return;
-      
-      const voices = window.speechSynthesis.getVoices();
-      if (!voices || voices.length === 0) return;
-
-      // Filter for English voices
-      availableVoices = voices.filter(v => v.lang.startsWith('en'));
-      
-      const select = document.getElementById('voice-select');
-      if (!select) return;
-      select.innerHTML = '<option value="">Default English Voice</option>';
-
-      availableVoices.forEach((voice, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = `${voice.name} (${voice.lang})`;
-        select.appendChild(option);
+      [
+        { id: 'voice-select', value: selectedVoice },
+        { id: 'pilot-voice-select', value: selectedPilotVoice }
+      ].forEach(({ id, value }) => {
+        const select = document.getElementById(id);
+        if (!select) return;
+        select.innerHTML = '';
+        ['American', 'British'].forEach(accent => {
+          const group = document.createElement('optgroup');
+          group.label = `${accent} English`;
+          INDEPENDENT_VOICES.filter(voice => voice.accent === accent).forEach(voice => {
+            const option = document.createElement('option');
+            option.value = voice.id;
+            option.textContent = `${accent} - ${voice.name}`;
+            group.appendChild(option);
+          });
+          select.appendChild(group);
+        });
+        select.value = value;
       });
     }
 
     function onVoiceChanged() {
-      const select = document.getElementById('voice-select');
-      const index = select.value;
-      if (index !== "" && availableVoices[index]) {
-        selectedVoice = availableVoices[index];
-      } else {
-        selectedVoice = null;
+      const controller = document.getElementById('voice-select').value;
+      const pilot = document.getElementById('pilot-voice-select').value;
+      if (!INDEPENDENT_VOICES.some(voice => voice.id === controller) ||
+          !INDEPENDENT_VOICES.some(voice => voice.id === pilot)) {
+        setVoiceFeedback('Select a controller and pilot voice.', true);
+        return;
       }
+      selectedVoice = controller;
+      selectedPilotVoice = pilot;
     }
 
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.onvoiceschanged = populateVoices;
+    function openVoiceSettings() {
+      document.getElementById('voice-modal').classList.remove('hidden');
+      document.getElementById('voice-select').focus();
     }
+
+    function closeVoiceSettings() {
+      document.getElementById('voice-modal').classList.add('hidden');
+      document.getElementById('voice-settings-button').focus();
+    }
+
+    function setVoiceFeedback(message, isError = false) {
+      ['voice-feedback', 'voice-modal-status'].forEach(id => {
+        const element = document.getElementById(id);
+        if (!element) return;
+        element.textContent = message;
+        element.classList.toggle('text-rose-300', isError);
+        element.classList.toggle('text-slate-400', !isError);
+      });
+      const status = document.getElementById('speech-status');
+      if (status) status.textContent = isError ? 'VOICE UNAVAILABLE' : 'INDEPENDENT VOICES';
+    }
+
+    function setVoiceBusy(busy) {
+      voiceBusy = busy;
+      ['voice-stop-button', 'voice-modal-stop'].forEach(id => {
+        const button = document.getElementById(id);
+        if (button) button.classList.toggle('hidden', !busy);
+      });
+    }
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && !document.getElementById('voice-modal').classList.contains('hidden')) {
+        closeVoiceSettings();
+      }
+    });
 
     // Official NATO Phonetic Dictionary
     const NATO_ALPHABET = {
@@ -484,28 +656,163 @@
       return convertedWords.join(' ');
     }
 
-    function speakICAOText(rawText) {
-      if (!('speechSynthesis' in window)) {
-        alert("Web Speech API is not supported in this browser.");
-        return;
+    function activateAudio() {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) throw new Error('This browser does not support audio playback.');
+      if (!audioContext || audioContext.state === 'closed') {
+        if (voiceEngine && voiceEngine.ww) voiceEngine.ww.terminate();
+        voiceEngine = null;
+        voiceEnginePromise = null;
+        audioContext = new AudioContextClass();
       }
+      const context = audioContext;
+      if (context.state === 'running') return Promise.resolve(context);
+      return context.resume().then(() => {
+        if (context.state !== 'running') throw new Error('Audio playback was blocked by the browser.');
+        return context;
+      });
+    }
 
-      window.speechSynthesis.cancel();
-      const formattedText = convertTextToICAOSpeech(rawText);
-      const utterance = new SpeechSynthesisUtterance(formattedText);
-      
-      utterance.rate = 0.92;
-      utterance.pitch = 1.0;
-      
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
-      } else {
-        const voices = availableVoices.length > 0 ? availableVoices : window.speechSynthesis.getVoices();
-        const englishVoice = voices.find(v => v.lang.startsWith('en'));
-        if (englishVoice) utterance.voice = englishVoice;
+    function withVoiceTimeout(promise, milliseconds) {
+      let timer;
+      const timeout = new Promise((resolve, reject) => {
+        timer = setTimeout(() => reject(new Error('Voice generation timed out.')), milliseconds);
+      });
+      return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+    }
+
+    function getVoiceEngine(context) {
+      if (voiceEngine) return Promise.resolve(voiceEngine);
+      if (!voiceEnginePromise) {
+        voiceEnginePromise = (async () => {
+          const { HeadTTS } = await import('./assets/headtts/modules/headtts.mjs');
+          const engine = new HeadTTS({
+            endpoints: ['webgpu', 'wasm'],
+            dtypeWebgpu: 'q8',
+            dtypeWasm: 'q8',
+            audioCtx: context,
+            languages: [],
+            voices: [],
+            splitLength: 160
+          });
+          let lastMegabytes = 0;
+          try {
+            await withVoiceTimeout(engine.connect(null, event => {
+              if (!voiceBusy) return;
+              const megabytes = Math.floor(event.loaded / (1024 * 1024));
+              if (megabytes >= lastMegabytes + 5) {
+                lastMegabytes = megabytes;
+                setVoiceFeedback(`Downloading independent voice data: ${megabytes} MB received.`);
+              }
+            }), 180000);
+            if (!engine.isConnected) throw new Error('The independent voice engine could not start.');
+            voiceEngine = engine;
+            return engine;
+          } catch (error) {
+            if (engine.ww) engine.ww.terminate();
+            throw error;
+          }
+        })().catch(error => {
+          voiceEnginePromise = null;
+          throw error;
+        });
       }
+      return voiceEnginePromise;
+    }
 
-      window.speechSynthesis.speak(utterance);
+    async function synthesizeTurn(text, voice, context, generation) {
+      const engine = await getVoiceEngine(context);
+      if (generation !== playbackGeneration) return [];
+      await engine.setup({ voice, language: 'en-us', speed: 0.95, audioEncoding: 'wav' });
+      if (generation !== playbackGeneration) return [];
+      const messages = await withVoiceTimeout(engine.synthesize({ input: text }), 180000);
+      const failure = messages.find(message => message.type === 'error');
+      if (failure) throw new Error(failure.data?.error || 'Speech generation failed.');
+      const buffers = messages.filter(message => message.type === 'audio').map(message => message.data.audio);
+      if (!buffers.length || buffers.some(buffer => !buffer)) throw new Error('No speech audio was generated.');
+      return buffers;
+    }
+
+    function playAudioBuffer(buffer, context, generation) {
+      if (generation !== playbackGeneration) return Promise.resolve();
+      return new Promise(resolve => {
+        const source = context.createBufferSource();
+        source.buffer = buffer;
+        source.connect(context.destination);
+        source.onended = () => {
+          if (activeAudioSource === source) activeAudioSource = null;
+          resolve();
+        };
+        source.start();
+        activeAudioSource = source;
+      });
+    }
+
+    async function playSpeechSequence(turns, voices, generation, activation) {
+      try {
+        const context = await activation;
+        if (generation !== playbackGeneration) return;
+        for (const turn of turns) {
+          const role = turn.speaker === 'PILOT' ? 'pilot' : 'controller';
+          setVoiceFeedback(`Generating ${role} audio on your device; this may take a moment...`);
+          const buffers = await synthesizeTurn(convertTextToICAOSpeech(turn.text), voices[turn.speaker], context, generation);
+          if (generation !== playbackGeneration) return;
+          setVoiceFeedback(`Playing ${role} voice...`);
+          for (const buffer of buffers) {
+            await playAudioBuffer(buffer, context, generation);
+            if (generation !== playbackGeneration) return;
+          }
+        }
+        setVoiceBusy(false);
+        setVoiceFeedback('Independent voices are ready. Speech is generated on your device.');
+      } catch (error) {
+        if (generation !== playbackGeneration) return;
+        if (voiceEngine && voiceEngine.ww) voiceEngine.ww.terminate();
+        voiceEngine = null;
+        voiceEnginePromise = null;
+        setVoiceBusy(false);
+        console.error('Voice playback failed:', error);
+        setVoiceFeedback(`Voice playback failed: ${error.message || error}. Check your connection and try again.`, true);
+      }
+    }
+
+    function cancelCurrentSpeech() {
+      const generation = ++playbackGeneration;
+      if (activeAudioSource) {
+        const source = activeAudioSource;
+        activeAudioSource = null;
+        source.stop();
+      }
+      if (voiceEngine) voiceEngine.clear();
+      return generation;
+    }
+
+    function stopVoicePlayback() {
+      cancelCurrentSpeech();
+      setVoiceBusy(false);
+      setVoiceFeedback('Audio stopped. Voice download or preparation may continue.');
+    }
+
+    function speakTurns(turns) {
+      const generation = cancelCurrentSpeech();
+      setVoiceBusy(true);
+      setVoiceFeedback('Preparing independent voices. First use may download about 100 MB.');
+      let activation;
+      try {
+        activation = activateAudio();
+      } catch (error) {
+        setVoiceBusy(false);
+        console.error('Voice playback failed:', error);
+        setVoiceFeedback(`Voice playback failed: ${error.message || error}`, true);
+        activeSpeechTask = Promise.resolve();
+        return activeSpeechTask;
+      }
+      activeSpeechTask = playSpeechSequence(turns, { ATC: selectedVoice, PILOT: selectedPilotVoice }, generation, activation);
+      return activeSpeechTask;
+    }
+
+    function speakICAOText(rawText, speaker = 'ATC') {
+      return speakTurns([{ speaker, text: rawText }]);
     }
 
     function getCardDialogue(card) {
@@ -524,28 +831,8 @@
       return opening.concat(card.followUp || []);
     }
 
-    /* Multi-Speaker Dialogue Synthesizer (Simulates ATC & Pilot pitch/voice variance) */
     function speakDialogue(card) {
-      if (!('speechSynthesis' in window)) {
-        alert("Web Speech API is not supported in this browser.");
-        return;
-      }
-      window.speechSynthesis.cancel();
-
-      const voices = availableVoices.length > 0 ? availableVoices : window.speechSynthesis.getVoices();
-      const englishVoices = voices.filter(v => v.lang.startsWith('en'));
-      const atcVoice = selectedVoice || englishVoices[0] || null;
-      const pilotVoice = englishVoices.length > 1 ? englishVoices[1] : atcVoice;
-
-      getCardDialogue(card).forEach(turn => {
-        const isPilot = turn.speaker === 'PILOT';
-        const utterance = new SpeechSynthesisUtterance(convertTextToICAOSpeech(turn.text));
-        utterance.rate = isPilot ? 0.90 : 0.95;
-        utterance.pitch = isPilot ? 1.15 : 0.85;
-        const voice = isPilot ? pilotVoice : atcVoice;
-        if (voice) utterance.voice = voice;
-        window.speechSynthesis.speak(utterance);
-      });
+      return speakTurns(getCardDialogue(card));
     }
 
     /* =========================================================================
@@ -1306,7 +1593,7 @@
     function speakLineContent(lineIdx) {
       const line = SCENARIOS[currentScenarioIdx].lines[lineIdx];
       if (line.text) {
-        speakICAOText(line.text);
+        speakICAOText(line.text, line.speaker);
       } else if (line.template) {
         let spokenText = line.template;
         line.blanks.forEach((b, pIdx) => {
@@ -1314,7 +1601,7 @@
           const val = scenarioAnswers[selectId] || b.answer;
           spokenText = spokenText.replace(`{${pIdx}}`, val);
         });
-        speakICAOText(spokenText);
+        speakICAOText(spokenText, line.speaker);
       }
     }
 
