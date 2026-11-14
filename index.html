@@ -4,6 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Aviation Radiotelephony (RTF) Practice</title>
+  <meta name="description" content="Practice pilot and air traffic control communication with flashcards, scenarios and aviation English.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Aviation Radiotelephony Practice">
+  <meta property="og:description" content="Practice pilot and air traffic control communication with flashcards, scenarios and aviation English.">
+  <meta property="og:url" content="https://analaitadze-source.github.io/English-for-Aviation-Radiotelephony/">
+  <meta property="og:image" content="https://analaitadze-source.github.io/English-for-Aviation-Radiotelephony/assets/radar-preview.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="627">
+  <meta property="og:image:alt" content="Radar screen with aircraft targets alongside the Aviation Radiotelephony Practice title.">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>
@@ -62,9 +72,15 @@
   <!-- TOP NAVIGATION HEADER -->
   <header class="border-b border-slate-800 bg-cockpit-card/90 backdrop-blur sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3 min-w-0">
-        <div class="hidden sm:block p-2 bg-cyan-500/10 border border-cyan-500/30 rounded-lg text-cyan-400 glow-cyan">
-          <i class="fa-solid fa-plane-departure text-xl"></i>
+      <div class="flex items-center space-x-1 sm:space-x-3 min-w-0">
+        <div class="sm:p-2 sm:bg-cyan-500/10 sm:border border-cyan-500/30 rounded-lg text-cyan-400 glow-cyan">
+          <svg viewBox="0 0 32 32" class="w-4 h-4 sm:w-6 sm:h-6" fill="none" aria-hidden="true">
+            <circle cx="16" cy="16" r="13" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="16" cy="16" r="8" stroke="currentColor" stroke-opacity=".55"/>
+            <path d="M16 3V29M3 16H29" stroke="currentColor" stroke-opacity=".35"/>
+            <path d="M16 16L25 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="22" cy="12" r="1.8" fill="currentColor"/>
+          </svg>
         </div>
         <div class="min-w-0">
           <h1 class="font-bold text-sm sm:text-lg tracking-wider text-slate-100 flex items-center gap-2 whitespace-nowrap">
@@ -100,7 +116,7 @@
         <!-- Voice Selector Dropdown -->
         <div class="flex items-center gap-2 bg-slate-900 border border-slate-700 px-2 py-1.5 rounded-lg">
           <i class="fa-solid fa-microphone text-cyan-400 text-xs"></i>
-          <select id="voice-select" onchange="onVoiceChanged()" class="bg-transparent text-slate-200 text-xs font-mono focus:outline-none w-20 sm:w-32 truncate">
+          <select id="voice-select" onchange="onVoiceChanged()" class="bg-transparent text-slate-200 text-xs font-mono focus:outline-none w-16 sm:w-32 truncate">
             <option value="">Default Voice</option>
           </select>
         </div>

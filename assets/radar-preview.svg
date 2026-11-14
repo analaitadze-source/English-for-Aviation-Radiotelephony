@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="627" viewBox="0 0 1200 627" role="img" aria-labelledby="title description">
+  <title id="title">Aviation Radiotelephony Practice</title>
+  <desc id="description">A radar display with aircraft targets beside the title of the aviation radiotelephony practice site.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#08111d"/>
+      <stop offset="0.55" stop-color="#0b1d29"/>
+      <stop offset="1" stop-color="#07111a"/>
+    </linearGradient>
+    <radialGradient id="radar-glow">
+      <stop offset="0" stop-color="#0b7780" stop-opacity=".33"/>
+      <stop offset="1" stop-color="#0b7780" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sweep" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#28e2d4" stop-opacity=".02"/>
+      <stop offset="1" stop-color="#28e2d4" stop-opacity=".42"/>
+    </linearGradient>
+    <pattern id="grid" width="42" height="42" patternUnits="userSpaceOnUse">
+      <path d="M42 0H0V42" fill="none" stroke="#61dbe1" stroke-opacity=".06"/>
+    </pattern>
+    <clipPath id="scope">
+      <circle cx="931" cy="313" r="228"/>
+    </clipPath>
+  </defs>
+
+  <rect width="1200" height="627" fill="url(#background)"/>
+  <rect width="1200" height="627" fill="url(#grid)"/>
+  <circle cx="931" cy="313" r="300" fill="url(#radar-glow)"/>
+  <path d="M0 0H1200" stroke="#22d3ee" stroke-opacity=".7" stroke-width="6"/>
+
+  <rect x="72" y="78" width="270" height="40" rx="20" fill="#0b3038" stroke="#1b8592"/>
+  <circle cx="94" cy="98" r="4" fill="#55e4d7"/>
+  <text x="109" y="104" fill="#a5f3ed" font-family="Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="2">PILOT / ATC ENGLISH</text>
+
+  <g font-family="Arial, sans-serif" font-weight="700">
+    <text x="72" y="207" fill="#f1f8fb" font-size="62" letter-spacing="1">AVIATION</text>
+    <text x="72" y="276" fill="#f1f8fb" font-size="51" letter-spacing=".5">RADIOTELEPHONY</text>
+    <text x="72" y="346" fill="#52e1d5" font-size="62" letter-spacing="1">PRACTICE</text>
+  </g>
+  <rect x="72" y="384" width="78" height="4" rx="2" fill="#22d3ee"/>
+  <text x="72" y="435" fill="#c4d6de" font-family="Arial, sans-serif" font-size="25">Practice pilot and ATC communication</text>
+  <text x="72" y="486" fill="#89a8b5" font-family="Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="1.5">FLASHCARDS  /  SCENARIOS  /  AVIATION ENGLISH</text>
+  <text x="72" y="567" fill="#6d909e" font-family="Arial, sans-serif" font-size="15" letter-spacing="1">RADIOTELEPHONY TRAINING</text>
+
+  <circle cx="931" cy="313" r="241" fill="#071923" stroke="#1b5965" stroke-width="2"/>
+  <circle cx="931" cy="313" r="228" fill="#061c24" stroke="#43d4d0" stroke-opacity=".7" stroke-width="2"/>
+  <g clip-path="url(#scope)">
+    <rect x="703" y="85" width="456" height="456" fill="url(#grid)"/>
+    <path d="M931 313V85A228 228 0 0 1 1133 207Z" fill="url(#sweep)"/>
+    <path d="M703 313H1159M931 85V541" fill="none" stroke="#52d9d3" stroke-opacity=".3"/>
+    <path d="M770 152L1092 474M770 474L1092 152" fill="none" stroke="#52d9d3" stroke-opacity=".12"/>
+    <g fill="none" stroke="#57d8d1" stroke-opacity=".27">
+      <circle cx="931" cy="313" r="57"/>
+      <circle cx="931" cy="313" r="114"/>
+      <circle cx="931" cy="313" r="171"/>
+    </g>
+    <path d="M931 313L1104 165" fill="none" stroke="#72fff0" stroke-width="3" stroke-linecap="round"/>
+    <g fill="#89fff1">
+      <circle cx="1020" cy="220" r="5"/>
+      <circle cx="835" cy="267" r="4"/>
+      <circle cx="1028" cy="380" r="4"/>
+    </g>
+    <g fill="none" stroke="#89fff1" stroke-opacity=".42">
+      <circle cx="1020" cy="220" r="12"/>
+      <circle cx="835" cy="267" r="10"/>
+      <circle cx="1028" cy="380" r="10"/>
+    </g>
+    <g fill="#b9fff4" font-family="Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="1">
+      <text x="1041" y="214">A12</text>
+      <text x="852" y="261">FL120</text>
+      <text x="1046" y="375">B07</text>
+    </g>
+  </g>
+  <circle cx="931" cy="313" r="5" fill="#8affef"/>
+  <circle cx="931" cy="313" r="238" fill="none" stroke="#4fe2dc" stroke-opacity=".16" stroke-dasharray="2 12" stroke-width="4"/>
+</svg>

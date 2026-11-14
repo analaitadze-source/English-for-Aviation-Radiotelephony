@@ -9,7 +9,7 @@
   <pre id="results">Running...</pre>
   <iframe id="app" src="../index.html" hidden></iframe>
   <script>
-    function runTests() {
+    async function runTests() {
       const results = [];
       const assert = (condition, message) => {
         if (!condition) throw new Error(message);
@@ -236,6 +236,38 @@
           switchTab('quiz');
           assert(!document.getElementById('section-quiz').classList.contains('hidden') && document.querySelector('#quiz-card-container button'), 'Quiz tab no longer opens');
         });
+
+        let preview;
+        try {
+          const response = await fetch('assets/radar-preview.png');
+          if (!response.ok) throw new Error(`Image returned HTTP ${response.status}`);
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          try {
+            const image = new Image();
+            await new Promise((resolve, reject) => {
+              image.onload = resolve;
+              image.onerror = () => reject(new Error('Preview image could not be decoded'));
+              image.src = url;
+            });
+            preview = { width: image.naturalWidth, height: image.naturalHeight, bytes: blob.size, type: blob.type };
+          } finally {
+            URL.revokeObjectURL(url);
+          }
+        } catch (error) {
+          preview = { error: error.message };
+        }
+        test('LinkedIn metadata references a suitable radar preview', () => {
+          const property = name => document.querySelector(`meta[property="${name}"]`)?.content;
+          assert(!preview.error, preview.error);
+          assert(property('og:title') && property('og:description'), 'Share title or description missing');
+          const site = new URL(property('og:url'));
+          assert(site.protocol === 'https:' && property('og:image') === new URL('assets/radar-preview.png', site).href, 'Share image URL is not absolute or does not match the site');
+          assert(property('og:image:type') === 'image/png' && preview.type.startsWith('image/png'), 'Share image is not a PNG');
+          assert(preview.width >= 1200 && preview.height >= 627 && preview.bytes <= 5 * 1024 * 1024, 'Share image does not meet LinkedIn dimensions or size');
+          assert(Number(property('og:image:width')) === preview.width && Number(property('og:image:height')) === preview.height, 'Share image metadata dimensions are incorrect');
+          assert(property('og:image:alt'), 'Share image alternative text missing');
+        });
       } finally {
         synthesis.speak = originalSpeak;
         synthesis.cancel = originalCancel;
@@ -252,11 +284,11 @@
       return results;
     }
 
-    document.getElementById('app').addEventListener('load', () => {
+    document.getElementById('app').addEventListener('load', async () => {
       const output = document.getElementById('results');
       try {
         const run = document.getElementById('app').contentWindow.eval(`(${runTests.toString()})`);
-        const results = run();
+        const results = await run();
         const failures = results.filter(result => !result.passed);
         output.textContent = results.map(result => `${result.passed ? 'PASS' : 'FAIL'} ${result.name}${result.error ? ': ' + result.error : ''}`).join('\n');
         output.textContent += `\n\n${results.length - failures.length}/${results.length} passed`;
