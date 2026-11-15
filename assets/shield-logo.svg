@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 112">
+  <title>Aviation shield logo</title>
+  <defs>
+    <linearGradient id="shield" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#123e52"/>
+      <stop offset="1" stop-color="#061b2b"/>
+    </linearGradient>
+  </defs>
+  <path d="M48 4C60 11 73 14 86 15v35c0 27-15 46-38 58C25 96 10 77 10 50V15C23 14 36 11 48 4Z" fill="#061622" stroke="#20d9df" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M48 13c10 5 20 8 29 9v28c0 21-11 37-29 47C30 87 19 71 19 50V22c9-1 19-4 29-9Z" fill="url(#shield)" stroke="#57ebeb" stroke-opacity=".35" stroke-width="1.5"/>
+  <path d="M24 50a24 24 0 0 1 48 0M29 50a19 19 0 0 1 38 0M48 26v48M24 50h48" fill="none" stroke="#5af0ee" stroke-opacity=".28" stroke-width="1.5"/>
+  <path d="M48 26c3 0 5 3 5 8v15l19 9v6l-19-4v16l7 4v5l-12-4-12 4v-5l7-4V60l-19 4v-6l19-9V34c0-5 2-8 5-8Z" fill="#efffff"/>
+</svg>

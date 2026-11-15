@@ -764,6 +764,16 @@
           await headerImage.decode();
           assert(headerImage.naturalWidth === preview.width && headerImage.naturalHeight === preview.height, 'Header image could not be decoded');
         });
+
+        await test('Shield logo appears beside the title and in the browser tab', async () => {
+          const logo = document.querySelector('header h1 [data-shield-logo]');
+          const icon = document.querySelector('link[rel="icon"]');
+          const expected = new URL('assets/shield-logo.svg', document.baseURI).href;
+          assert(logo && logo.src === expected && /shield/i.test(logo.alt), 'Title shield logo is missing');
+          assert(icon && icon.href === expected && icon.type === 'image/svg+xml', 'Browser tab does not use the shield logo');
+          await logo.decode();
+          assert(logo.naturalWidth > 0 && logo.naturalHeight > 0, 'Shield logo could not be decoded');
+        });
       } finally {
         playbackGeneration++;
         if (synthesis) synthesis.speak = originalNativeSpeak;
