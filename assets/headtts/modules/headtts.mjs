@@ -278,18 +278,20 @@ class HeadTTS {
               };
             } else {
               const url = new URL("./worker-tts.mjs", import.meta.url);
+              url.search = new URL(import.meta.url).search;
               this.ww = new Worker(url, { type: 'module' });
             }
 
             // Handle progress reports and wait for ready message
             const rejectedTimeout = () => reject('Connection timed out.');
-            let timeout = setTimeout(rejectedTimeout, 30000);
+            const connectionTimeout = 45000;
+            let timeout = setTimeout(rejectedTimeout, connectionTimeout);
 
             this.ww.onmessage = (ev) => {
               if ( ev.data?.type === 'progress' ) {
                 if (timeout) {
                   clearTimeout(timeout);
-                  timeout = setTimeout(rejectedTimeout, 10000);
+                  timeout = setTimeout(rejectedTimeout, connectionTimeout);
                 }
                 if ( typeof onprogress === 'function' ) {
                   onprogress( new ProgressEvent('progress', ev.data.data ));

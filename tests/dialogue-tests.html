@@ -53,6 +53,7 @@
         await test('Independent American and British voices are selectable', () => {
           const controller = document.getElementById('voice-select');
           const pilot = document.getElementById('pilot-voice-select');
+          assert(selectedVoice === 'bm_george' && selectedPilotVoice === 'bf_emma', 'The default controller and pilot voices are not distinct British voices');
           for (const select of [controller, pilot]) {
             const options = [...select.options];
             assert(options.length >= 16, 'Independent voice choices are missing');
@@ -70,12 +71,60 @@
         });
 
         await test('Independent voice assets are available from the site', async () => {
-          const moduleURL = new URL('assets/headtts/modules/headtts.mjs', document.baseURI);
+          const moduleURL = new URL(VOICE_ENGINE_URL, document.baseURI);
           const module = await import(moduleURL.href);
           assert(typeof module.HeadTTS === 'function', 'Independent voice module could not be loaded');
-          for (const path of ['assets/headtts/modules/worker-tts.mjs', 'assets/headtts/modules/language-en-us.mjs', 'assets/headtts/dictionaries/en-us.txt']) {
+          for (const path of ['assets/headtts/modules/worker-tts.mjs', 'assets/headtts/modules/language-en-us.mjs', 'assets/headtts/modules/language-en-gb.mjs', 'assets/headtts/dictionaries/en-us.txt', 'assets/headtts/dictionaries/en-gb.json']) {
             const response = await fetch(path);
             assert(response.ok && (await response.arrayBuffer()).byteLength > 0, `Voice asset is unavailable: ${path}`);
+          }
+        });
+
+        await test('British voices use British pronunciations and retain a fallback', async () => {
+          const britishModuleURL = new URL('assets/headtts/modules/language-en-gb.mjs', document.baseURI);
+          britishModuleURL.search = new URL(VOICE_ENGINE_URL, document.baseURI).search;
+          const { Language: BritishLanguage } = await import(britishModuleURL.href);
+          const { Language: AmericanLanguage } = await import(new URL('assets/headtts/modules/language-en-us.mjs', document.baseURI).href);
+          const british = new BritishLanguage();
+          const american = new AmericanLanguage();
+          const savedFetch = window.fetch;
+          const requested = [];
+          try {
+            window.fetch = (resource, ...options) => {
+              requested.push(String(resource));
+              return savedFetch(resource, ...options);
+            };
+            const [response] = await Promise.all([
+              fetch('assets/headtts/dictionaries/en-gb.json'),
+              british.loadDictionary('assets/headtts/dictionaries/en-gb.txt'),
+              american.loadDictionary('assets/headtts/dictionaries/en-us.txt')
+            ]);
+            assert(response.ok, 'British pronunciation data is unavailable');
+            const lexicon = await response.json();
+            assert(british.phonemizeWord('TOWER').join('') === lexicon.tower, 'British voice did not use the British pronunciation');
+            assert(british.phonemizeWord('TOWER').join('') !== american.phonemizeWord('TOWER').join(''), 'British and American pronunciations were not distinguished');
+            assert(british.phonemizeWord('WIND').join('') === lexicon.wind.DEFAULT, 'A British dictionary entry with alternatives was not handled');
+            assert(!lexicon.niner && !lexicon.NINER && british.phonemizeWord('NINER').join('') === american.phonemizeWord('NINER').join(''), 'Unknown words did not use the existing dictionary fallback');
+            assert(requested.some(url => url.endsWith(`en-gb.json${britishModuleURL.search}`)), 'British pronunciation data did not inherit the cache version');
+          } finally {
+            window.fetch = savedFetch;
+          }
+        });
+
+        await test('Voice selection chooses the matching pronunciation language', async () => {
+          const savedGetVoiceEngine = getVoiceEngine;
+          const setups = [];
+          try {
+            getVoiceEngine = async () => ({
+              setup: async options => { setups.push(options); },
+              synthesize: async () => [{ type: 'audio', data: { audio: {} } }]
+            });
+            for (const voice of ['bm_george', 'bf_emma', 'af_bella']) {
+              await originalSynthesize('TEST', voice, {}, playbackGeneration, 'controller');
+            }
+            assert(setups.map(setup => setup.language).join(',') === 'en-gb,en-gb,en-us', 'Voice accents did not select the corresponding pronunciation data');
+          } finally {
+            getVoiceEngine = savedGetVoiceEngine;
           }
         });
 
@@ -96,15 +145,172 @@
           }
         });
 
+        await test('Voice setup allows model initialization after download progress', async () => {
+          const moduleURL = new URL(VOICE_ENGINE_URL, document.baseURI);
+          const { HeadTTS } = await import(moduleURL.href);
+          const savedWorker = window.Worker;
+          const savedSetTimeout = window.setTimeout;
+          const savedClearTimeout = window.clearTimeout;
+          let now = 0;
+          let nextTimer = 0;
+          let workerURL;
+          const timers = new Map();
+          class FakeWorker {
+            constructor(url, options) {
+              void options.type;
+              if (url !== 'blob://') workerURL = new URL(url);
+            }
+            postMessage(message) {
+              if (message.type !== 'connect') return;
+              this.onmessage({ data: { type: 'progress', data: { loaded: 1, total: 1, lengthComputable: true } } });
+              now += 15000;
+              for (const [id, timer] of [...timers]) {
+                if (timer.at <= now) {
+                  timers.delete(id);
+                  timer.callback();
+                }
+              }
+              this.onmessage({ data: { type: 'ready' } });
+            }
+            terminate() {}
+          }
+          try {
+            window.Worker = FakeWorker;
+            window.setTimeout = (callback, delay) => {
+              const id = ++nextTimer;
+              timers.set(id, { callback, at: now + delay });
+              return id;
+            };
+            window.clearTimeout = id => timers.delete(id);
+            const engine = new HeadTTS({ endpoints: ['wasm'], audioCtx: {}, languages: [], voices: [] });
+            await engine.connect(null, () => {});
+            assert(engine.isConnected, 'Voice setup timed out while the model was initializing');
+            assert(workerURL.search === moduleURL.search, 'Voice worker did not inherit the engine cache version');
+          } finally {
+            window.Worker = savedWorker;
+            window.setTimeout = savedSetTimeout;
+            window.clearTimeout = savedClearTimeout;
+          }
+        });
+
+        await test('Failed accelerated speech retries with the CPU voice engine', async () => {
+          const savedGetVoiceEngine = getVoiceEngine;
+          const savedEngine = voiceEngine;
+          const savedBackend = voiceEngineBackend;
+          const savedPromise = voiceEnginePromise;
+          const savedWarn = console.warn;
+          const audio = {};
+          let cleared = false;
+          let terminated = false;
+          let cpuAttempts = 0;
+          const gpu = {
+            setup: async () => {},
+            synthesize: async () => [{ type: 'error', data: { error: 'GPU inference failed' } }],
+            clear: () => { cleared = true; },
+            ww: { terminate: () => { terminated = true; } }
+          };
+          const cpu = {
+            setup: async () => {},
+            synthesize: async () => [{ type: 'audio', data: { audio } }]
+          };
+          try {
+            console.warn = () => {};
+            getVoiceEngine = async (context, cpuOnly = false) => {
+              if (cpuOnly) cpuAttempts++;
+              voiceEngine = cpuOnly ? cpu : gpu;
+              voiceEngineBackend = cpuOnly ? 'wasm' : 'webgpu';
+              return voiceEngine;
+            };
+            const result = await originalSynthesize('TEST', selectedVoice, {}, playbackGeneration, 'controller');
+            assert(result.length === 1 && result[0] === audio, 'CPU retry did not generate audio');
+            assert(cleared && terminated && cpuAttempts === 1, 'Failed GPU worker was not replaced exactly once');
+            cpu.synthesize = async () => [{ type: 'error', data: { error: 'CPU inference failed' } }];
+            let failure;
+            try {
+              await originalSynthesize('TEST', selectedVoice, {}, playbackGeneration, 'controller');
+            } catch (error) {
+              failure = error.message;
+            }
+            assert(failure === 'CPU inference failed', 'CPU failure was not surfaced');
+          } finally {
+            getVoiceEngine = savedGetVoiceEngine;
+            voiceEngine = savedEngine;
+            voiceEngineBackend = savedBackend;
+            voiceEnginePromise = savedPromise;
+            console.warn = savedWarn;
+          }
+        });
+
+        await test('Suspended audio is resumed before playback', async () => {
+          let resumed = false;
+          let played = false;
+          const context = {
+            state: 'suspended',
+            destination: {},
+            resume: async function () { resumed = true; this.state = 'running'; },
+            createBufferSource: () => ({
+              connect: () => {},
+              start() { played = true; queueMicrotask(() => this.onended()); }
+            })
+          };
+          await originalPlayBuffer({}, context, playbackGeneration);
+          assert(resumed && played, 'A suspended audio context did not resume and play');
+          context.state = 'suspended';
+          context.resume = async () => {};
+          let failure;
+          try {
+            await originalPlayBuffer({}, context, playbackGeneration);
+          } catch (error) {
+            failure = error.message;
+          }
+          assert(/blocked/i.test(failure), 'Blocked playback was not reported');
+        });
+
+        await test('Voice worker reports unexpected synthesis failures', async () => {
+          const moduleCode = `
+            export const env = {};
+            export const LogLevel = { ERROR: 0 };
+            export class Tensor {}
+            export const StyleTextToSpeech2Model = { from_pretrained: async () => ({}) };
+            export const AutoTokenizer = { from_pretrained: async () => () => { throw new Error('test tokenizer failure'); } };
+          `;
+          const moduleURL = URL.createObjectURL(new Blob([moduleCode], { type: 'text/javascript' }));
+          const workerURL = new URL('assets/headtts/modules/worker-tts.mjs', document.baseURI);
+          workerURL.search = new URL(VOICE_ENGINE_URL, document.baseURI).search;
+          const worker = new Worker(workerURL, { type: 'module' });
+          const nextMessage = () => new Promise((resolve, reject) => {
+            const timer = setTimeout(() => reject(new Error('Voice worker did not respond')), 10000);
+            worker.onmessage = event => { clearTimeout(timer); resolve(event.data); };
+            worker.onerror = event => { clearTimeout(timer); reject(new Error(event.message)); };
+          });
+          try {
+            let response = nextMessage();
+            worker.postMessage({ type: 'connect', data: {
+              transformersModule: moduleURL, model: 'test', device: 'wasm', dtype: 'q8', voices: [], languages: [], trace: 0
+            } });
+            assert((await response).type === 'ready', 'Test voice worker did not start');
+            for (const id of [41, 42]) {
+              response = nextMessage();
+              worker.postMessage({ type: 'synthesize', id, data: {
+                language: 'en-us', input: [{ type: 'phonetic', value: 'hello' }], voice: 'test', speed: 1, audioEncoding: 'wav'
+              } });
+              const message = await response;
+              assert(message.type === 'error' && message.ref === id && /test tokenizer failure/.test(message.data.error), 'Worker did not report the failed request');
+            }
+          } finally {
+            worker.terminate();
+            URL.revokeObjectURL(moduleURL);
+          }
+        });
+
         await test('Rendered dialogue and speech use the same speaker order', async () => {
           const pilotFirst = [5, 7, 15, 31, 40, 42, 44, 51, 52, 54, 69, 70];
-          for (const id of [6, ...pilotFirst]) {
-            const card = findCard(id);
-            assert(card, `Missing card ${id}`);
+          for (const card of cards) {
+            const id = card.id;
             renderFlashcards([card]);
             const lines = [...document.querySelectorAll('#flashcards-grid [data-speaker]')];
-            assert(lines[0].dataset.speaker === (id === 6 ? 'ATC' : 'PILOT'), `Wrong first speaker on card ${id}`);
-            assert(lines[1].dataset.speaker === (id === 6 ? 'PILOT' : 'ATC'), `Wrong second speaker on card ${id}`);
+            assert(lines[0].dataset.speaker === (pilotFirst.includes(id) ? 'PILOT' : 'ATC'), `Wrong first speaker on card ${id}`);
+            assert(lines[1].dataset.speaker === (pilotFirst.includes(id) ? 'ATC' : 'PILOT'), `Wrong second speaker on card ${id}`);
             if (id === 6) {
               assert(lines.length === 4 && lines[2].dataset.speaker === 'ATC' && lines[3].dataset.speaker === 'PILOT', 'Say-again exchange is incomplete');
             }
@@ -118,7 +324,55 @@
               assert(spoken[index].voice === (line.dataset.speaker === 'PILOT' ? selectedPilotVoice : selectedVoice), `Wrong speaker voice on card ${id}`);
             });
           }
-          assert(convertTextToICAOSpeech('Contact Tower 118.1.').includes('one one eight point one'), 'Frequency decimal is missing from speech');
+        });
+
+        await test('Spoken runway, registration, frequency and flight levels retain their meaning', () => {
+          const spokenText = text => convertTextToICAOSpeech(text).toLowerCase();
+          assert(spokenText('Contact Tower 118.1.').includes('one one eight decimal one'), 'Frequency separator is not DECIMAL');
+          assert(spokenText('Contact Radar 124.350.').includes('one two fow-er decimal tree fife zero'), 'Assigned channel digits changed');
+          assert(spokenText('Runway 09R, runway 27L, RWY 18C.').includes('runway zero niner right, runway two seven left, runway one eight centre'), 'Runway suffixes were spoken as letters');
+          assert(spokenText('G-ABCD').includes('golf alfa bravo charlie delta'), 'Aircraft registration was not spelled out');
+          assert(spokenText('FL200, FL100, FL290').replace(/,/g, '').includes('flight level two hundred flight level one hundred flight level two niner zero'), 'Flight-level speech is incorrect');
+          assert(spokenText('hold at the holding point').includes('holding point'), 'A non-numeric holding point was changed');
+        });
+
+        await test('Quiz answers use the stated flight-level and frequency conventions', () => {
+          const flightLevel = QUIZ_QUESTIONS.find(question => question.category === 'FLIGHT LEVEL PHRASEOLOGY');
+          const frequency = QUIZ_QUESTIONS.find(question => question.category === 'FREQUENCY READBACKS');
+          assert(flightLevel.options[flightLevel.correct] === 'Flight Level two hundred' && /other jurisdictions/i.test(flightLevel.explanation), 'Flight-level quiz answer or local-procedure caveat is incorrect');
+          assert(frequency.options[frequency.correct] === 'one two one decimal five' && /channel spacing/i.test(frequency.explanation), 'Frequency quiz answer or channel guidance is incorrect');
+        });
+
+        await test('Flashcard playback reports progress beside its buttons', async () => {
+          renderFlashcards([findCard(1)]);
+          const card = document.querySelector('#flashcards-grid .flip-card');
+          const status = card.querySelector('[data-card-audio-status]');
+          for (const action of ['phrase', 'dialogue']) {
+            spoken.length = 0;
+            card.querySelector(`[data-card-action="${action}"]`).click();
+            assert(/preparing independent voices/i.test(status.textContent), `No progress shown for ${action}`);
+            await activeSpeechTask;
+            assert(/voices are ready/i.test(status.textContent) && spoken.length > 0, `${action} did not complete`);
+          }
+        });
+
+        await test('Dialogue prepares the next turn without changing playback order', async () => {
+          const savedSynthesize = synthesizeTurn;
+          const savedPlay = playAudioBuffer;
+          const events = [];
+          try {
+            synthesizeTurn = async (text, voice) => {
+              events.push(`generate ${text}`);
+              return [{ text, voice }];
+            };
+            playAudioBuffer = async buffer => { events.push(`play ${buffer.text}`); };
+            await speakTurns([{ speaker: 'ATC', text: 'FIRST' }, { speaker: 'PILOT', text: 'SECOND' }]);
+            assert(events.indexOf('generate SECOND') < events.indexOf('play FIRST'), 'The next turn was not prepared during playback');
+            assert(events.filter(event => event.startsWith('play ')).join(',') === 'play FIRST,play SECOND', 'Prepared turns played out of order');
+          } finally {
+            synthesizeTurn = savedSynthesize;
+            playAudioBuffer = savedPlay;
+          }
         });
 
         await test('Safety-critical flashcard instructions are read back', () => {
@@ -141,6 +395,22 @@
           assert(contains(findCard(51).followUp[0].text, ['heading 090', 'three thousand feet']), 'Distress heading or level readback missing');
           assert(contains(findCard(69).followUp[0].text, ['BACKTRACK', 'zero niner Right']), 'Runway backtrack readback missing');
           assert(contains(findCard(54).pilotLine, ['communications restored', 'seven six zero zero']) && !findCard(54).atcLine.includes('observes'), 'Radio failure exchange is not a real transmission');
+          assert(contains(findCard(1).atcLine, ['flight level two hundred']) && contains(findCard(1).pilotLine, ['flight level two hundred']), 'Whole-hundred flight level is inconsistent');
+          assert(!/all stations/i.test(findCard(2).atcLine) && contains(findCard(2).pilotLine, ['one two one decimal five', 'Lufthansa 421']), 'Frequency instruction is not a directed exchange with a readback');
+          assert(contains(findCard(25).atcLine, ['decimal three five zero']) && contains(findCard(25).pilotLine, ['decimal three five zero']), 'Assigned frequency digits are missing from the readback');
+          assert(contains(findCard(18).atcLine, ['runway three six', 'line up and wait']) && contains(findCard(18).pilotLine, ['runway three six', 'line up and wait']), 'Line-up instruction lacks the runway readback');
+          assert(/wilco/i.test(findCard(45).pilotLine), 'Possible go-around preparation is not acknowledged');
+          assert(contains(findCard(50).pilotLine, ['three six zero', 'left']), 'Turn instruction was not read back digit by digit');
+          assert(/altitude.*mean sea level/i.test(findCard(56).meaning), 'QNH is not described as an altitude reference');
+          assert(/^(PAN PAN, ){2}PAN PAN,/.test(findCard(52).pilotLine) && /does not require immediate assistance/i.test(findCard(52).meaning), 'Urgency call or definition is incorrect');
+          assert(/does not establish/i.test(findCard(70).meaning), 'Distress cancellation is implied by fire extinguishment alone');
+        });
+
+        await test('Generic illustrations do not contradict the example clearance', () => {
+          renderFlashcards([findCard(18), findCard(57)]);
+          const graphics = [...document.querySelectorAll('#flashcards-grid .flip-card-front svg')];
+          assert(!/09R|27L/i.test(graphics[0].textContent), 'The runway 36 card depicts different runway designators');
+          assert(!/1013/.test(graphics[1].textContent), 'The QFE 998 card depicts a different pressure setting');
         });
 
         await test('Every default card displays its related vocabulary on the dialogue side', () => {
@@ -186,6 +456,22 @@
           const legacyDefault = { ...findCard(15) };
           delete legacyDefault.collocations;
           delete legacyDefault.compoundNouns;
+          const previousPhrases = [
+            [18, 'LINE UP AND WAIT RWY 36'],
+            [25, 'CONTACT RADAR 124.35'],
+            [47, 'MAINTAIN 160 KNOTS TO 4 MILES'],
+            [50, 'MAKE THREE SIXTY TURN LEFT FOR SPACING'],
+            [52, 'PAN PAN PAN PAN PAN PAN'],
+            [58, 'WIND 270 DEGREES 15 KNOTS GUSTS 25']
+          ];
+          for (const [id, phrase] of previousPhrases) {
+            const current = findCard(id);
+            const old = { ...current, phrase };
+            delete old.collocations;
+            delete old.compoundNouns;
+            const vocabulary = getCardVocabulary(old);
+            assert(vocabulary.collocations.join(';') === current.collocations.join(';') && vocabulary.compoundNouns.join(';') === current.compoundNouns.join(';'), `Older default card ${id} lost its related vocabulary`);
+          }
           const stringVocabulary = { ...legacy, id: 903, collocations: 'report a position', compoundNouns: 'position report' };
           const categoryLegacy = { ...legacy, id: 904, cat: 'AIRPORT' };
           const imported = [legacy, custom, legacyDefault, stringVocabulary, categoryLegacy];
@@ -325,10 +611,11 @@
 
           const emergency = SCENARIOS[2];
           const distress = filled(emergency.lines[0]);
+          const clearance = filled(emergency.lines[1]);
           const readback = filled(emergency.lines[2]);
           assert(/^MAYDAY MAYDAY MAYDAY/.test(distress) && /engine fire/i.test(distress), 'Distress call is incomplete');
-          assert(/heading 090/i.test(readback) && /three thousand feet/i.test(readback) && /QNH 1014/i.test(readback) && /cleared approach Runway 09R/i.test(readback), 'Emergency clearance readback is incomplete');
-          assert(/known position, intentions/i.test(emergency.note), 'Emergency information guidance missing');
+          assert(/maintain heading 090/i.test(clearance) && /maintain heading 090/i.test(readback) && /three thousand feet/i.test(readback) && /QNH 1014/i.test(readback) && /cleared approach Runway 09R/i.test(readback), 'Emergency clearance readback is incomplete or contradicts the pilot turn');
+          assert(/intentions, known position, level and heading/i.test(emergency.note), 'Emergency information guidance missing');
 
           window.setTimeout = callback => { callback(); return 0; };
           try {

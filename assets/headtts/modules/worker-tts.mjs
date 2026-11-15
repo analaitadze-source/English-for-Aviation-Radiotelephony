@@ -188,7 +188,9 @@ async function loadLanguage(lang) {
       utils.trace( 'Importing language "' + lang + '".' );
     }
     let Language;
-    ({ Language } = await import("./language-" + lang.toLowerCase() + ".mjs"));
+    const url = new URL("./language-" + lang.toLowerCase() + ".mjs", import.meta.url);
+    url.search = new URL(import.meta.url).search;
+    ({ Language } = await import(url.href));
     const language = new Language({
       trace: isTraceLanguage
     });
@@ -314,6 +316,20 @@ async function process() {
   while( queue.length ) {
     const item = queue[0];
     queue.shift();
+    try {
+      await processItem(item);
+    } catch(error) {
+      console.error("HeadTTS Worker: Speech generation failed, error=", error, " item=", item);
+      eventHandler.postMessage({
+        type: "error",
+        ref: item.ref !== undefined ? item.ref : item.id,
+        data: { error: "Speech generation failed: " + (error && error.message ? error.message : String(error)) }
+      });
+    }
+  }
+  isProcessing = false;
+
+  async function processItem(item) {
     const d = item.data;
 
     // Generate tokens/phonemes and initialize TalkingHead audio object
@@ -327,7 +343,7 @@ async function process() {
       item.type = "error";
       item.data = { error: "Error loading language module '" + d.language + "'." };
       eventHandler.postMessage(item);
-      continue;
+      return;
     }
     const { phonemes, metadata, silences } = language.generate(d.input);
     if ( isTraceG2P ) {
@@ -360,7 +376,7 @@ async function process() {
       item.type = "error";
       item.data = { error: "Error loading voice '" + d.voice + "'." };
       eventHandler.postMessage(item);
-      continue;
+      return;
     }
     const data = new Float32Array(voice);
     const offset = num_tokens * settings.styleDim;
@@ -396,8 +412,5 @@ async function process() {
     item.type = "audio";
     item.data = metadata;
     eventHandler.postMessage(item, [metadata.audio]);
-
   }
-  isProcessing = false;
-
 }

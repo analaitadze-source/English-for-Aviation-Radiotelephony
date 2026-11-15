@@ -5,5 +5,11 @@
   "source": "https://github.com/met4citizen/HeadTTS",
   "license": "MIT",
   "dictionary": "CMU Pronouncing Dictionary, BSD-2-Clause",
-  "description": "Unmodified browser voice engine and English pronunciation dictionary."
+  "britishDictionary": {
+    "name": "Misaki gb_gold.json",
+    "revision": "fba1236595f2d2bf21d414ba6e57d25256afada3",
+    "source": "https://github.com/hexgrad/misaki",
+    "license": "Apache-2.0"
+  },
+  "description": "Browser voice engine with local connection-timeout, worker error-reporting and British pronunciation support."
 }
