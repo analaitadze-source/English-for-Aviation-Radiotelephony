@@ -11,5 +11,5 @@
     "source": "https://github.com/hexgrad/misaki",
     "license": "Apache-2.0"
   },
-  "description": "Browser voice engine with local connection-timeout, worker error-reporting and British pronunciation support."
+  "description": "Browser voice engine with local connection-timeout, language and voice preloading, worker queue cancellation, error-reporting and British pronunciation support."
 }

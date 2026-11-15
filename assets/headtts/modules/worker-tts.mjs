@@ -48,6 +48,8 @@ eventHandler.onmessage = async (ev) => {
   if ( message.type === 'synthesize' ) {
     queue.push(message);
     process();
+  } else if ( message.type === 'clear' ) {
+    queue.length = 0;
   } else if ( message.type === 'setup' ) {
     const o = message.data;
     if ( typeof o === 'object' && !Array.isArray(o) && o !== null ) {
@@ -146,16 +148,16 @@ async function connect() {
       }),
       ...settings.voices.map( async (x) => {
         try {
-          loadVoice(x);
+          await loadVoice(x);
         } catch(error) {
-          // Ignore errors on pre-load
+          console.warn('HeadTTS Worker: Voice pre-load failed:', error);
         }
       }),
       ...settings.languages.map( async (x) => {
         try {
-          loadLanguage(x);
+          await loadLanguage(x);
         } catch(error) {
-          // Ignore errors on pre-load
+          console.warn('HeadTTS Worker: Language pre-load failed:', error);
         }
       })
     ]);

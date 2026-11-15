@@ -535,6 +535,7 @@ class HeadTTS {
       clearItem(item);
     }
 
+    if (this.ww) this.ww.postMessage({ type: "clear" });
   }
 
 

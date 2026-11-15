@@ -128,6 +128,178 @@
           }
         });
 
+        await test('Voice preparation respects reduced-data connections', async () => {
+          assert(shouldPrepareVoice(null), 'A normal connection should prepare voices');
+          assert(!shouldPrepareVoice({ saveData: true, effectiveType: '4g' }), 'Data saver should defer voice preparation');
+          assert(!shouldPrepareVoice({ saveData: false, effectiveType: '2g' }), 'A slow connection should defer voice preparation');
+          const savedActivate = activateAudio;
+          const savedGetEngine = getVoiceEngine;
+          const savedShouldPrepare = shouldPrepareVoice;
+          const savedEngine = voiceEngine;
+          const savedPromise = voiceEnginePromise;
+          const savedBusy = voiceBusy;
+          let starts = 0;
+          try {
+            voiceEngine = null;
+            voiceEnginePromise = null;
+            voiceBusy = false;
+            activateAudio = () => Promise.resolve({});
+            getVoiceEngine = async () => { starts++; };
+            shouldPrepareVoice = () => false;
+            prepareVoiceEngine();
+            assert(starts === 0, 'Preparation started on a reduced-data connection');
+            shouldPrepareVoice = () => true;
+            const first = prepareVoiceEngine();
+            prepareVoiceEngine();
+            await first;
+            assert(starts === 1 && !voicePreparing, 'Repeated interactions started duplicate voice preparation');
+            assert(/voices are ready/i.test(document.getElementById('voice-feedback').textContent), 'Voice readiness was not displayed');
+          } finally {
+            activateAudio = savedActivate;
+            getVoiceEngine = savedGetEngine;
+            shouldPrepareVoice = savedShouldPrepare;
+            voiceEngine = savedEngine;
+            voiceEnginePromise = savedPromise;
+            voiceBusy = savedBusy;
+            voicePreparing = false;
+          }
+        });
+
+        await test('Opening a card or scenario starts voice preparation', () => {
+          const savedPrepare = prepareVoiceEngine;
+          let starts = 0;
+          try {
+            prepareVoiceEngine = () => { starts++; };
+            renderFlashcards([findCard(1)]);
+            const card = document.querySelector('#flashcards-grid .flip-card-inner');
+            card.click();
+            card.click();
+            document.getElementById('mtab-scenarios').click();
+            assert(starts === 2, 'Voice preparation did not follow card and scenario interactions');
+          } finally {
+            prepareVoiceEngine = savedPrepare;
+            switchTab('flashcards');
+          }
+        });
+
+        await test('Likely card and scenario audio is prepared without playing it', async () => {
+          const savedEngine = voiceEngine;
+          const savedBackend = voiceEngineBackend;
+          const savedBusy = voiceBusy;
+          const savedSynthesize = synthesizeTurn;
+          const savedTimeout = window.setTimeout;
+          const prepared = [];
+          let preparation;
+          try {
+            voiceEngine = { settings: { dtypeWebgpu: 'fp16' } };
+            voiceEngineBackend = 'webgpu';
+            voiceBusy = false;
+            synthesizeTurn = async (text, voice) => { prepared.push({ text, voice }); return []; };
+            window.setTimeout = callback => { preparation = callback(); return 0; };
+            renderFlashcards([findCard(5)]);
+            document.querySelector('#flashcards-grid .flip-card-inner').click();
+            await preparation;
+            assert(prepared.length === 2 && prepared[0].text === convertTextToICAOSpeech(findCard(5).icaoAudio), 'Card phrase was not prepared');
+            assert(prepared[1].text === convertTextToICAOSpeech(findCard(5).pilotLine) && prepared[1].voice === selectedPilotVoice, 'First dialogue speaker was not prepared with the selected voice');
+            prepared.length = 0;
+            switchTab('scenarios');
+            prepared.length = 0;
+            loadScenario(0);
+            await preparation;
+            assert(prepared.length === 1 && prepared[0].voice === selectedPilotVoice && prepared[0].text === convertTextToICAOSpeech(SCENARIOS[0].lines[0].text), 'Scenario line was not prepared with its speaker voice');
+          } finally {
+            speechPreparationRevision++;
+            voiceEngine = savedEngine;
+            voiceEngineBackend = savedBackend;
+            voiceBusy = savedBusy;
+            synthesizeTurn = savedSynthesize;
+            window.setTimeout = savedTimeout;
+            switchTab('flashcards');
+          }
+        });
+
+        await test('Playback reuses matching speech already being prepared', async () => {
+          const savedEngine = voiceEngine;
+          const savedBackend = voiceEngineBackend;
+          const savedBusy = voiceBusy;
+          const savedSynthesize = synthesizeTurn;
+          const savedTimeout = window.setTimeout;
+          const savedBackground = backgroundSpeech;
+          let preparation;
+          let release;
+          let calls = 0;
+          let clears = 0;
+          try {
+            voiceEngine = { settings: { dtypeWebgpu: 'fp16' }, clear: () => { clears++; } };
+            voiceEngineBackend = 'webgpu';
+            voiceBusy = false;
+            window.setTimeout = callback => { preparation = callback(); return 0; };
+            synthesizeTurn = (text, voice) => {
+              calls++;
+              return new Promise(resolve => { release = () => resolve([{ text, voice }]); });
+            };
+            spoken.length = 0;
+            prepareLikelySpeech([{ speaker: 'ATC', text: 'TEST' }], () => true);
+            assert(backgroundSpeech && calls === 1, 'Expected speech did not start preparing');
+            const playback = speakICAOText('TEST');
+            release();
+            await playback;
+            await preparation;
+            assert(calls === 1 && clears === 0 && spoken.length === 1 && spoken[0].text === 'TEST', 'Matching preparation was cancelled or generated twice');
+          } finally {
+            speechPreparationRevision++;
+            voiceEngine = savedEngine;
+            voiceEngineBackend = savedBackend;
+            voiceBusy = savedBusy;
+            synthesizeTurn = savedSynthesize;
+            window.setTimeout = savedTimeout;
+            backgroundSpeech = savedBackground;
+          }
+        });
+
+        await test('GPU model selection checks half-precision support', async () => {
+          const supported = { requestAdapter: async () => ({ features: new Set(['shader-f16']) }) };
+          const unsupported = { requestAdapter: async () => ({ features: new Set() }) };
+          assert(await preferredGpuDtype(supported, null) === 'fp16', 'A compatible GPU did not select the faster model');
+          assert(await preferredGpuDtype(unsupported) === 'q8' && await preferredGpuDtype(null) === 'q8', 'An incompatible GPU did not use the standard model');
+          assert(await preferredGpuDtype(supported, { saveData: true }) === 'q8', 'Data saver did not select the smaller model');
+        });
+
+        await test('Generated speech is reused only for the same text and voice', async () => {
+          const savedGetEngine = getVoiceEngine;
+          const buffer = { length: 10, numberOfChannels: 1, getChannelData: () => new Float32Array(10) };
+          let generations = 0;
+          try {
+            speechCache.clear();
+            speechCacheBytes = 0;
+            getVoiceEngine = async () => ({
+              setup: async () => {},
+              synthesize: async () => {
+                generations++;
+                return [{ type: 'audio', data: { audio: buffer } }];
+              }
+            });
+            await originalSynthesize('CACHE TEST', 'bm_george', {}, playbackGeneration, 'controller');
+            await originalSynthesize('CACHE TEST', 'bm_george', {}, playbackGeneration, 'controller');
+            assert(generations === 1, 'Repeated speech was generated again');
+            await originalSynthesize('CACHE TEST', 'bf_emma', {}, playbackGeneration, 'pilot');
+            await originalSynthesize('OTHER TEST', 'bm_george', {}, playbackGeneration, 'controller');
+            assert(generations === 3, 'Speech cache mixed voices or message text');
+            speechCache.clear();
+            speechCacheBytes = 0;
+            const large = { length: Math.floor(SPEECH_CACHE_LIMIT / 8), numberOfChannels: 1, getChannelData: () => new Float32Array(0) };
+            cacheSpeech('FIRST', 'bm_george', [large]);
+            cacheSpeech('SECOND', 'bm_george', [large]);
+            cachedSpeech('FIRST', 'bm_george');
+            cacheSpeech('THIRD', 'bm_george', [large]);
+            assert(cachedSpeech('FIRST', 'bm_george') && !cachedSpeech('SECOND', 'bm_george') && speechCacheBytes <= SPEECH_CACHE_LIMIT, 'Speech cache did not evict its least-recently-used entry');
+          } finally {
+            speechCache.clear();
+            speechCacheBytes = 0;
+            getVoiceEngine = savedGetEngine;
+          }
+        });
+
         await test('Voice status changes from download to generation', async () => {
           const originalGetVoiceEngine = getVoiceEngine;
           try {
@@ -154,6 +326,7 @@
           let now = 0;
           let nextTimer = 0;
           let workerURL;
+          let workerCleared = false;
           const timers = new Map();
           class FakeWorker {
             constructor(url, options) {
@@ -161,6 +334,10 @@
               if (url !== 'blob://') workerURL = new URL(url);
             }
             postMessage(message) {
+              if (message.type === 'clear') {
+                workerCleared = true;
+                return;
+              }
               if (message.type !== 'connect') return;
               this.onmessage({ data: { type: 'progress', data: { loaded: 1, total: 1, lengthComputable: true } } });
               now += 15000;
@@ -186,6 +363,8 @@
             await engine.connect(null, () => {});
             assert(engine.isConnected, 'Voice setup timed out while the model was initializing');
             assert(workerURL.search === moduleURL.search, 'Voice worker did not inherit the engine cache version');
+            engine.clear();
+            assert(workerCleared, 'Clearing speech did not clear the worker queue');
           } finally {
             window.Worker = savedWorker;
             window.setTimeout = savedSetTimeout;
@@ -237,6 +416,50 @@
             voiceEngine = savedEngine;
             voiceEngineBackend = savedBackend;
             voiceEnginePromise = savedPromise;
+            console.warn = savedWarn;
+          }
+        });
+
+        await test('Unsupported half-precision initialization retries the standard GPU model', async () => {
+          const savedWorker = window.Worker;
+          const savedPreference = preferredGpuDtype;
+          const savedEngine = voiceEngine;
+          const savedPromise = voiceEnginePromise;
+          const savedBackend = voiceEngineBackend;
+          const savedWarn = console.warn;
+          const savedGpu = Object.getOwnPropertyDescriptor(navigator, 'gpu');
+          const attempts = [];
+          class FakeWorker {
+            constructor(url, options) { void options.type; }
+            postMessage(message) {
+              if (message.type !== 'connect') return;
+              attempts.push(message.data.dtype);
+              queueMicrotask(() => {
+                if (message.data.dtype === 'fp16') this.onerror(new Error('unsupported'));
+                else this.onmessage({ data: { type: 'ready' } });
+              });
+            }
+            terminate() {}
+          }
+          try {
+            window.Worker = FakeWorker;
+            Object.defineProperty(navigator, 'gpu', { configurable: true, value: {} });
+            preferredGpuDtype = async () => 'fp16';
+            voiceEngine = null;
+            voiceEnginePromise = null;
+            voiceEngineBackend = null;
+            console.warn = () => {};
+            const engine = await getVoiceEngine({});
+            assert(engine.isConnected && engine.settings.dtypeWebgpu === 'q8' && attempts.join(',') === 'fp16,q8', 'Failed half-precision initialization did not retry q8');
+          } finally {
+            if (voiceEngine?.ww) voiceEngine.ww.terminate();
+            window.Worker = savedWorker;
+            if (savedGpu) Object.defineProperty(navigator, 'gpu', savedGpu);
+            else delete navigator.gpu;
+            preferredGpuDtype = savedPreference;
+            voiceEngine = savedEngine;
+            voiceEnginePromise = savedPromise;
+            voiceEngineBackend = savedBackend;
             console.warn = savedWarn;
           }
         });
@@ -303,6 +526,74 @@
           }
         });
 
+        await test('Cancelling speech removes queued worker requests', async () => {
+          const moduleCode = `
+            const originalFetch = self.fetch;
+            self.fetch = (url, ...options) => String(url).startsWith('https://voice.invalid/')
+              ? new Promise(resolve => setTimeout(() => {
+                  self.postMessage({ type: 'test-voice-loaded' });
+                  resolve(new Response(new Float32Array(512).buffer));
+                }, 20))
+              : originalFetch(url, ...options);
+            let calls = 0;
+            export const env = {};
+            export const LogLevel = { ERROR: 0 };
+            export class Tensor {}
+            export const StyleTextToSpeech2Model = { from_pretrained: async () => async () => {
+              const call = ++calls;
+              self.postMessage({ type: 'test-inference-start', call });
+              if (call === 1) await new Promise(resolve => setTimeout(resolve, 300));
+              throw new Error('test inference failure');
+            } };
+            export const AutoTokenizer = { from_pretrained: async () => () => ({ input_ids: { size: 3 } }) };
+          `;
+          const moduleURL = URL.createObjectURL(new Blob([moduleCode], { type: 'text/javascript' }));
+          const workerURL = new URL('assets/headtts/modules/worker-tts.mjs', document.baseURI);
+          workerURL.search = new URL(VOICE_ENGINE_URL, document.baseURI).search;
+          const worker = new Worker(workerURL, { type: 'module' });
+          const errors = [];
+          let preloaded = false;
+          let timer;
+          try {
+            const completed = new Promise((resolve, reject) => {
+              timer = setTimeout(() => reject(new Error('Voice worker cancellation timed out')), 10000);
+              const send = id => worker.postMessage({ type: 'synthesize', id, data: {
+                language: 'en-us', input: [{ type: 'phonetic', value: 'hello' }], voice: 'test', speed: 1, audioEncoding: 'wav'
+              } });
+              worker.onerror = event => reject(new Error(event.message));
+              worker.onmessage = event => {
+                const message = event.data;
+                if (message.type === 'test-voice-loaded') {
+                  preloaded = true;
+                } else if (message.type === 'ready') {
+                  if (!preloaded) {
+                    reject(new Error('Voice worker became ready before the selected voice loaded'));
+                    return;
+                  }
+                  send(1);
+                } else if (message.type === 'test-inference-start' && message.call === 1) {
+                  send(2);
+                  worker.postMessage({ type: 'clear' });
+                  send(3);
+                } else if (message.type === 'error') {
+                  errors.push(message.ref);
+                  if (message.ref === 3) resolve();
+                }
+              };
+              worker.postMessage({ type: 'connect', data: {
+                transformersModule: moduleURL, model: 'test', device: 'wasm', dtype: 'q8', voices: ['test'], languages: [],
+                voiceURL: 'https://voice.invalid/', styleDim: 256, trace: 0
+              } });
+            });
+            await completed;
+            assert(errors.join(',') === '1,3', 'A cancelled queued request ran before the new request');
+          } finally {
+            clearTimeout(timer);
+            worker.terminate();
+            URL.revokeObjectURL(moduleURL);
+          }
+        });
+
         await test('Rendered dialogue and speech use the same speaker order', async () => {
           const pilotFirst = [5, 7, 15, 31, 40, 42, 44, 51, 52, 54, 69, 70];
           for (const card of cards) {
@@ -343,6 +634,34 @@
           assert(frequency.options[frequency.correct] === 'one two one decimal five' && /channel spacing/i.test(frequency.explanation), 'Frequency quiz answer or channel guidance is incorrect');
         });
 
+        await test('Each quiz contains ten varied questions in increasing difficulty', async () => {
+          const savedRandom = Math.random;
+          try {
+            Math.random = () => 0;
+            switchTab('quiz');
+            const first = quizRound.map(question => question.question);
+            assert(first.length === 10 && new Set(first).size === 10, 'Quiz did not select ten distinct questions');
+            assert(quizRound.map(question => question.difficulty).join(',') === '1,1,1,1,2,2,2,3,3,3', 'Quiz difficulty did not increase');
+            for (const question of quizRound) {
+              const original = QUIZ_QUESTIONS.find(item => item.question === question.question);
+              assert(question.options[question.correct] === original.options[original.correct], 'Shuffling changed the correct answer');
+            }
+            for (let index = 0; index < 10; index++) {
+              const question = quizRound[index];
+              checkQuizAnswer(index === 0 ? (question.correct + 1) % question.options.length : question.correct);
+              await activeSpeechTask;
+              nextQuizQuestion();
+            }
+            assert(quizScore === 9 && document.getElementById('quiz-card-container').textContent.includes('9 / 10'), 'Quiz score or result total is incorrect');
+            document.querySelector('#quiz-card-container button').click();
+            const second = quizRound.map(question => question.question);
+            assert(second.length === 10 && second.some(question => !first.includes(question)), 'A new quiz repeated all previous questions');
+            assert(currentQuizIndex === 0 && quizScore === 0 && document.getElementById('quiz-progress').textContent.includes('1 / 10'), 'New quiz did not reset its progress');
+          } finally {
+            Math.random = savedRandom;
+          }
+        });
+
         await test('Flashcard playback reports progress beside its buttons', async () => {
           renderFlashcards([findCard(1)]);
           const card = document.querySelector('#flashcards-grid .flip-card');
@@ -372,6 +691,84 @@
           } finally {
             synthesizeTurn = savedSynthesize;
             playAudioBuffer = savedPlay;
+          }
+        });
+
+        await test('Long messages play their first audio before synthesis finishes', async () => {
+          const savedSynthesize = synthesizeTurn;
+          const savedPlay = playAudioBuffer;
+          const events = [];
+          let release;
+          const waiting = new Promise(resolve => { release = resolve; });
+          try {
+            synthesizeTurn = async (text, voice, context, generation, role, showStatus, onChunk) => {
+              if (text === 'FIRST') {
+                const first = { text: 'first part', voice };
+                const second = { text: 'second part', voice };
+                onChunk(first);
+                await waiting;
+                onChunk(second);
+                return [first, second];
+              }
+              return [{ text, voice }];
+            };
+            playAudioBuffer = async buffer => { events.push(buffer.text); };
+            const task = speakTurns([{ speaker: 'ATC', text: 'FIRST' }, { speaker: 'PILOT', text: 'SECOND' }]);
+            await new Promise(resolve => setTimeout(resolve, 0));
+            assert(events.join(',') === 'first part', 'Playback waited for the whole message');
+            release();
+            await task;
+            assert(events.join(',') === 'first part,second part,SECOND', 'Streamed dialogue lost or reordered audio');
+            const text = convertTextToICAOSpeech('Speedbird 109, climb Flight Level two hundred.');
+            const parts = voiceTextParts(text);
+            assert(parts.length === 2 && parts.join(' ') === text && /niner,$/i.test(parts[0]), 'Message splitting lost words or a natural pause');
+            for (const call of ['MAYDAY MAYDAY MAYDAY, Speedbird 44, engine fire, request assistance.', 'PAN PAN, PAN PAN, PAN PAN, Lufthansa 421, sick passenger, request priority landing.']) {
+              const formatted = convertTextToICAOSpeech(call);
+              const emergencyParts = voiceTextParts(formatted);
+              assert(emergencyParts.length === 2 && emergencyParts.join(' ') === formatted && /(?:Speedbird|Lufthansa)/i.test(emergencyParts[0]), 'Emergency signal was split from the aircraft identification');
+            }
+          } finally {
+            release();
+            synthesizeTurn = savedSynthesize;
+            playAudioBuffer = savedPlay;
+          }
+        });
+
+        await test('A partial accelerated message is not repeated on failure', async () => {
+          const savedGetEngine = getVoiceEngine;
+          const savedEngine = voiceEngine;
+          const savedBackend = voiceEngineBackend;
+          let cpuAttempts = 0;
+          const buffer = { length: 10, numberOfChannels: 1, getChannelData: () => new Float32Array(10) };
+          const engine = {
+            setup: async () => {},
+            synthesize: async (data, onMessage) => {
+              if (/Speedbird/.test(data.input)) {
+                const message = { type: 'audio', data: { audio: buffer } };
+                onMessage(message);
+                return [message];
+              }
+              return [{ type: 'error', data: { error: 'Second part failed' } }];
+            }
+          };
+          try {
+            getVoiceEngine = async (context, cpuOnly = false) => {
+              if (cpuOnly) cpuAttempts++;
+              voiceEngine = engine;
+              voiceEngineBackend = 'webgpu';
+              return engine;
+            };
+            let failure;
+            try {
+              await originalSynthesize('Speedbird one zero niner, climb Flight Level two hundred.', 'bm_george', {}, playbackGeneration, 'controller', true, () => {});
+            } catch (error) {
+              failure = error.message;
+            }
+            assert(failure === 'Second part failed' && cpuAttempts === 0, 'Partial speech was retried or its failure was hidden');
+          } finally {
+            getVoiceEngine = savedGetEngine;
+            voiceEngine = savedEngine;
+            voiceEngineBackend = savedBackend;
           }
         });
 
@@ -653,6 +1050,53 @@
           }
         });
 
+        await test('Scenario trials rotate and preserve clearance details', () => {
+          const savedRandom = Math.random;
+          const savedStop = stopVoicePlayback;
+          const savedBusy = voiceBusy;
+          const original = JSON.stringify(SCENARIOS);
+          const filled = line => line.text || line.blanks.reduce((text, blank, index) => text.replace(`{${index}}`, blank.answer), line.template);
+          try {
+            assert(SCENARIOS.length >= 20, 'The scenario bank does not cover the expected range of operations');
+            for (const scenario of SCENARIOS) {
+              assert(scenario.lines.some(line => line.speaker === 'PILOT') && scenario.lines.some(line => line.speaker === 'ATC'), `${scenario.title} lacks a pilot or controller`);
+              assert(scenario.lines.some(line => line.blanks?.length), `${scenario.title} has no interactive choice`);
+              for (const line of scenario.lines) {
+                if (!line.blanks) continue;
+                for (const blank of line.blanks) {
+                  assert(blank.options.includes(blank.answer) && new Set(blank.options).size === blank.options.length, `${scenario.title} has invalid answer options`);
+                }
+                assert(!/\{\d+\}/.test(filled(line)), `${scenario.title} has an unresolved message`);
+              }
+            }
+            const line = (title, index) => filled(SCENARIOS.find(scenario => scenario.title === title).lines[index]);
+            assert(/runway 36.*line up and wait/i.test(line('Line Up and Takeoff', 2)) && /runway 36.*cleared for takeoff/i.test(line('Line Up and Takeoff', 4)), 'Line-up or takeoff runway readback is incomplete');
+            assert(/runway 27.*qnh 1013/i.test(line('Taxi to the Holding Point', 2)), 'Taxi or QNH readback is incomplete');
+            assert(/heading 090.*flight level 140/i.test(line('Heading and Descent', 1)), 'Heading or level readback is incomplete');
+            assert(/star.*four thousand feet.*qnh 1012/i.test(line('Descend via STAR and QNH', 1)), 'STAR level or QNH readback is incomplete');
+            assert(/ils approach runway 27r/i.test(line('ILS Approach and Landing', 1)) && /contact tower 118.1/i.test(line('ILS Approach and Landing', 3)) && /runway 27r.*cleared to land/i.test(line('ILS Approach and Landing', 6)), 'Approach, frequency or landing runway readback is incomplete');
+            assert(/^PAN PAN, PAN PAN, PAN PAN/i.test(line('Urgency: Medical Assistance', 0)), 'Urgency signal was not repeated three times');
+            Math.random = () => 0;
+            loadScenario(0);
+            const previous = currentScenarioIdx;
+            startNewScenario();
+            assert(currentScenarioIdx !== previous && Number(document.getElementById('scenario-selector').value) === currentScenarioIdx, 'New scenario did not select a different exercise');
+            const second = currentScenarioIdx;
+            startNewScenario();
+            assert(currentScenarioIdx !== second, 'Consecutive scenario trials did not vary');
+            let stopped = false;
+            voiceBusy = true;
+            stopVoicePlayback = () => { stopped = true; voiceBusy = false; };
+            loadScenario(3);
+            assert(stopped && currentScenario.title === SCENARIOS[3].title && currentScenarioStep === 0, 'Manual scenario selection did not stop old audio or reset');
+            assert(JSON.stringify(SCENARIOS) === original, 'Shuffling trial choices changed the scenario bank');
+          } finally {
+            Math.random = savedRandom;
+            stopVoicePlayback = savedStop;
+            voiceBusy = savedBusy;
+          }
+        });
+
         await test('Scenario audio uses the selected speaker voices', async () => {
           loadScenario(0);
           spoken.length = 0;
@@ -663,6 +1107,15 @@
           speakLineContent(1);
           await activeSpeechTask;
           assert(spoken.length === 1 && spoken[0].voice === selectedVoice, 'Controller scenario line used the wrong voice');
+          currentScenarioStep = 1;
+          renderScenarioView();
+          const choice = document.getElementById('sc-sel-1-0');
+          choice.value = 'DIRECT RWY';
+          choice.dispatchEvent(new Event('change'));
+          spoken.length = 0;
+          speakLineContent(1);
+          await activeSpeechTask;
+          assert(spoken.length === 1 && spoken[0].text.includes('DIRECT RWY'), 'Scenario audio ignored the selected answer');
         });
 
         await test('New playback cancels stale audio and errors are visible', async () => {

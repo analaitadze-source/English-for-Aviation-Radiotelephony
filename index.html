@@ -118,6 +118,9 @@
       outline: 2px solid #85a6e9;
       outline-offset: 3px;
     }
+    .sc-input {
+      max-width: calc(100% - .5rem);
+    }
     @media (min-width: 640px) {
       main h2[class] {
         font-size: 1.75rem;
@@ -171,7 +174,7 @@
         <button onclick="switchTab('matching')" id="tab-matching" class="nav-tab px-4 py-2 rounded-lg flex items-center gap-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800">
           <i class="fa-solid fa-puzzle-piece"></i> Matching Drills
         </button>
-        <button onclick="switchTab('scenarios')" id="tab-scenarios" class="nav-tab px-4 py-2 rounded-lg flex items-center gap-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+        <button onclick="prepareVoiceEngine(); switchTab('scenarios')" id="tab-scenarios" class="nav-tab px-4 py-2 rounded-lg flex items-center gap-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800">
           <i class="fa-solid fa-headset"></i> Gap-Fill Scenarios
         </button>
         <button onclick="switchTab('collocations')" id="tab-collocations" class="nav-tab px-4 py-2 rounded-lg flex items-center gap-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800">
@@ -206,7 +209,7 @@
   <div class="min-[1600px]:hidden sticky top-16 z-40 border-b border-slate-800 bg-slate-900 px-2 py-2 flex justify-start sm:justify-around gap-1 overflow-x-auto text-xs font-mono">
     <button onclick="switchTab('flashcards')" id="mtab-flashcards" class="mobile-tab px-2 py-1.5 rounded whitespace-nowrap shrink-0 text-cyan-400 bg-cyan-950/40 font-bold">Flashcards</button>
     <button onclick="switchTab('matching')" id="mtab-matching" class="mobile-tab px-2 py-1.5 rounded whitespace-nowrap shrink-0 text-slate-400">Matching</button>
-    <button onclick="switchTab('scenarios')" id="mtab-scenarios" class="mobile-tab px-2 py-1.5 rounded whitespace-nowrap shrink-0 text-slate-400">Scenarios</button>
+    <button onclick="prepareVoiceEngine(); switchTab('scenarios')" id="mtab-scenarios" class="mobile-tab px-2 py-1.5 rounded whitespace-nowrap shrink-0 text-slate-400">Scenarios</button>
     <button onclick="switchTab('collocations')" id="mtab-collocations" class="mobile-tab px-2 py-1.5 rounded whitespace-nowrap shrink-0 text-slate-400">Collocations</button>
     <button onclick="switchTab('quiz')" id="mtab-quiz" class="mobile-tab px-2 py-1.5 rounded whitespace-nowrap shrink-0 text-slate-400">Quiz</button>
   </div>
@@ -215,7 +218,7 @@
   <main class="flex-grow max-w-[1200px] w-full mx-auto p-4 sm:p-6 lg:p-8">
     <p class="mb-5 text-xs text-amber-300">Training examples only. Follow current local procedures, published instructions and ATC clearances.</p>
     <div class="mb-5 flex flex-wrap items-center gap-2">
-      <p id="voice-feedback" role="status" aria-live="polite" class="flex-1 min-w-0 break-words text-xs text-slate-400">Independent voices run on your device. First playback downloads about 100 MB and may take a minute.</p>
+      <p id="voice-feedback" role="status" aria-live="polite" class="flex-1 min-w-0 break-words text-xs text-slate-400">Independent voices prepare when you open a card or scenario. First use downloads about 100–200 MB.</p>
       <button id="voice-stop-button" type="button" onclick="stopVoicePlayback()" class="hidden px-3 py-1 bg-slate-800 border border-slate-700 text-slate-200 text-xs">Stop audio</button>
     </div>
 
@@ -328,10 +331,10 @@
           <h2 class="text-2xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
             <i class="fa-solid fa-headset text-cyan-400"></i> Interactive ATC - Pilot Scenarios
           </h2>
-          <p class="text-sm text-slate-400">Complete practice radio dialogues and readbacks step-by-step.</p>
+          <p class="text-sm text-slate-400">Practice varied radio dialogues and readbacks. Examples are illustrative, not exhaustive.</p>
         </div>
-        <div class="flex items-center gap-2">
-          <select id="scenario-selector" onchange="loadScenario(parseInt(this.value))" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs font-mono rounded-lg px-3 py-2 focus:outline-none">
+        <div class="flex items-center gap-2 w-full md:w-auto min-w-0">
+          <select id="scenario-selector" onchange="loadScenario(parseInt(this.value))" aria-label="Choose a scenario" class="w-full max-w-full md:w-auto bg-slate-900 border border-slate-700 text-slate-200 text-xs font-mono rounded-lg px-3 py-2 focus:outline-none">
             <!-- Dynamic Scenarios -->
           </select>
         </div>
@@ -391,9 +394,9 @@
           <h2 class="text-2xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
             <i class="fa-solid fa-clipboard-question text-emerald-400"></i> Radiotelephony Practice Quiz
           </h2>
-          <p class="text-sm text-slate-400">Practice phraseology, emergency calls and readbacks.</p>
+          <p class="text-sm text-slate-400">Ten varied questions, progressing from easier to more difficult.</p>
         </div>
-        <div class="text-right font-mono text-xs">
+        <div class="text-right font-mono text-xs shrink-0 whitespace-nowrap">
           <span class="text-slate-400">Question</span>
           <div id="quiz-progress" class="text-cyan-400 font-bold text-base">1 / 10</div>
         </div>
@@ -427,7 +430,7 @@
           <button type="button" onclick="speakICAOText('Ground, Speedbird one zero nine, request pushback.', 'PILOT')" class="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs">Preview</button>
         </div>
       </div>
-      <p class="text-xs text-slate-400">British George (controller) and Emma (pilot) are the defaults. Voices are generated locally. First playback downloads about 100 MB and may take a minute; dialogue text is not sent to a speech server.</p>
+      <p class="text-xs text-slate-400">British George (controller) and Emma (pilot) are the defaults. Voices are generated locally. First use downloads about 100–200 MB; dialogue text is not sent to a speech server.</p>
       <p id="voice-modal-status" class="break-words text-xs text-slate-400" aria-live="polite"></p>
       <div class="flex justify-end gap-2">
         <button id="voice-modal-stop" type="button" onclick="stopVoicePlayback()" class="hidden px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs">Stop audio</button>
@@ -467,7 +470,7 @@
     /* =========================================================================
        1. VOICE & SPEECH ENGINE (ICAO & NATO PHONETIC STANDARDS)
        ========================================================================= */
-    const VOICE_ENGINE_URL = './assets/headtts/modules/headtts.mjs?v=british-1';
+    const VOICE_ENGINE_URL = './assets/headtts/modules/headtts.mjs?v=fast-4';
     const INDEPENDENT_VOICES = [
       { id: 'af_bella', name: 'Bella', accent: 'American' },
       { id: 'af_heart', name: 'Heart', accent: 'American' },
@@ -492,11 +495,17 @@
     let voiceEngine = null;
     let voiceEnginePromise = null;
     let voiceEngineBackend = null;
+    let voicePreparing = false;
     let playbackGeneration = 0;
     let voiceBusy = false;
     let activeVoiceStatus = null;
     let activeAudioSource = null;
     let activeSpeechTask = Promise.resolve();
+    const speechCache = new Map();
+    const SPEECH_CACHE_LIMIT = 24 * 1024 * 1024;
+    let speechCacheBytes = 0;
+    let speechPreparationRevision = 0;
+    let backgroundSpeech = null;
 
     function populateVoices() {
       [
@@ -637,9 +646,10 @@
       let words = speech.split(/\s+/);
       let convertedWords = words.map(word => {
         let cleanWord = word.replace(/[,\/#!$%\^&\*;:{}=\-_`~()]/g, "").replace(/^\.+|\.+$/g, "");
+        const punctuation = (word.match(/[.,!?;:]+$/) || [''])[0];
 
         if (ICAO_ACRONYMS[cleanWord.toUpperCase()]) {
-          return ICAO_ACRONYMS[cleanWord.toUpperCase()];
+          return ICAO_ACRONYMS[cleanWord.toUpperCase()] + punctuation;
         }
 
         const isAlphanumericCode = /^(?=.*[0-9])[A-Z0-9\.]+$/i.test(cleanWord);
@@ -656,7 +666,7 @@
               charResult.push(char);
             }
           }
-          return charResult.join(' ');
+          return charResult.join(' ') + punctuation;
         }
 
         return word;
@@ -691,25 +701,43 @@
       return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
     }
 
+    async function preferredGpuDtype(gpu = navigator.gpu, connection = navigator.connection) {
+      if (!gpu) return 'q8';
+      try {
+        const adapter = await gpu.requestAdapter();
+        return adapter && adapter.features.has('shader-f16') && shouldPrepareVoice(connection) ? 'fp16' : 'q8';
+      } catch (error) {
+        console.warn('Unable to inspect voice acceleration:', error);
+        return 'q8';
+      }
+    }
+
     function getVoiceEngine(context, cpuOnly = false) {
       if (voiceEngine) return Promise.resolve(voiceEngine);
       if (!voiceEnginePromise) {
         voiceEnginePromise = (async () => {
           const { HeadTTS } = await import(VOICE_ENGINE_URL);
-          for (const backend of cpuOnly ? ['wasm'] : ['webgpu', 'wasm']) {
+          const gpuDtype = cpuOnly ? null : await preferredGpuDtype();
+          const candidates = cpuOnly ? [{ backend: 'wasm', dtype: 'q8' }] : [
+            { backend: 'webgpu', dtype: gpuDtype },
+            ...(gpuDtype === 'fp16' ? [{ backend: 'webgpu', dtype: 'q8' }] : []),
+            { backend: 'wasm', dtype: 'q8' }
+          ];
+          for (const [index, { backend, dtype }] of candidates.entries()) {
+            const voices = [...new Set([selectedVoice, selectedPilotVoice])];
             const engine = new HeadTTS({
               endpoints: [backend],
-              dtypeWebgpu: 'q8',
+              dtypeWebgpu: dtype,
               dtypeWasm: 'q8',
               audioCtx: context,
-              languages: [],
-              voices: [],
+              languages: [...new Set(voices.map(voice => voice.startsWith('b') ? 'en-gb' : 'en-us'))],
+              voices,
               splitLength: 160
             });
             let lastMegabytes = 0;
             try {
               await withVoiceTimeout(engine.connect(null, event => {
-                if (!voiceBusy) return;
+                if (!voiceBusy && !voicePreparing) return;
                 const megabytes = Math.floor(event.loaded / (1024 * 1024));
                 if (megabytes >= lastMegabytes + 5) {
                   lastMegabytes = megabytes;
@@ -722,9 +750,9 @@
               return engine;
             } catch (error) {
               if (engine.ww) engine.ww.terminate();
-              if (backend !== 'webgpu') throw error;
-              console.warn('Accelerated voices could not start; trying CPU:', error);
-              if (voiceBusy) setVoiceFeedback('Voice acceleration unavailable. Trying CPU voices; this can take longer.');
+              if (index === candidates.length - 1) throw error;
+              console.warn('Voice engine could not start; trying another backend:', error);
+              if (voiceBusy || voicePreparing) setVoiceFeedback('Voice acceleration unavailable. Trying another voice backend; this can take longer.');
             }
           }
         })().catch(error => {
@@ -735,26 +763,110 @@
       return voiceEnginePromise;
     }
 
-    async function synthesizeTurn(text, voice, context, generation, role, showStatus = true) {
+    function shouldPrepareVoice(connection = navigator.connection) {
+      return !connection || (!connection.saveData && !/^(slow-)?2g$/.test(connection.effectiveType));
+    }
+
+    function prepareVoiceEngine() {
+      if (voiceBusy || voicePreparing || voiceEngine || voiceEnginePromise ||
+          !shouldPrepareVoice()) return;
+      voicePreparing = true;
+      setVoiceFeedback('Preparing independent voices in the background. First use downloads about 100–200 MB.');
+      let activation;
+      try {
+        activation = activateAudio();
+      } catch (error) {
+        voicePreparing = false;
+        console.error('Voice preparation failed:', error);
+        setVoiceFeedback(`Voice preparation failed: ${error.message || error}. Try an audio button.`, true);
+        return;
+      }
+      return Promise.resolve(activation)
+        .then(context => getVoiceEngine(context))
+        .then(() => {
+          if (!voiceBusy) setVoiceFeedback('Independent voices are ready. Speech is generated on your device.');
+        })
+        .catch(error => {
+          console.error('Voice preparation failed:', error);
+          if (!voiceBusy) setVoiceFeedback(`Voice preparation failed: ${error.message || error}. Try an audio button.`, true);
+        })
+        .finally(() => { voicePreparing = false; });
+    }
+
+    function cachedSpeech(text, voice) {
+      const key = JSON.stringify([voice, text]);
+      const entry = speechCache.get(key);
+      if (!entry) return null;
+      speechCache.delete(key);
+      speechCache.set(key, entry);
+      return entry.buffers;
+    }
+
+    function cacheSpeech(text, voice, buffers) {
+      if (!buffers.length || buffers.some(buffer => !buffer || typeof buffer.getChannelData !== 'function')) return;
+      const bytes = buffers.reduce((sum, buffer) => sum + buffer.length * buffer.numberOfChannels * 4, 0);
+      if (!Number.isFinite(bytes) || bytes <= 0 || bytes > SPEECH_CACHE_LIMIT) return;
+      const key = JSON.stringify([voice, text]);
+      const previous = speechCache.get(key);
+      if (previous) {
+        speechCacheBytes -= previous.bytes;
+        speechCache.delete(key);
+      }
+      while (speechCacheBytes + bytes > SPEECH_CACHE_LIMIT) {
+        const oldest = speechCache.keys().next().value;
+        speechCacheBytes -= speechCache.get(oldest).bytes;
+        speechCache.delete(oldest);
+      }
+      speechCache.set(key, { buffers, bytes });
+      speechCacheBytes += bytes;
+    }
+
+    function voiceTextParts(text) {
+      if (text.length < 40) return [text];
+      const emergencyPrefix = text.match(/^(?:MAYDAY\s+MAYDAY\s+MAYDAY\s*,\s*|(?:PAN\s+PAN\s*,\s*){3})/i);
+      const firstAllowed = emergencyPrefix ? emergencyPrefix[0].length : 0;
+      const separators = /[,;:]\s+/g;
+      let match;
+      while ((match = separators.exec(text))) {
+        if (match.index >= Math.max(12, firstAllowed) && match.index <= 80 && text.length - separators.lastIndex >= 12) {
+          return [text.slice(0, match.index + 1), text.slice(separators.lastIndex)];
+        }
+      }
+      return [text];
+    }
+
+    async function synthesizeTurn(text, voice, context, generation, role, showStatus = true, onChunk = null) {
+      const cached = cachedSpeech(text, voice);
+      if (cached) return cached;
       let engine = await getVoiceEngine(context);
       if (generation !== playbackGeneration) return [];
       if (showStatus) setVoiceFeedback(`Generating ${role} audio on your device; this may take a moment...`);
+      let emitted = false;
       const generate = async currentEngine => {
         const language = voice.startsWith('b') ? 'en-gb' : 'en-us';
         await currentEngine.setup({ voice, language, speed: 0.95, audioEncoding: 'wav' });
         if (generation !== playbackGeneration) return [];
-        const messages = await withVoiceTimeout(currentEngine.synthesize({ input: text }), voiceEngineBackend === 'webgpu' ? 45000 : 180000);
-        const failure = messages.find(message => message.type === 'error');
-        if (failure) throw new Error(failure.data?.error || 'Speech generation failed.');
+        const requests = voiceTextParts(text).map(part => currentEngine.synthesize({ input: part }, message => {
+          if (message.type === 'audio' && message.data?.audio && onChunk && generation === playbackGeneration) {
+            emitted = true;
+            onChunk(message.data.audio);
+          }
+        }).then(messages => {
+          const failure = messages.find(message => message.type === 'error');
+          if (failure) throw new Error(failure.data?.error || 'Speech generation failed.');
+          return messages;
+        }));
+        const messages = (await withVoiceTimeout(Promise.all(requests), voiceEngineBackend === 'webgpu' ? 45000 : 180000)).flat();
         const buffers = messages.filter(message => message.type === 'audio').map(message => message.data.audio);
         if (!buffers.length || buffers.some(buffer => !buffer)) throw new Error('No speech audio was generated.');
+        if (generation === playbackGeneration) cacheSpeech(text, voice, buffers);
         return buffers;
       };
       try {
         return await generate(engine);
       } catch (error) {
         if (generation !== playbackGeneration) return [];
-        if (voiceEngine !== engine || voiceEngineBackend !== 'webgpu') throw error;
+        if (emitted || voiceEngine !== engine || voiceEngineBackend !== 'webgpu') throw error;
         console.warn('Accelerated voice generation failed; trying CPU:', error);
         engine.clear();
         if (engine.ww) engine.ww.terminate();
@@ -767,6 +879,41 @@
         if (showStatus) setVoiceFeedback(`Generating ${role} audio on your device; this may take a moment...`);
         return generate(engine);
       }
+    }
+
+    function prepareLikelySpeech(turns, isRelevant, preparation = null) {
+      const revision = ++speechPreparationRevision;
+      const generation = playbackGeneration;
+      const voices = { ATC: selectedVoice, PILOT: selectedPilotVoice };
+      setTimeout(async () => {
+        try {
+          if (preparation) await preparation;
+          else if (voiceEnginePromise) await voiceEnginePromise;
+          if (voiceBusy) await activeSpeechTask;
+          for (const turn of turns) {
+            if (revision !== speechPreparationRevision || generation !== playbackGeneration || voiceBusy ||
+                !isRelevant() || selectedVoice !== voices.ATC || selectedPilotVoice !== voices.PILOT ||
+                !voiceEngine || voiceEngineBackend !== 'webgpu' || voiceEngine.settings.dtypeWebgpu !== 'fp16') return;
+            const text = convertTextToICAOSpeech(turn.text);
+            const voice = voices[turn.speaker];
+            if (!cachedSpeech(text, voice)) {
+              const promise = synthesizeTurn(text, voice, audioContext, generation, turn.speaker === 'PILOT' ? 'pilot' : 'controller', false);
+              const pending = { text, voice, promise };
+              backgroundSpeech = pending;
+              try {
+                await promise;
+              } finally {
+                if (backgroundSpeech === pending) backgroundSpeech = null;
+              }
+            }
+          }
+        } catch (error) {
+          console.warn('Could not prepare likely speech:', error);
+          if (revision === speechPreparationRevision && generation === playbackGeneration && !voiceBusy) {
+            setVoiceFeedback('Audio could not be prepared in advance. Use the audio button to retry.', true);
+          }
+        }
+      }, 500);
     }
 
     async function playAudioBuffer(buffer, context, generation) {
@@ -789,29 +936,74 @@
       });
     }
 
-    async function playSpeechSequence(turns, voices, generation, activation) {
+    async function playSpeechSequence(turns, voices, generation, activation, preparedSpeech = null) {
       try {
         const context = await activation;
         if (generation !== playbackGeneration) return;
         const prepare = (turn, background) => {
           const role = turn.speaker === 'PILOT' ? 'pilot' : 'controller';
-          return synthesizeTurn(convertTextToICAOSpeech(turn.text), voices[turn.speaker], context, generation, role, !background)
-            .then(buffers => ({ buffers }), error => ({ error: error instanceof Error ? error : new Error(String(error)) }));
+          const state = { buffers: [], done: false, error: null, wake: null };
+          const text = convertTextToICAOSpeech(turn.text);
+          const voice = voices[turn.speaker];
+          const notify = () => {
+            if (state.wake) {
+              const wake = state.wake;
+              state.wake = null;
+              wake();
+            }
+          };
+          const onChunk = buffer => {
+            state.buffers.push(buffer);
+            notify();
+          };
+          const reusable = preparedSpeech && preparedSpeech.text === text && preparedSpeech.voice === voice ? preparedSpeech : null;
+          if (reusable) preparedSpeech = null;
+          const synthesis = reusable ? reusable.promise.then(buffers => {
+            if (generation !== playbackGeneration) return [];
+            if (!buffers.length) return synthesizeTurn(text, voice, context, generation, role, !background, onChunk);
+            cacheSpeech(text, voice, buffers);
+            return buffers;
+          }) : synthesizeTurn(text, voice, context, generation, role, !background, onChunk);
+          state.complete = synthesis.then(buffers => {
+            if (!state.buffers.length) state.buffers.push(...buffers);
+            state.done = true;
+            notify();
+          }, error => {
+            state.error = error instanceof Error ? error : new Error(String(error));
+            state.done = true;
+            notify();
+          });
+          return state;
         };
-        let next = null;
+        let current = turns.length ? prepare(turns[0], false) : null;
         for (let index = 0; index < turns.length; index++) {
-          const turn = turns[index];
-          const role = turn.speaker === 'PILOT' ? 'pilot' : 'controller';
+          const role = turns[index].speaker === 'PILOT' ? 'pilot' : 'controller';
+          const state = current;
+          let next = null;
+          const prepareNext = () => {
+            if (!next && !state.error && generation === playbackGeneration && index + 1 < turns.length) {
+              next = prepare(turns[index + 1], true);
+            }
+          };
+          state.complete.then(prepareNext);
           setVoiceFeedback(`Generating ${role} audio on your device; this may take a moment...`);
-          const result = await (next || prepare(turn, false));
-          if (generation !== playbackGeneration) return;
-          if (result.error) throw result.error;
-          next = index + 1 < turns.length ? prepare(turns[index + 1], true) : null;
-          setVoiceFeedback(`Playing ${role} voice...`);
-          for (const buffer of result.buffers) {
-            await playAudioBuffer(buffer, context, generation);
+          let bufferIndex = 0;
+          while (true) {
             if (generation !== playbackGeneration) return;
+            if (bufferIndex < state.buffers.length) {
+              if (state.done) prepareNext();
+              setVoiceFeedback(`Playing ${role} voice...`);
+              await playAudioBuffer(state.buffers[bufferIndex++], context, generation);
+            } else if (state.done) {
+              if (state.error) throw state.error;
+              prepareNext();
+              break;
+            } else {
+              setVoiceFeedback(`Generating ${role} audio on your device; this may take a moment...`);
+              await new Promise(resolve => { state.wake = resolve; });
+            }
           }
+          current = next;
         }
         setVoiceBusy(false);
         setVoiceFeedback('Independent voices are ready. Speech is generated on your device.');
@@ -827,14 +1019,14 @@
       }
     }
 
-    function cancelCurrentSpeech() {
+    function cancelCurrentSpeech(preservePreparation = false) {
       const generation = ++playbackGeneration;
       if (activeAudioSource) {
         const source = activeAudioSource;
         activeAudioSource = null;
         source.stop();
       }
-      if (voiceEngine) voiceEngine.clear();
+      if (voiceEngine && !preservePreparation) voiceEngine.clear();
       return generation;
     }
 
@@ -845,11 +1037,16 @@
     }
 
     function speakTurns(turns, statusElement = null) {
-      const generation = cancelCurrentSpeech();
+      const voices = { ATC: selectedVoice, PILOT: selectedPilotVoice };
+      const first = turns[0];
+      const prepared = !voiceBusy && first && backgroundSpeech &&
+        backgroundSpeech.text === convertTextToICAOSpeech(first.text) &&
+        backgroundSpeech.voice === voices[first.speaker] ? backgroundSpeech : null;
+      const generation = cancelCurrentSpeech(Boolean(prepared));
       if (activeVoiceStatus && activeVoiceStatus !== statusElement) activeVoiceStatus.textContent = '';
       activeVoiceStatus = statusElement;
       setVoiceBusy(true);
-      setVoiceFeedback('Preparing independent voices. First use downloads about 100 MB and may take a minute.');
+      setVoiceFeedback('Preparing independent voices. First use downloads about 100–200 MB and may take a minute.');
       let activation;
       try {
         activation = activateAudio();
@@ -860,7 +1057,7 @@
         activeSpeechTask = Promise.resolve();
         return activeSpeechTask;
       }
-      activeSpeechTask = playSpeechSequence(turns, { ATC: selectedVoice, PILOT: selectedPilotVoice }, generation, activation);
+      activeSpeechTask = playSpeechSequence(turns, voices, generation, activation, prepared);
       return activeSpeechTask;
     }
 
@@ -1493,12 +1690,239 @@
             ]
           }
         ]
+      },
+      {
+        title: "Radio Check",
+        lines: [
+          { speaker: "PILOT", text: "Ground, G-ABCD, radio check." },
+          { speaker: "ATC", template: "G-ABCD, readability {0}.", blanks: [{ answer: "FIVE", options: ["FIVE", "ZERO", "UNABLE"] }] },
+          { speaker: "PILOT", text: "G-ABCD." }
+        ]
+      },
+      {
+        title: "Taxi to the Holding Point",
+        lines: [
+          { speaker: "PILOT", text: "Ground, Speedbird 44, stand 12, request taxi." },
+          { speaker: "ATC", text: "Speedbird 44, taxi to holding point Runway 27 via Alfa, QNH 1013." },
+          { speaker: "PILOT", template: "Taxi to holding point Runway {0} via Alfa, QNH {1}, Speedbird 44.", blanks: [
+            { answer: "27", options: ["27", "09", "36"] }, { answer: "1013", options: ["1013", "1003", "1023"] }
+          ] }
+        ]
+      },
+      {
+        title: "Line Up and Takeoff",
+        lines: [
+          { speaker: "PILOT", text: "Tower, Delta 102, ready for departure Runway 36." },
+          { speaker: "ATC", text: "Delta 102, Runway 36, line up and wait." },
+          { speaker: "PILOT", template: "Runway 36, {0}, Delta 102.", blanks: [{ answer: "LINE UP AND WAIT", options: ["LINE UP AND WAIT", "CLEARED FOR TAKEOFF", "CROSS"] }] },
+          { speaker: "ATC", text: "Delta 102, Runway 36, cleared for takeoff." },
+          { speaker: "PILOT", template: "Runway {0}, cleared for takeoff, Delta 102.", blanks: [{ answer: "36", options: ["36", "18", "27"] }] }
+        ]
+      },
+      {
+        title: "Frequency Change and Radar Contact",
+        lines: [
+          { speaker: "ATC", text: "Speedbird 109, contact Radar 124.350." },
+          { speaker: "PILOT", template: "Contact Radar {0}, Speedbird 109.", blanks: [{ answer: "124.350", options: ["124.350", "124.035", "121.500"] }] },
+          { speaker: "PILOT", text: "Radar, Speedbird 109, passing FL070 climbing FL100." },
+          { speaker: "ATC", text: "Speedbird 109, radar contact." }
+        ]
+      },
+      {
+        title: "Climb via SID",
+        note: "The aircraft is already established on its assigned SID.",
+        lines: [
+          { speaker: "ATC", text: "Swiss 312, climb via SID to Flight Level 180." },
+          { speaker: "PILOT", template: "Climb via SID to Flight Level {0}, Swiss 312.", blanks: [{ answer: "180", options: ["180", "160", "280"] }] }
+        ]
+      },
+      {
+        title: "Heading and Descent",
+        lines: [
+          { speaker: "ATC", text: "Delta 102, turn right heading 090, descend to Flight Level 140." },
+          { speaker: "PILOT", template: "Turn right heading {0}, descend to Flight Level {1}, Delta 102.", blanks: [
+            { answer: "090", options: ["090", "270", "009"] }, { answer: "140", options: ["140", "150", "240"] }
+          ] }
+        ]
+      },
+      {
+        title: "Direct to a Waypoint",
+        lines: [
+          { speaker: "ATC", text: "Swiss 312, proceed direct MERLU." },
+          { speaker: "PILOT", template: "Direct {0}, Swiss 312.", blanks: [{ answer: "MERLU", options: ["MERLU", "RUNWAY 27", "STANDBY"] }] }
+        ]
+      },
+      {
+        title: "Published Holding Pattern",
+        lines: [
+          { speaker: "ATC", text: "KLM 671, hold at Zulu VOR as published, maintain FL120." },
+          { speaker: "PILOT", template: "Hold at Zulu VOR {0}, maintain {1}, KLM 671.", blanks: [
+            { answer: "AS PUBLISHED", options: ["AS PUBLISHED", "DIRECT RUNWAY", "CLEARED TO LAND"] },
+            { answer: "FL120", options: ["FL120", "FL220", "FL100"] }
+          ] }
+        ]
+      },
+      {
+        title: "Descend via STAR and QNH",
+        note: "The aircraft is already established on its assigned STAR.",
+        lines: [
+          { speaker: "ATC", text: "KLM 671, descend via STAR to four thousand feet, QNH 1012." },
+          { speaker: "PILOT", template: "Descend via STAR to {0}, QNH {1}, KLM 671.", blanks: [
+            { answer: "four thousand feet", options: ["four thousand feet", "five thousand feet", "Flight Level four zero zero"] },
+            { answer: "1012", options: ["1012", "1013", "1002"] }
+          ] }
+        ]
+      },
+      {
+        title: "ILS Approach and Landing",
+        lines: [
+          { speaker: "ATC", text: "Lufthansa 421, cleared ILS approach Runway 27R." },
+          { speaker: "PILOT", template: "Cleared {0} approach Runway 27R, Lufthansa 421.", blanks: [{ answer: "ILS", options: ["ILS", "VISUAL", "TAKEOFF"] }] },
+          { speaker: "ATC", text: "Lufthansa 421, contact Tower 118.1." },
+          { speaker: "PILOT", text: "Contact Tower 118.1, Lufthansa 421." },
+          { speaker: "PILOT", text: "Tower, Lufthansa 421, established on the localizer Runway 27R." },
+          { speaker: "ATC", text: "Lufthansa 421, Runway 27R, cleared to land." },
+          { speaker: "PILOT", template: "Runway {0}, cleared to land, Lufthansa 421.", blanks: [{ answer: "27R", options: ["27R", "27L", "09R"] }] }
+        ]
+      },
+      {
+        title: "Visual Approach and Landing",
+        note: "The conditions for the visual approach are already met. A separate landing clearance is required.",
+        lines: [
+          { speaker: "ATC", text: "Delta 102, cleared visual approach Runway 18." },
+          { speaker: "PILOT", template: "Cleared visual approach Runway {0}, Delta 102.", blanks: [{ answer: "18", options: ["18", "36", "09"] }] },
+          { speaker: "ATC", text: "Delta 102, Runway 18, cleared to land." },
+          { speaker: "PILOT", text: "Runway 18, cleared to land, Delta 102." }
+        ]
+      },
+      {
+        title: "Speed Restriction on Approach",
+        lines: [
+          { speaker: "ATC", text: "United 901, maintain 160 knots until four miles from touchdown." },
+          { speaker: "PILOT", template: "Maintain {0} knots until four miles from touchdown, United 901.", blanks: [{ answer: "160", options: ["160", "180", "260"] }] }
+        ]
+      },
+      {
+        title: "Go-Around",
+        lines: [
+          { speaker: "PILOT", text: "Tower, Air France 81, going around." },
+          { speaker: "ATC", text: "Air France 81, roger, climb straight ahead to three thousand feet." },
+          { speaker: "PILOT", template: "Climb straight ahead to {0}, Air France 81.", blanks: [{ answer: "three thousand feet", options: ["three thousand feet", "one thousand feet", "Flight Level 300"] }] }
+        ]
+      },
+      {
+        title: "Urgency: Medical Assistance",
+        note: "The crew selects the urgency or distress signal according to the actual circumstances and gives known position, intentions and other useful details when able.",
+        lines: [
+          { speaker: "PILOT", template: "{0}, PAN PAN, PAN PAN, Lufthansa 421, sick passenger on board, request priority landing.", blanks: [{ answer: "PAN PAN", options: ["PAN PAN", "WILCO", "STANDBY"] }] },
+          { speaker: "ATC", text: "Lufthansa 421, roger PAN PAN, standby for vectors." }
+        ]
+      },
+      {
+        title: "Communication Restored",
+        note: "Follow applicable radio-failure procedures until communication is restored.",
+        lines: [
+          { speaker: "PILOT", text: "Tower, G-ABCD, communications restored, squawking 7600 following radio failure." },
+          { speaker: "ATC", text: "G-ABCD, roger, squawk 4201." },
+          { speaker: "PILOT", template: "Squawk {0}, G-ABCD.", blanks: [{ answer: "4201", options: ["4201", "7600", "7700"] }] }
+        ]
+      },
+      {
+        title: "Weather Deviation Request",
+        lines: [
+          { speaker: "PILOT", text: "Control, Swiss 312, request deviation right due weather." },
+          { speaker: "ATC", text: "Swiss 312, deviation right approved." },
+          { speaker: "PILOT", template: "Deviation {0} approved, Swiss 312.", blanks: [{ answer: "RIGHT", options: ["RIGHT", "LEFT", "NOT"] }] }
+        ]
+      },
+      {
+        title: "Windshear and Go-Around",
+        lines: [
+          { speaker: "ATC", text: "Speedbird 109, windshear reported on final Runway 09 by preceding aircraft." },
+          { speaker: "PILOT", template: "{0}, Speedbird 109.", blanks: [{ answer: "ROGER", options: ["ROGER", "CLEARED TO LAND", "CROSS RUNWAY"] }] },
+          { speaker: "PILOT", text: "Speedbird 109, going around." },
+          { speaker: "ATC", text: "Speedbird 109, roger." }
+        ]
+      },
+      {
+        title: "Stop Immediately",
+        lines: [
+          { speaker: "ATC", text: "Lufthansa 421, stop immediately, vehicle on runway." },
+          { speaker: "PILOT", template: "{0}, Lufthansa 421.", blanks: [{ answer: "STOPPING IMMEDIATELY", options: ["STOPPING IMMEDIATELY", "CLEARED FOR TAKEOFF", "CONTINUING TAKEOFF"] }] }
+        ]
+      },
+      {
+        title: "Repeat a Heading",
+        lines: [
+          { speaker: "ATC", text: "Speedbird 109, turn right heading 040." },
+          { speaker: "PILOT", template: "{0} heading, Speedbird 109.", blanks: [{ answer: "SAY AGAIN", options: ["SAY AGAIN", "WILCO", "CLEARED"] }] },
+          { speaker: "ATC", text: "Speedbird 109, turn right heading 040." },
+          { speaker: "PILOT", text: "Turn right heading 040, Speedbird 109." }
+        ]
+      },
+      {
+        title: "Runway Backtrack",
+        lines: [
+          { speaker: "PILOT", text: "Tower, G-ABCD, request backtrack Runway 09R." },
+          { speaker: "ATC", text: "G-ABCD, backtrack Runway 09R." },
+          { speaker: "PILOT", template: "Backtrack Runway {0}, G-ABCD.", blanks: [{ answer: "09R", options: ["09R", "09L", "27R"] }] }
+        ]
+      },
+      {
+        title: "Vacate and Taxi to Stand",
+        lines: [
+          { speaker: "PILOT", text: "Tower, Speedbird 109, Runway 09R vacated, request taxi to stand." },
+          { speaker: "ATC", text: "Speedbird 109, taxi to stand 41 via November, hold short of Runway 09L." },
+          { speaker: "PILOT", template: "Taxi to stand 41 via November, {0} Runway 09L, Speedbird 109.", blanks: [{ answer: "HOLD SHORT OF", options: ["HOLD SHORT OF", "CROSS", "LINE UP ON"] }] }
+        ]
+      },
+      {
+        title: "TCAS Resolution Advisory",
+        note: "Follow the resolution advisory and applicable procedures; communicate when workload permits.",
+        lines: [
+          { speaker: "ATC", text: "Speedbird 109, maintain FL120." },
+          { speaker: "PILOT", text: "Maintain FL120, Speedbird 109." },
+          { speaker: "PILOT", template: "Speedbird 109, {0}.", blanks: [{ answer: "TCAS RA", options: ["TCAS RA", "CLEARED TO LAND", "RUNWAY VACATED"] }] },
+          { speaker: "ATC", text: "Speedbird 109, roger." },
+          { speaker: "PILOT", text: "Speedbird 109, clear of conflict, returning to FL120." },
+          { speaker: "ATC", text: "Speedbird 109, roger." },
+          { speaker: "PILOT", text: "Speedbird 109, FL120 resumed." },
+          { speaker: "ATC", text: "Speedbird 109, roger." }
+        ]
+      },
+      {
+        title: "Minimum Fuel Advisory",
+        note: "MINIMUM FUEL is an advisory, not itself an emergency or a request for priority.",
+        lines: [
+          { speaker: "PILOT", template: "Approach, KLM 671, {0}.", blanks: [{ answer: "MINIMUM FUEL", options: ["MINIMUM FUEL", "CLEARED TO LAND", "RUNWAY VACATED"] }] },
+          { speaker: "ATC", text: "KLM 671, roger minimum fuel." }
+        ]
+      },
+      {
+        title: "Distress: Engine Failure",
+        note: "Maintain aircraft control and give only information known to the crew as circumstances permit.",
+        lines: [
+          { speaker: "PILOT", template: "{0}, MAYDAY, MAYDAY, Speedbird 44, engine failure, request immediate assistance.", blanks: [{ answer: "MAYDAY", options: ["MAYDAY", "STANDBY", "WILCO"] }] },
+          { speaker: "ATC", text: "Speedbird 44, roger MAYDAY, say intentions." },
+          { speaker: "PILOT", text: "Request return to land, Speedbird 44." }
+        ]
+      },
+      {
+        title: "Correct an Incorrect Readback",
+        note: "The first pilot readback is intentionally incorrect; ATC immediately corrects it.",
+        lines: [
+          { speaker: "ATC", text: "Speedbird 109, turn right heading 040." },
+          { speaker: "PILOT", text: "Turn right heading 050, Speedbird 109." },
+          { speaker: "ATC", template: "Speedbird 109, {0}, turn right heading 040.", blanks: [{ answer: "NEGATIVE I SAY AGAIN", options: ["NEGATIVE I SAY AGAIN", "ROGER", "CLEARED TO LAND"] }] },
+          { speaker: "PILOT", text: "Turn right heading 040, Speedbird 109." }
+        ]
       }
     ];
 
     let currentScenarioIdx = 0;
     let currentScenarioStep = 0;
     let scenarioAnswers = {};
+    let currentScenario = SCENARIOS[0];
 
     function populateScenarioDropdown() {
       const selector = document.getElementById('scenario-selector');
@@ -1508,15 +1932,33 @@
     }
 
     function loadScenario(index) {
+      if (!Number.isInteger(index) || !SCENARIOS[index]) throw new Error('Invalid scenario selection.');
+      if (voiceBusy) stopVoicePlayback();
       currentScenarioIdx = index;
       currentScenarioStep = 0;
       scenarioAnswers = {};
+      currentScenario = {
+        ...SCENARIOS[index],
+        lines: SCENARIOS[index].lines.map(line => line.blanks
+          ? { ...line, blanks: line.blanks.map(blank => ({ ...blank, options: shuffled(blank.options) })) }
+          : line)
+      };
       populateScenarioDropdown();
       renderScenarioView();
     }
 
+    function startNewScenario() {
+      if (SCENARIOS.length < 2) {
+        loadScenario(0);
+        return;
+      }
+      let next = Math.floor(Math.random() * (SCENARIOS.length - 1));
+      if (next >= currentScenarioIdx) next++;
+      loadScenario(next);
+    }
+
     function renderScenarioView() {
-      const sc = SCENARIOS[currentScenarioIdx];
+      const sc = currentScenario;
       const container = document.getElementById('scenario-card-container');
       if (!container) return;
 
@@ -1540,7 +1982,7 @@
               
               const optionsHtml = b.options.map(opt => `<option value="${opt}" ${savedVal === opt ? 'selected' : ''}>${opt}</option>`).join('');
 
-              return `${part}<select id="${selectId}" ${isDisabled} onchange="scenarioAnswers['${selectId}']=this.value" class="sc-input bg-slate-900 border border-cyan-500/60 text-cyan-300 font-mono text-xs px-2 py-1 rounded font-bold focus:outline-none focus:ring-1 focus:ring-cyan-400 mx-1">
+              return `${part}<select id="${selectId}" ${isDisabled} onchange="setScenarioAnswer('${selectId}', this.value)" class="sc-input bg-slate-900 border border-cyan-500/60 text-cyan-300 font-mono text-xs px-2 py-1 rounded font-bold focus:outline-none focus:ring-1 focus:ring-cyan-400 mx-1">
                 <option value="">[SELECT PHRASE]</option>
                 ${optionsHtml}
               </select>`;
@@ -1550,13 +1992,13 @@
         }
 
         htmlLines += `
-          <div class="flex items-start gap-3 p-3 rounded-lg ${isPilot ? 'bg-cyan-950/20 border-l-4 border-cyan-500' : 'bg-slate-900 border-l-4 border-emerald-500'}">
+          <div class="flex flex-wrap sm:flex-nowrap items-start gap-3 p-3 rounded-lg ${isPilot ? 'bg-cyan-950/20 border-l-4 border-cyan-500' : 'bg-slate-900 border-l-4 border-emerald-500'}">
             <span class="font-mono text-xs font-bold px-2 py-1 rounded ${isPilot ? 'bg-cyan-500/20 text-cyan-300' : 'bg-emerald-500/20 text-emerald-300'} flex items-center gap-1">
               ${isPilot ? '<i class="fa-solid fa-plane text-[10px]"></i>' : '<i class="fa-solid fa-tower-broadcast text-[10px]"></i>'}
               ${line.speaker}
             </span>
-            <div class="text-sm text-slate-200 leading-relaxed font-mono flex-grow flex items-center flex-wrap gap-y-1">${contentHtml}</div>
-            <button onclick="speakLineContent('${i}')" class="text-slate-400 hover:text-cyan-400 p-1" title="Listen Audio">
+            <div class="order-3 sm:order-none w-full sm:w-auto min-w-0 text-sm text-slate-200 leading-relaxed font-mono flex-grow flex items-center flex-wrap gap-y-1 break-words">${contentHtml}</div>
+            <button onclick="speakLineContent('${i}')" class="ml-auto sm:ml-0 shrink-0 text-slate-400 hover:text-cyan-400 p-1" title="Listen Audio">
               <i class="fa-solid fa-volume-high text-xs"></i>
             </button>
           </div>
@@ -1566,7 +2008,7 @@
       const isCompleted = currentScenarioStep >= sc.lines.length - 1;
 
       container.innerHTML = `
-        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
           <h3 class="text-lg font-bold font-mono text-slate-100 flex items-center gap-2">
             <i class="fa-solid fa-headset text-cyan-400"></i> ${sc.title}
           </h3>
@@ -1576,11 +2018,14 @@
         </div>
         ${sc.note ? `<p class="text-xs text-amber-300">${sc.note}</p>` : ''}
         <div class="space-y-3">${htmlLines}</div>
-        <div class="flex items-center justify-between pt-4 border-t border-slate-800">
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-800">
           <div id="scenario-feedback" class="font-mono text-xs"></div>
-          <div class="flex gap-2">
+          <div class="flex flex-wrap gap-2">
             <button onclick="loadScenario(${currentScenarioIdx})" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs rounded-lg">
-              <i class="fa-solid fa-rotate-right"></i> Reset
+              <i class="fa-solid fa-rotate-right"></i> Retry same
+            </button>
+            <button onclick="startNewScenario()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs rounded-lg">
+              New scenario
             </button>
             <button onclick="checkCurrentScenarioStep()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs font-bold rounded-lg shadow-md">
               ${isCompleted ? 'Verify Line & Complete' : 'Check Line & Advance'}
@@ -1588,10 +2033,27 @@
           </div>
         </div>
       `;
+      prepareScenarioSpeech();
+    }
+
+    function setScenarioAnswer(id, value) {
+      scenarioAnswers[id] = value;
+      prepareScenarioSpeech();
+    }
+
+    function prepareScenarioSpeech() {
+      const scenario = currentScenario;
+      const step = currentScenarioStep;
+      const answers = JSON.stringify(scenarioAnswers);
+      prepareLikelySpeech(
+        [{ speaker: scenario.lines[step].speaker, text: scenarioLineText(step) }],
+        () => currentScenario === scenario && currentScenarioStep === step &&
+          JSON.stringify(scenarioAnswers) === answers && !document.getElementById('section-scenarios').classList.contains('hidden')
+      );
     }
 
     function checkCurrentScenarioStep() {
-      const sc = SCENARIOS[currentScenarioIdx];
+      const sc = currentScenario;
       const line = sc.lines[currentScenarioStep];
       const feedback = document.getElementById('scenario-feedback');
 
@@ -1651,25 +2113,22 @@
       }
     }
 
+    function scenarioLineText(lineIdx) {
+      const line = currentScenario.lines[lineIdx];
+      if (line.text) return line.text;
+      return line.blanks.reduce((text, blank, index) =>
+        text.replace(`{${index}}`, scenarioAnswers[`sc-sel-${lineIdx}-${index}`] || blank.answer), line.template);
+    }
+
     function speakLineContent(lineIdx) {
-      const line = SCENARIOS[currentScenarioIdx].lines[lineIdx];
-      if (line.text) {
-        speakICAOText(line.text, line.speaker);
-      } else if (line.template) {
-        let spokenText = line.template;
-        line.blanks.forEach((b, pIdx) => {
-          const selectId = `sc-sel-${lineIdx}-${pIdx}`;
-          const val = scenarioAnswers[selectId] || b.answer;
-          spokenText = spokenText.replace(`{${pIdx}}`, val);
-        });
-        speakICAOText(spokenText, line.speaker);
-      }
+      const line = currentScenario.lines[lineIdx];
+      speakICAOText(scenarioLineText(lineIdx), line.speaker);
     }
 
     function loadQuizQuestion(index) {
       quizAnswered = false;
-      const q = QUIZ_QUESTIONS[index];
-      document.getElementById('quiz-progress').innerText = `${index + 1} / ${QUIZ_QUESTIONS.length}`;
+      const q = quizRound[index];
+      document.getElementById('quiz-progress').innerText = `${index + 1} / ${quizRound.length}`;
 
       const optionsHtml = q.options.map((opt, optIdx) => `
         <button onclick="checkQuizAnswer(${optIdx})" class="quiz-opt-btn w-full text-left p-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-mono text-sm font-semibold transition flex items-center justify-between">
@@ -1681,7 +2140,7 @@
       document.getElementById('quiz-card-container').innerHTML = `
         <div class="space-y-4">
           <span class="text-xs font-mono uppercase bg-cyan-950 border border-cyan-500/40 text-cyan-400 px-3 py-1 rounded-full font-bold">
-            ${q.category}
+            ${q.category} · ${['', 'EASY', 'INTERMEDIATE', 'ADVANCED'][q.difficulty]}
           </span>
           <h3 class="text-lg font-bold text-slate-100 font-mono leading-relaxed pt-2">${q.question}</h3>
           <div class="space-y-3 pt-2">${optionsHtml}</div>
@@ -1690,7 +2149,7 @@
             <p id="quiz-result-exp" class="text-slate-300 leading-relaxed"></p>
             <div class="pt-2 flex justify-end">
               <button onclick="nextQuizQuestion()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-bold text-xs">
-                ${index < QUIZ_QUESTIONS.length - 1 ? 'Next Question' : 'View Exam Results'}
+                ${index < quizRound.length - 1 ? 'Next Question' : 'View Quiz Results'}
               </button>
             </div>
           </div>
@@ -1702,6 +2161,7 @@
     const QUIZ_QUESTIONS = [
       {
         category: "FLIGHT LEVEL PHRASEOLOGY",
+        difficulty: 2,
         question: "How is 'FL200' spoken under the whole-hundreds flight-level convention used in UK radiotelephony?",
         options: [
           "Flight Level two hundred",
@@ -1714,6 +2174,7 @@
       },
       {
         category: "ALPHANUMERIC TRANSMISSIONS",
+        difficulty: 1,
         question: "What is the correct spoken phraseology for 'Runway 09R' using NATO phonetics?",
         options: [
           "Runway nine Right",
@@ -1726,6 +2187,7 @@
       },
       {
         category: "FREQUENCY READBACKS",
+        difficulty: 1,
         question: "How should frequency '121.5 MHz' be spoken under the standardized phraseology rules?",
         options: [
           "one two one decimal five",
@@ -1738,6 +2200,7 @@
       },
       {
         category: "EMERGENCY TRANSPONDER",
+        difficulty: 1,
         question: "What is the standard ICAO transponder code for Radio Communication Failure?",
         options: [
           "Squawk seven seven zero zero",
@@ -1750,6 +2213,7 @@
       },
       {
         category: "STANDARD MEANINGS",
+        difficulty: 1,
         question: "What is the strict ICAO definition of the word 'ROGER'?",
         options: [
           "I will comply with your instructions.",
@@ -1759,12 +2223,71 @@
         ],
         correct: 2,
         explanation: "'ROGER' only confirms receipt of transmission. It must NEVER be used to mean WILCO (will comply) or AFFIRM (yes)."
-      }
+      },
+      { category: "STANDARD MEANINGS", difficulty: 1, question: "What does WILCO mean?", options: ["I understand and will comply.", "Repeat your message.", "I am unable to comply.", "The runway is clear."], correct: 0, explanation: "WILCO means the message is understood and will be complied with." },
+      { category: "STANDARD MEANINGS", difficulty: 1, question: "What does SAY AGAIN request?", options: ["A repetition of the message or specified part.", "A new clearance to land.", "An immediate frequency change.", "A radio failure procedure."], correct: 0, explanation: "SAY AGAIN requests repetition; specify the part if needed." },
+      { category: "STANDARD MEANINGS", difficulty: 1, question: "What should a caller do after STANDBY?", options: ["Wait for the station to call back.", "Assume the request is approved.", "Leave the frequency immediately.", "Transmit the request continuously."], correct: 0, explanation: "STANDBY means wait; it is not an approval." },
+      { category: "DISTRESS", difficulty: 1, question: "Which signal declares distress?", options: ["MAYDAY, normally spoken three times.", "ROGER, spoken three times.", "WILCO, spoken three times.", "STANDBY, spoken three times."], correct: 0, explanation: "MAYDAY signals distress requiring immediate assistance." },
+      { category: "URGENCY", difficulty: 1, question: "Which signal indicates urgency?", options: ["PAN PAN, normally spoken three times.", "SAY AGAIN, spoken three times.", "CROSS RUNWAY.", "MONITOR."], correct: 0, explanation: "PAN PAN indicates an urgent safety concern that does not require immediate assistance." },
+      { category: "TRANSPONDER", difficulty: 1, question: "Which code is the general emergency code?", options: ["7700", "7600", "7000", "1200"], correct: 0, explanation: "7700 is the general emergency code; apply the relevant procedures." },
+      { category: "RUNWAY SAFETY", difficulty: 1, question: "What does HOLD SHORT OF RUNWAY mean?", options: ["Stop before the runway holding position unless cleared otherwise.", "Enter the runway and wait.", "Take off immediately.", "Cross the runway without clearance."], correct: 0, explanation: "Hold short keeps the aircraft clear of the runway; it is not permission to enter." },
+      { category: "CALL SIGNS", difficulty: 2, question: "What should a pilot include in a clearance readback?", options: ["The relevant clearance and the aircraft call sign.", "Only the word ROGER.", "Only the airport name.", "The controller's call sign instead of the aircraft call sign."], correct: 0, explanation: "Read back the relevant clearance and identify the aircraft so ATC can check it." },
+      { category: "RUNWAY CROSSING", difficulty: 2, question: "ATC says 'CROSS RUNWAY 27'. Which readback includes the essential instruction?", options: ["Cross runway two seven, Speedbird 109.", "Roger, Speedbird 109.", "Taxiing, Speedbird 109.", "Cleared to land, Speedbird 109."], correct: 0, explanation: "Read back runway-crossing instructions and the runway designator with the aircraft call sign." },
+      { category: "TAKEOFF", difficulty: 2, question: "Does LINE UP AND WAIT authorize takeoff?", options: ["No; a separate takeoff clearance is required.", "Yes, immediately.", "Yes, if the runway looks clear.", "Only when the pilot says ROGER."], correct: 0, explanation: "Line up and wait authorizes positioning, not takeoff." },
+      { category: "ALTIMETER SETTING", difficulty: 2, question: "ATC assigns 4,000 feet and QNH 1012. What should the readback include?", options: ["The altitude, QNH 1012 and aircraft call sign.", "Only the altitude.", "Only ROGER.", "The temperature and wind only."], correct: 0, explanation: "Level instructions and altimeter settings are safety-critical readback items." },
+      { category: "HEADING", difficulty: 2, question: "How is heading 090 read back?", options: ["Heading zero niner zero, followed by the call sign.", "Heading ninety, without a call sign.", "Runway zero niner.", "Flight level ninety."], correct: 0, explanation: "Heading digits are spoken separately and the aircraft identifies itself." },
+      { category: "FREQUENCY", difficulty: 2, question: "ATC instructs a pilot to contact Tower on a new channel. What should be read back?", options: ["The assigned channel and the aircraft call sign.", "Only WILCO.", "Only the tower name.", "The aircraft's previous channel."], correct: 0, explanation: "Read back the assigned channel as required by the applicable procedures, with the aircraft call sign." },
+      { category: "APPROACH", difficulty: 2, question: "What does an ILS approach clearance authorize?", options: ["The cleared approach, not landing without a separate clearance.", "Landing automatically.", "A runway crossing.", "Takeoff on the same runway."], correct: 0, explanation: "An approach clearance does not replace a landing clearance." },
+      { category: "ALTITUDE", difficulty: 2, question: "What is QNH used for?", options: ["Indicated altitude referenced to mean sea level.", "The transponder identity code.", "Runway magnetic orientation.", "The radio frequency."], correct: 0, explanation: "QNH is the altimeter setting used for indicated altitude relative to mean sea level." },
+      { category: "RADIO FAILURE", difficulty: 2, question: "After communications are restored following a radio failure, what should the pilot report?", options: ["The aircraft call sign and that communications are restored.", "An instruction to other aircraft to land.", "A fictitious emergency.", "Nothing, because ATC cannot hear the aircraft."], correct: 0, explanation: "Report restored communications and relevant information; follow local radio-failure procedures." },
+      { category: "RUNWAY DESIGNATORS", difficulty: 2, question: "How is the C in runway 18C spoken?", options: ["Centre.", "Charlie.", "Cross.", "Clearance."], correct: 0, explanation: "Runway suffixes are spoken Left, Right or Centre." },
+      { category: "SID RESTRICTIONS", difficulty: 3, question: "Under ICAO SID phraseology, what must accompany CLIMB VIA SID?", options: ["The cleared level.", "Only the departure frequency.", "Only the aircraft type.", "A landing clearance."], correct: 0, explanation: "ICAO's CLIMB VIA SID TO (level) includes a cleared level; local procedures can differ." },
+      { category: "SID REJOIN", difficulty: 3, question: "When cleared to rejoin a SID after vectoring, what should be clear in the clearance?", options: ["The SID and rejoin point as applicable, and the cleared level.", "Only the destination weather.", "Only the transponder code.", "A clearance to land."], correct: 0, explanation: "Identify the procedure and rejoin point as required and restate the cleared level; clarify ambiguity." },
+      { category: "STAR RESTRICTIONS", difficulty: 3, question: "What does DESCEND VIA STAR TO a level mean under ICAO procedures?", options: ["Follow the STAR and applicable restrictions while descending to the cleared level.", "Cancel every restriction automatically.", "Descend to any altitude the crew chooses.", "Leave the STAR immediately."], correct: 0, explanation: "The aircraft follows the arrival and applicable restrictions to the cleared level unless ATC changes them." },
+      { category: "CLEARANCE CHECK", difficulty: 3, question: "A controller hears an incorrect readback. What should happen?", options: ["Correct the discrepancy promptly using the applicable phraseology.", "Assume the pilot meant the correct clearance.", "Wait until the aircraft reaches the runway.", "Treat silence as a correct readback."], correct: 0, explanation: "Controllers hear back clearances and correct errors promptly; ICAO uses NEGATIVE I SAY AGAIN for an incorrect item." },
+      { category: "EMERGENCY", difficulty: 3, question: "During a distress call, what comes first in the pilot's priorities?", options: ["Maintain control of the aircraft, then communicate as circumstances permit.", "Invent a position to complete the call.", "Wait for a perfect message before flying.", "Switch off the radio immediately."], correct: 0, explanation: "Aviate first. Provide the station, call sign, nature, intentions and known position, level and heading as time permits." },
+      { category: "URGENCY", difficulty: 3, question: "If an urgency deteriorates into distress requiring immediate assistance, what should the pilot do?", options: ["Declare MAYDAY and communicate the situation as able.", "Keep using PAN PAN regardless of the situation.", "Cancel all radio communication.", "Read back an unrelated runway."], correct: 0, explanation: "The pilot can upgrade an urgency to distress when the circumstances require it." },
+      { category: "RUNWAY SAFETY", difficulty: 3, question: "A taxi clearance includes HOLD SHORT OF RUNWAY 09L. What permits crossing?", options: ["A subsequent clearance to cross that runway.", "The taxi clearance alone.", "A clear-looking runway.", "The pilot's readback of HOLD SHORT."], correct: 0, explanation: "Hold short until authorized to cross; read back the crossing clearance and runway." },
+      { category: "MISSED APPROACH", difficulty: 3, question: "After a pilot reports going around, ATC assigns heading 090 and 3,000 feet. What belongs in the readback?", options: ["The heading, altitude and aircraft call sign.", "Only ROGER.", "A landing clearance not issued by ATC.", "Only the aircraft type."], correct: 0, explanation: "Read back the assigned heading and level with the call sign, while maintaining aircraft control." },
+      { category: "CHANNEL IDENTIFICATION", difficulty: 3, question: "How is channel 118.125 identified where six digits are required?", options: ["One one eight decimal one two five.", "One one eight decimal one.", "One eighteen point twelve.", "One one eight decimal five."], correct: 0, explanation: "When six-digit channel identification is required, retain all three digits after DECIMAL." },
+      { category: "DISTRESS CANCELLATION", difficulty: 3, question: "Does an extinguished engine fire alone prove that a distress condition has ended?", options: ["No; the crew must assess the whole situation before cancellation.", "Yes, automatically.", "Yes, without notifying ATC.", "No, because MAYDAY can never be cancelled."], correct: 0, explanation: "The crew assesses whether distress has ended and communicates cancellation when appropriate." },
+      { category: "TCAS", difficulty: 3, question: "When responding to a TCAS resolution advisory, what should the crew do?", options: ["Follow the advisory and report TCAS RA when able.", "Ignore the advisory if it conflicts with the clearance.", "Request a landing clearance before responding.", "Turn off the transponder."], correct: 0, explanation: "Follow the resolution advisory and applicable procedures; communicate when workload permits." },
+      { category: "FUEL", difficulty: 3, question: "Does declaring MINIMUM FUEL alone request emergency priority?", options: ["No; it is an advisory that additional delay cannot be accepted.", "Yes, it automatically declares MAYDAY.", "Yes, it is a runway-crossing clearance.", "No; it means the fuel tanks are empty."], correct: 0, explanation: "MINIMUM FUEL is an advisory, not itself an emergency. Declare distress when the applicable emergency criteria are met." }
     ];
 
     let currentQuizIndex = 0;
     let quizScore = 0;
     let quizAnswered = false;
+    let quizRound = [];
+
+    function shuffled(items) {
+      const result = [...items];
+      for (let index = result.length - 1; index > 0; index--) {
+        const selected = Math.floor(Math.random() * (index + 1));
+        [result[index], result[selected]] = [result[selected], result[index]];
+      }
+      return result;
+    }
+
+    function startQuizTrial() {
+      const previous = new Set(quizRound.map(question => question.question));
+      const selected = [
+        ...shuffled(QUIZ_QUESTIONS.filter(question => question.difficulty === 1)).slice(0, 4),
+        ...shuffled(QUIZ_QUESTIONS.filter(question => question.difficulty === 2)).slice(0, 3),
+        ...shuffled(QUIZ_QUESTIONS.filter(question => question.difficulty === 3)).slice(0, 3)
+      ];
+      if (previous.size && selected.every(question => previous.has(question.question))) {
+        const replacement = QUIZ_QUESTIONS.find(question => question.difficulty === 1 && !previous.has(question.question));
+        if (replacement) selected[0] = replacement;
+      }
+      quizRound = selected.map(question => {
+        const answers = shuffled(question.options.map((text, index) => ({ text, correct: index === question.correct })));
+        return { ...question, options: answers.map(answer => answer.text), correct: answers.findIndex(answer => answer.correct) };
+      });
+      currentQuizIndex = 0;
+      quizScore = 0;
+      loadQuizQuestion(0);
+    }
 
     /* =========================================================================
        MATCHING DRILLS ENGINE
@@ -1904,13 +2427,11 @@
       if (tabId === 'matching') {
         initMatchingDrills();
       } else if (tabId === 'scenarios') {
-        loadScenario(currentScenarioIdx);
+        startNewScenario();
       } else if (tabId === 'collocations') {
         renderVocabularyList();
       } else if (tabId === 'quiz') {
-        currentQuizIndex = 0;
-        quizScore = 0;
-        loadQuizQuestion(0);
+        startQuizTrial();
       }
     }
 
@@ -1918,7 +2439,7 @@
       if (quizAnswered) return;
       quizAnswered = true;
 
-      const q = QUIZ_QUESTIONS[currentQuizIndex];
+      const q = quizRound[currentQuizIndex];
       const buttons = document.querySelectorAll('.quiz-opt-btn');
       const expContainer = document.getElementById('quiz-explanation');
       const titleEl = document.getElementById('quiz-result-title');
@@ -1944,7 +2465,7 @@
 
     function nextQuizQuestion() {
       currentQuizIndex++;
-      if (currentQuizIndex < QUIZ_QUESTIONS.length) {
+      if (currentQuizIndex < quizRound.length) {
         loadQuizQuestion(currentQuizIndex);
       } else {
         showQuizResults();
@@ -1952,7 +2473,7 @@
     }
 
     function showQuizResults() {
-      const percentage = Math.round((quizScore / QUIZ_QUESTIONS.length) * 100);
+      const percentage = Math.round((quizScore / quizRound.length) * 100);
       const isPass = percentage >= 70;
 
       document.getElementById('quiz-card-container').innerHTML = `
@@ -1961,16 +2482,16 @@
             <i class="fa-solid ${isPass ? 'fa-award' : 'fa-triangle-exclamation'}"></i>
           </div>
           <div class="space-y-2">
-            <h3 class="text-2xl font-bold font-mono text-slate-100">EXAM COMPLETED</h3>
-            <p class="text-slate-400 text-sm">ICAO Radiotelephony Annex 10 Doc 9432 Evaluation</p>
+            <h3 class="text-2xl font-bold font-mono text-slate-100">QUIZ COMPLETED</h3>
+            <p class="text-slate-400 text-sm">Practice only; follow current local procedures.</p>
           </div>
           <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 max-w-sm mx-auto space-y-2">
             <div class="text-xs font-mono text-slate-400">FINAL SCORE</div>
-            <div class="text-4xl font-mono font-bold ${isPass ? 'text-emerald-400' : 'text-rose-400'}">${quizScore} / ${QUIZ_QUESTIONS.length}</div>
+            <div class="text-4xl font-mono font-bold ${isPass ? 'text-emerald-400' : 'text-rose-400'}">${quizScore} / ${quizRound.length}</div>
             <div class="text-sm font-mono font-bold ${isPass ? 'text-emerald-300' : 'text-rose-300'}">${percentage}% - ${isPass ? 'PASSED' : 'FAILED'}</div>
           </div>
           <button onclick="switchTab('quiz')" class="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-mono font-bold rounded-lg shadow-lg">
-            Retake Exam
+            New Quiz
           </button>
         </div>
       `;
@@ -1979,8 +2500,16 @@
     /* =========================================================================
        5. FLASHCARD FLIP & CARD RENDERING LOGIC
        ========================================================================= */
-    function toggleCardFlip(cardEl) {
+    function toggleCardFlip(cardEl, card) {
       cardEl.classList.toggle('flipped');
+      if (cardEl.classList.contains('flipped')) {
+        const preparation = prepareVoiceEngine();
+        if (card) {
+          prepareLikelySpeech([{ speaker: 'ATC', text: card.icaoAudio }, getCardDialogue(card)[0]],
+            () => cardEl.isConnected && cardEl.classList.contains('flipped') &&
+              !document.getElementById('section-flashcards').classList.contains('hidden'), preparation);
+        }
+      }
     }
 
     function escapeHTML(value) {
@@ -2021,7 +2550,7 @@
         const compoundNounsHtml = vocabulary.compoundNouns.map(escapeHTML).join('; ');
 
         cardWrapper.innerHTML = `
-          <div class="flip-card-inner rounded-xl border border-slate-800 bg-cockpit-card shadow-lg hover:border-cyan-500/50 transition-colors" onclick="toggleCardFlip(this.parentElement)">
+          <div class="flip-card-inner rounded-xl border border-slate-800 bg-cockpit-card shadow-lg hover:border-cyan-500/50 transition-colors">
             <!-- FRONT SIDE: Meaning & SVG Graphic -->
             <div class="flip-card-front p-5 flex flex-col justify-between bg-cockpit-card rounded-xl border border-slate-800">
               <div class="space-y-3">
@@ -2088,6 +2617,7 @@
           </div>
         `;
 
+        cardWrapper.querySelector('.flip-card-inner').addEventListener('click', () => toggleCardFlip(cardWrapper, card));
         cardWrapper.querySelector('[data-card-action="phrase"]').addEventListener('click', event => {
           event.stopPropagation();
           speakICAOText(card.icaoAudio, 'ATC', cardWrapper.querySelector('[data-card-audio-status]'));
