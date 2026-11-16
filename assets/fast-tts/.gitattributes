@@ -1,0 +1,11 @@
+# Preserve upstream bytes for the hashes in manifest.json.
+/LICENSE -text
+/NOTICE -text
+/ONNXRUNTIME-LICENSE -text
+/ONNXRUNTIME-THIRD-PARTY-NOTICES -text
+/pdn.mjs -text
+/tokenizer.json -text
+/ort*.mjs binary
+*.onnx binary
+*.pdn binary
+*.wasm binary

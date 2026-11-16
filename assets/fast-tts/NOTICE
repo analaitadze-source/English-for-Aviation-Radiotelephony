@@ -1,0 +1,28 @@
+mesm-tts
+Copyright 2026 mesmer.tools
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+The models in this repository are new models (students) trained on audio rendered by the following Apache-2.0 models,
+and the Heart decoder descends from Paradee-8M v1.1's weights. Please keep these credits when you redistribute them:
+
+- Kokoro-82M by hexgrad (Apache-2.0), voice af_heart: teacher of Heart.
+  https://huggingface.co/hexgrad/Kokoro-82M
+- Paradee-8M v1.1 by Sahil Mahendrakar (Apache-2.0): the starting point for Heart, and its training code.
+  https://huggingface.co/sahilmahendrakar/Paradee-8M-v1.1  https://github.com/sahilmahendrakar/paradee
+- Phonon-31m-en by Gradium (Apache-2.0), with its built-in voice: teacher of Wren.
+  https://huggingface.co/gradium/phonon-31m-en
+  Phonon builds on Pocket TTS and the Mimi codec by Kyutai. No Phonon, Pocket TTS or Mimi weights are included here.
+- gradium/phonon-voices (Apache-2.0, revision 0ee17205): the voices Everly, Hadley, Bryony, Maeve, Miles, Trevor, Edwin and
+  Hugh, rendered by Phonon-31m-en: teachers of the students of the same names.
+  https://huggingface.co/gradium/phonon-voices
+- misaki by hexgrad (Apache-2.0): the grapheme-to-phoneme front end. web/*/frontend/ contains a JavaScript port of its
+  English G2P and its lexicons (us_gold / us_silver), re-encoded.
+  https://github.com/hexgrad/misaki
+- kokoro.js phonemize.js by hexgrad (Apache-2.0): web/v2/frontend/kokoro-phonemize.mjs and web/espeak.mjs.
+
+Not included: eSpeak NG (GPL-3.0-or-later). The optional fallback for words outside misaki's lexicon loads it at run time
+(the `phonemizer` npm package in a browser or Node; espeakng-loader through misaki in Python). Review its licence if you
+ship that fallback.
+
+The voices are synthetic. Do not use them to impersonate a real person or to mislead listeners about who is speaking.

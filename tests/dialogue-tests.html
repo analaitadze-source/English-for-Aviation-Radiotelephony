@@ -10,6 +10,7 @@
   <iframe id="app" src="../index.html" hidden></iframe>
   <script>
     async function runTests() {
+      if (voicePreparation) await voicePreparation.promise;
       const results = [];
       const assert = (condition, message) => {
         if (!condition) throw new Error(message);
@@ -53,18 +54,27 @@
         await test('Independent American and British voices are selectable', () => {
           const controller = document.getElementById('voice-select');
           const pilot = document.getElementById('pilot-voice-select');
-          assert(selectedVoice === 'bm_george' && selectedPilotVoice === 'bf_emma', 'The default controller and pilot voices are not distinct British voices');
+          assert(selectedVoice === 'fast_edwin' && selectedPilotVoice === 'fast_maeve', 'The default controller and pilot voices are not distinct British voices');
           for (const select of [controller, pilot]) {
             const options = [...select.options];
-            assert(options.length >= 16, 'Independent voice choices are missing');
-            assert(options.filter(option => option.textContent.startsWith('American - ')).length >= 8, 'American voices are missing');
-            assert(options.filter(option => option.textContent.startsWith('British - ')).length >= 8, 'British voices are missing');
+            assert(options.length === 10 && new Set(options.map(option => option.value)).size === 10, 'There must be exactly ten distinct voices');
+            assert(options.filter(option => option.textContent.includes('(Male)')).length === 5, 'Five male voices are required');
+            assert(options.filter(option => option.textContent.includes('(Female)')).length === 5, 'Five female voices are required');
+            assert(options.filter(option => option.textContent.startsWith('American - ')).length === 5, 'American voices are missing');
+            assert(options.filter(option => option.textContent.startsWith('British - ')).length === 5, 'British voices are missing');
             assert(options.every(option => !/microsoft|google/i.test(option.textContent)), 'A removed provider voice is present');
           }
-          controller.value = 'am_michael';
-          pilot.value = 'bf_emma';
-          onVoiceChanged();
-          assert(selectedVoice === 'am_michael' && selectedPilotVoice === 'bf_emma', 'Speaker voice selection was not applied');
+          const savedPrepare = prepareVoiceEngine;
+          let prepared = 0;
+          try {
+            prepareVoiceEngine = () => { prepared++; };
+            controller.value = 'fast_trevor';
+            pilot.value = 'fast_bryony';
+            onVoiceChanged();
+            assert(selectedVoice === 'fast_trevor' && selectedPilotVoice === 'fast_bryony' && prepared === 1, 'Speaker voice selection or preparation was not applied');
+          } finally {
+            prepareVoiceEngine = savedPrepare;
+          }
           openVoiceSettings();
           assert(!document.getElementById('voice-modal').classList.contains('hidden'), 'Voice settings did not open');
           closeVoiceSettings();
@@ -73,8 +83,8 @@
         await test('Independent voice assets are available from the site', async () => {
           const moduleURL = new URL(VOICE_ENGINE_URL, document.baseURI);
           const module = await import(moduleURL.href);
-          assert(typeof module.HeadTTS === 'function', 'Independent voice module could not be loaded');
-          for (const path of ['assets/headtts/modules/worker-tts.mjs', 'assets/headtts/modules/language-en-us.mjs', 'assets/headtts/modules/language-en-gb.mjs', 'assets/headtts/dictionaries/en-us.txt', 'assets/headtts/dictionaries/en-gb.json']) {
+          assert(typeof module.FastVoiceClient === 'function', 'Independent voice module could not be loaded');
+          for (const path of ['assets/fast-tts/worker.mjs', 'assets/fast-tts/pdn.mjs', 'assets/fast-tts/pdn.wasm', 'assets/fast-tts/ort.wasm.min.mjs', 'assets/headtts/modules/language-en-us.mjs', 'assets/headtts/modules/language-en-gb.mjs', 'assets/headtts/dictionaries/en-us.txt', 'assets/headtts/dictionaries/en-gb.json']) {
             const response = await fetch(path);
             assert(response.ok && (await response.arrayBuffer()).byteLength > 0, `Voice asset is unavailable: ${path}`);
           }
@@ -111,20 +121,30 @@
           }
         });
 
-        await test('Voice selection chooses the matching pronunciation language', async () => {
-          const savedGetVoiceEngine = getVoiceEngine;
-          const setups = [];
+        await test('All ten fast voices produce local non-silent audio', async () => {
+          const { FastVoiceClient } = await import(new URL(VOICE_ENGINE_URL, document.baseURI).href);
+          const client = new FastVoiceClient();
+          const context = new OfflineAudioContext(1, 1, 24000);
           try {
-            getVoiceEngine = async () => ({
-              setup: async options => { setups.push(options); },
-              synthesize: async () => [{ type: 'audio', data: { audio: {} } }]
-            });
-            for (const voice of ['bm_george', 'bf_emma', 'af_bella']) {
-              await originalSynthesize('TEST', voice, {}, playbackGeneration, 'controller');
+            let failure;
+            try {
+              await client.preload('missing-voice');
+            } catch (error) {
+              failure = error.message;
             }
-            assert(setups.map(setup => setup.language).join(',') === 'en-gb,en-gb,en-us', 'Voice accents did not select the corresponding pronunciation data');
+            assert(/unknown fast voice/i.test(failure), 'An invalid voice was not reported');
+            for (const voice of INDEPENDENT_VOICES) {
+              const chunks = await withVoiceTimeout(client.synthesize('Tower, request taxi.', voice.id, context), 30000);
+              assert(chunks.length && chunks.some(chunk => chunk.getChannelData(0).some(sample => Math.abs(sample) > 0.001)), `${voice.name} produced no audible samples`);
+            }
+            let staleChunks = 0;
+            const stale = client.synthesize('A cancelled transmission.', 'fast_edwin', context, () => { staleChunks++; });
+            client.clear();
+            assert((await stale).length === 0 && staleChunks === 0, 'Cancelled worker audio was delivered');
+            const fresh = await withVoiceTimeout(client.synthesize('A new transmission.', 'fast_edwin', context), 30000);
+            assert(fresh.length > 0, 'The worker did not recover after cancellation');
           } finally {
-            getVoiceEngine = savedGetVoiceEngine;
+            client.close();
           }
         });
 
@@ -137,22 +157,38 @@
           const savedShouldPrepare = shouldPrepareVoice;
           const savedEngine = voiceEngine;
           const savedPromise = voiceEnginePromise;
+          const savedPreparation = voicePreparation;
           const savedBusy = voiceBusy;
           let starts = 0;
+          let activations = 0;
+          const preloaded = [];
           try {
             voiceEngine = null;
             voiceEnginePromise = null;
+            voicePreparation = null;
             voiceBusy = false;
-            activateAudio = () => Promise.resolve({});
-            getVoiceEngine = async () => { starts++; };
+            activateAudio = () => { activations++; return Promise.resolve({}); };
+            getVoiceEngine = async () => {
+              starts++;
+              return {
+                preload: async voice => { preloaded.push(voice); },
+                synthesize: async () => [{}]
+              };
+            };
             shouldPrepareVoice = () => false;
             prepareVoiceEngine();
             assert(starts === 0, 'Preparation started on a reduced-data connection');
+            await originalSynthesize('REDUCED DATA REQUEST', selectedVoice, {}, playbackGeneration, 'controller');
+            assert(starts === 1 && preloaded.includes(selectedVoice), 'An explicit audio request did not start on a reduced-data connection');
+            starts = 0;
+            preloaded.length = 0;
             shouldPrepareVoice = () => true;
             const first = prepareVoiceEngine();
             prepareVoiceEngine();
             await first;
-            assert(starts === 1 && !voicePreparing, 'Repeated interactions started duplicate voice preparation');
+            assert(starts === 1 && !voicePreparation, 'Repeated interactions started duplicate voice preparation');
+            assert(new Set(preloaded).size === 2 && preloaded.includes(selectedVoice) && preloaded.includes(selectedPilotVoice), 'Both selected voices were not prepared');
+            assert(activations === 0, 'Background preparation attempted to start playback');
             assert(/voices are ready/i.test(document.getElementById('voice-feedback').textContent), 'Voice readiness was not displayed');
           } finally {
             activateAudio = savedActivate;
@@ -160,8 +196,8 @@
             shouldPrepareVoice = savedShouldPrepare;
             voiceEngine = savedEngine;
             voiceEnginePromise = savedPromise;
+            voicePreparation = savedPreparation;
             voiceBusy = savedBusy;
-            voicePreparing = false;
           }
         });
 
@@ -184,16 +220,16 @@
 
         await test('Likely card and scenario audio is prepared without playing it', async () => {
           const savedEngine = voiceEngine;
-          const savedBackend = voiceEngineBackend;
           const savedBusy = voiceBusy;
           const savedSynthesize = synthesizeTurn;
           const savedTimeout = window.setTimeout;
+          const savedPrepare = prepareVoiceEngine;
           const prepared = [];
           let preparation;
           try {
-            voiceEngine = { settings: { dtypeWebgpu: 'fp16' } };
-            voiceEngineBackend = 'webgpu';
+            voiceEngine = {};
             voiceBusy = false;
+            prepareVoiceEngine = () => Promise.resolve();
             synthesizeTurn = async (text, voice) => { prepared.push({ text, voice }); return []; };
             window.setTimeout = callback => { preparation = callback(); return 0; };
             renderFlashcards([findCard(5)]);
@@ -210,17 +246,16 @@
           } finally {
             speechPreparationRevision++;
             voiceEngine = savedEngine;
-            voiceEngineBackend = savedBackend;
             voiceBusy = savedBusy;
             synthesizeTurn = savedSynthesize;
             window.setTimeout = savedTimeout;
+            prepareVoiceEngine = savedPrepare;
             switchTab('flashcards');
           }
         });
 
         await test('Playback reuses matching speech already being prepared', async () => {
           const savedEngine = voiceEngine;
-          const savedBackend = voiceEngineBackend;
           const savedBusy = voiceBusy;
           const savedSynthesize = synthesizeTurn;
           const savedTimeout = window.setTimeout;
@@ -230,8 +265,7 @@
           let calls = 0;
           let clears = 0;
           try {
-            voiceEngine = { settings: { dtypeWebgpu: 'fp16' }, clear: () => { clears++; } };
-            voiceEngineBackend = 'webgpu';
+            voiceEngine = { clear: () => { clears++; } };
             voiceBusy = false;
             window.setTimeout = callback => { preparation = callback(); return 0; };
             synthesizeTurn = (text, voice) => {
@@ -249,20 +283,11 @@
           } finally {
             speechPreparationRevision++;
             voiceEngine = savedEngine;
-            voiceEngineBackend = savedBackend;
             voiceBusy = savedBusy;
             synthesizeTurn = savedSynthesize;
             window.setTimeout = savedTimeout;
             backgroundSpeech = savedBackground;
           }
-        });
-
-        await test('GPU model selection checks half-precision support', async () => {
-          const supported = { requestAdapter: async () => ({ features: new Set(['shader-f16']) }) };
-          const unsupported = { requestAdapter: async () => ({ features: new Set() }) };
-          assert(await preferredGpuDtype(supported, null) === 'fp16', 'A compatible GPU did not select the faster model');
-          assert(await preferredGpuDtype(unsupported) === 'q8' && await preferredGpuDtype(null) === 'q8', 'An incompatible GPU did not use the standard model');
-          assert(await preferredGpuDtype(supported, { saveData: true }) === 'q8', 'Data saver did not select the smaller model');
         });
 
         await test('Generated speech is reused only for the same text and voice', async () => {
@@ -273,26 +298,26 @@
             speechCache.clear();
             speechCacheBytes = 0;
             getVoiceEngine = async () => ({
-              setup: async () => {},
+              preload: async () => {},
               synthesize: async () => {
                 generations++;
-                return [{ type: 'audio', data: { audio: buffer } }];
+                return [buffer];
               }
             });
-            await originalSynthesize('CACHE TEST', 'bm_george', {}, playbackGeneration, 'controller');
-            await originalSynthesize('CACHE TEST', 'bm_george', {}, playbackGeneration, 'controller');
+            await originalSynthesize('CACHE TEST', 'fast_edwin', {}, playbackGeneration, 'controller');
+            await originalSynthesize('CACHE TEST', 'fast_edwin', {}, playbackGeneration, 'controller');
             assert(generations === 1, 'Repeated speech was generated again');
-            await originalSynthesize('CACHE TEST', 'bf_emma', {}, playbackGeneration, 'pilot');
-            await originalSynthesize('OTHER TEST', 'bm_george', {}, playbackGeneration, 'controller');
+            await originalSynthesize('CACHE TEST', 'fast_maeve', {}, playbackGeneration, 'pilot');
+            await originalSynthesize('OTHER TEST', 'fast_edwin', {}, playbackGeneration, 'controller');
             assert(generations === 3, 'Speech cache mixed voices or message text');
             speechCache.clear();
             speechCacheBytes = 0;
             const large = { length: Math.floor(SPEECH_CACHE_LIMIT / 8), numberOfChannels: 1, getChannelData: () => new Float32Array(0) };
-            cacheSpeech('FIRST', 'bm_george', [large]);
-            cacheSpeech('SECOND', 'bm_george', [large]);
-            cachedSpeech('FIRST', 'bm_george');
-            cacheSpeech('THIRD', 'bm_george', [large]);
-            assert(cachedSpeech('FIRST', 'bm_george') && !cachedSpeech('SECOND', 'bm_george') && speechCacheBytes <= SPEECH_CACHE_LIMIT, 'Speech cache did not evict its least-recently-used entry');
+            cacheSpeech('FIRST', 'fast_edwin', [large]);
+            cacheSpeech('SECOND', 'fast_edwin', [large]);
+            cachedSpeech('FIRST', 'fast_edwin');
+            cacheSpeech('THIRD', 'fast_edwin', [large]);
+            assert(cachedSpeech('FIRST', 'fast_edwin') && !cachedSpeech('SECOND', 'fast_edwin') && speechCacheBytes <= SPEECH_CACHE_LIMIT, 'Speech cache did not evict its least-recently-used entry');
           } finally {
             speechCache.clear();
             speechCacheBytes = 0;
@@ -302,165 +327,61 @@
 
         await test('Voice status changes from download to generation', async () => {
           const originalGetVoiceEngine = getVoiceEngine;
+          let finishPreparation;
+          const preparation = new Promise(resolve => { finishPreparation = resolve; });
           try {
             getVoiceEngine = async () => {
-              setVoiceFeedback('Downloading independent voice data: 85 MB received.');
               return {
-                setup: async () => {},
-                synthesize: async () => [{ type: 'audio', data: { audio: {} } }]
+                preload: () => preparation,
+                synthesize: async () => [{}]
               };
             };
-            await originalSynthesize('TEST', selectedVoice, {}, playbackGeneration, 'controller');
-            assert(document.getElementById('voice-feedback').textContent.startsWith('Generating controller audio'), 'Download status remained after the voice engine was ready');
+            const generation = originalSynthesize('TEST', selectedVoice, {}, playbackGeneration, 'controller');
+            await new Promise(resolve => setTimeout(resolve, 0));
+            assert(/preparing controller voice.*download/i.test(document.getElementById('voice-feedback').textContent), 'Cold voice loading was not distinguished from inference');
+            finishPreparation();
+            await generation;
+            assert(document.getElementById('voice-feedback').textContent.startsWith('Generating controller audio'), 'Preparation status remained after the voice was ready');
           } finally {
+            finishPreparation();
             getVoiceEngine = originalGetVoiceEngine;
           }
         });
 
-        await test('Voice setup allows model initialization after download progress', async () => {
+        await test('Voice client preserves preparation and cancels queued playback', async () => {
           const moduleURL = new URL(VOICE_ENGINE_URL, document.baseURI);
-          const { HeadTTS } = await import(moduleURL.href);
+          const { FastVoiceClient } = await import(moduleURL.href);
           const savedWorker = window.Worker;
-          const savedSetTimeout = window.setTimeout;
-          const savedClearTimeout = window.clearTimeout;
-          let now = 0;
-          let nextTimer = 0;
           let workerURL;
-          let workerCleared = false;
-          const timers = new Map();
+          let clears = 0;
+          let terminated = false;
           class FakeWorker {
             constructor(url, options) {
-              void options.type;
-              if (url !== 'blob://') workerURL = new URL(url);
+              assert(options.type === 'module', 'Voice worker was not created as a module');
+              workerURL = new URL(url);
             }
             postMessage(message) {
-              if (message.type === 'clear') {
-                workerCleared = true;
-                return;
+              if (message.type === 'preload') {
+                queueMicrotask(() => this.onmessage({ data: { type: 'ready', id: message.id } }));
+              } else if (message.type === 'clear') {
+                clears++;
               }
-              if (message.type !== 'connect') return;
-              this.onmessage({ data: { type: 'progress', data: { loaded: 1, total: 1, lengthComputable: true } } });
-              now += 15000;
-              for (const [id, timer] of [...timers]) {
-                if (timer.at <= now) {
-                  timers.delete(id);
-                  timer.callback();
-                }
-              }
-              this.onmessage({ data: { type: 'ready' } });
             }
-            terminate() {}
+            terminate() { terminated = true; }
           }
           try {
             window.Worker = FakeWorker;
-            window.setTimeout = (callback, delay) => {
-              const id = ++nextTimer;
-              timers.set(id, { callback, at: now + delay });
-              return id;
-            };
-            window.clearTimeout = id => timers.delete(id);
-            const engine = new HeadTTS({ endpoints: ['wasm'], audioCtx: {}, languages: [], voices: [] });
-            await engine.connect(null, () => {});
-            assert(engine.isConnected, 'Voice setup timed out while the model was initializing');
-            assert(workerURL.search === moduleURL.search, 'Voice worker did not inherit the engine cache version');
+            const engine = new FastVoiceClient();
+            const preparation = engine.preload('fast_edwin');
+            const pending = engine.synthesize('TEST', 'fast_edwin', {});
             engine.clear();
-            assert(workerCleared, 'Clearing speech did not clear the worker queue');
+            await preparation;
+            assert((await pending).length === 0 && clears === 1, 'Clearing speech did not cancel its request');
+            assert(workerURL.search === moduleURL.search, 'Voice worker did not inherit the engine cache version');
+            engine.close();
+            assert(terminated, 'Voice worker was not terminated');
           } finally {
             window.Worker = savedWorker;
-            window.setTimeout = savedSetTimeout;
-            window.clearTimeout = savedClearTimeout;
-          }
-        });
-
-        await test('Failed accelerated speech retries with the CPU voice engine', async () => {
-          const savedGetVoiceEngine = getVoiceEngine;
-          const savedEngine = voiceEngine;
-          const savedBackend = voiceEngineBackend;
-          const savedPromise = voiceEnginePromise;
-          const savedWarn = console.warn;
-          const audio = {};
-          let cleared = false;
-          let terminated = false;
-          let cpuAttempts = 0;
-          const gpu = {
-            setup: async () => {},
-            synthesize: async () => [{ type: 'error', data: { error: 'GPU inference failed' } }],
-            clear: () => { cleared = true; },
-            ww: { terminate: () => { terminated = true; } }
-          };
-          const cpu = {
-            setup: async () => {},
-            synthesize: async () => [{ type: 'audio', data: { audio } }]
-          };
-          try {
-            console.warn = () => {};
-            getVoiceEngine = async (context, cpuOnly = false) => {
-              if (cpuOnly) cpuAttempts++;
-              voiceEngine = cpuOnly ? cpu : gpu;
-              voiceEngineBackend = cpuOnly ? 'wasm' : 'webgpu';
-              return voiceEngine;
-            };
-            const result = await originalSynthesize('TEST', selectedVoice, {}, playbackGeneration, 'controller');
-            assert(result.length === 1 && result[0] === audio, 'CPU retry did not generate audio');
-            assert(cleared && terminated && cpuAttempts === 1, 'Failed GPU worker was not replaced exactly once');
-            cpu.synthesize = async () => [{ type: 'error', data: { error: 'CPU inference failed' } }];
-            let failure;
-            try {
-              await originalSynthesize('TEST', selectedVoice, {}, playbackGeneration, 'controller');
-            } catch (error) {
-              failure = error.message;
-            }
-            assert(failure === 'CPU inference failed', 'CPU failure was not surfaced');
-          } finally {
-            getVoiceEngine = savedGetVoiceEngine;
-            voiceEngine = savedEngine;
-            voiceEngineBackend = savedBackend;
-            voiceEnginePromise = savedPromise;
-            console.warn = savedWarn;
-          }
-        });
-
-        await test('Unsupported half-precision initialization retries the standard GPU model', async () => {
-          const savedWorker = window.Worker;
-          const savedPreference = preferredGpuDtype;
-          const savedEngine = voiceEngine;
-          const savedPromise = voiceEnginePromise;
-          const savedBackend = voiceEngineBackend;
-          const savedWarn = console.warn;
-          const savedGpu = Object.getOwnPropertyDescriptor(navigator, 'gpu');
-          const attempts = [];
-          class FakeWorker {
-            constructor(url, options) { void options.type; }
-            postMessage(message) {
-              if (message.type !== 'connect') return;
-              attempts.push(message.data.dtype);
-              queueMicrotask(() => {
-                if (message.data.dtype === 'fp16') this.onerror(new Error('unsupported'));
-                else this.onmessage({ data: { type: 'ready' } });
-              });
-            }
-            terminate() {}
-          }
-          try {
-            window.Worker = FakeWorker;
-            Object.defineProperty(navigator, 'gpu', { configurable: true, value: {} });
-            preferredGpuDtype = async () => 'fp16';
-            voiceEngine = null;
-            voiceEnginePromise = null;
-            voiceEngineBackend = null;
-            console.warn = () => {};
-            const engine = await getVoiceEngine({});
-            assert(engine.isConnected && engine.settings.dtypeWebgpu === 'q8' && attempts.join(',') === 'fp16,q8', 'Failed half-precision initialization did not retry q8');
-          } finally {
-            if (voiceEngine?.ww) voiceEngine.ww.terminate();
-            window.Worker = savedWorker;
-            if (savedGpu) Object.defineProperty(navigator, 'gpu', savedGpu);
-            else delete navigator.gpu;
-            preferredGpuDtype = savedPreference;
-            voiceEngine = savedEngine;
-            voiceEnginePromise = savedPromise;
-            voiceEngineBackend = savedBackend;
-            console.warn = savedWarn;
           }
         });
 
@@ -489,108 +410,25 @@
           assert(/blocked/i.test(failure), 'Blocked playback was not reported');
         });
 
-        await test('Voice worker reports unexpected synthesis failures', async () => {
-          const moduleCode = `
-            export const env = {};
-            export const LogLevel = { ERROR: 0 };
-            export class Tensor {}
-            export const StyleTextToSpeech2Model = { from_pretrained: async () => ({}) };
-            export const AutoTokenizer = { from_pretrained: async () => () => { throw new Error('test tokenizer failure'); } };
-          `;
-          const moduleURL = URL.createObjectURL(new Blob([moduleCode], { type: 'text/javascript' }));
-          const workerURL = new URL('assets/headtts/modules/worker-tts.mjs', document.baseURI);
-          workerURL.search = new URL(VOICE_ENGINE_URL, document.baseURI).search;
-          const worker = new Worker(workerURL, { type: 'module' });
-          const nextMessage = () => new Promise((resolve, reject) => {
-            const timer = setTimeout(() => reject(new Error('Voice worker did not respond')), 10000);
-            worker.onmessage = event => { clearTimeout(timer); resolve(event.data); };
-            worker.onerror = event => { clearTimeout(timer); reject(new Error(event.message)); };
-          });
+        await test('Long local speech streams without truncating phonemes', async () => {
+          const { FastVoiceClient } = await import(new URL(VOICE_ENGINE_URL, document.baseURI).href);
+          const { Language } = await import(new URL('assets/headtts/modules/language-en-gb.mjs', document.baseURI).href);
+          const language = new Language();
+          await language.loadDictionary(new URL('assets/headtts/dictionaries/en-gb.txt', document.baseURI).href);
+          const sentence = 'Tower, request taxi.';
+          const text = `${sentence} `.repeat(32).trim();
+          assert(language.generate([{ type: 'text', value: text }]).phonemes.length > 510, 'Long-message test did not exceed the model limit');
+          const client = new FastVoiceClient();
+          const context = new OfflineAudioContext(1, 1, 24000);
           try {
-            let response = nextMessage();
-            worker.postMessage({ type: 'connect', data: {
-              transformersModule: moduleURL, model: 'test', device: 'wasm', dtype: 'q8', voices: [], languages: [], trace: 0
-            } });
-            assert((await response).type === 'ready', 'Test voice worker did not start');
-            for (const id of [41, 42]) {
-              response = nextMessage();
-              worker.postMessage({ type: 'synthesize', id, data: {
-                language: 'en-us', input: [{ type: 'phonetic', value: 'hello' }], voice: 'test', speed: 1, audioEncoding: 'wav'
-              } });
-              const message = await response;
-              assert(message.type === 'error' && message.ref === id && /test tokenizer failure/.test(message.data.error), 'Worker did not report the failed request');
-            }
+            const short = await withVoiceTimeout(client.synthesize(sentence, 'fast_edwin', context), 30000);
+            let streamed = 0;
+            const long = await withVoiceTimeout(client.synthesize(text, 'fast_edwin', context, () => { streamed++; }), 60000);
+            const duration = chunks => chunks.reduce((sum, buffer) => sum + buffer.duration, 0);
+            assert(streamed === long.length && streamed > 1, 'Long speech was not streamed');
+            assert(duration(long) > duration(short) * 10, 'Long speech was truncated at the model limit');
           } finally {
-            worker.terminate();
-            URL.revokeObjectURL(moduleURL);
-          }
-        });
-
-        await test('Cancelling speech removes queued worker requests', async () => {
-          const moduleCode = `
-            const originalFetch = self.fetch;
-            self.fetch = (url, ...options) => String(url).startsWith('https://voice.invalid/')
-              ? new Promise(resolve => setTimeout(() => {
-                  self.postMessage({ type: 'test-voice-loaded' });
-                  resolve(new Response(new Float32Array(512).buffer));
-                }, 20))
-              : originalFetch(url, ...options);
-            let calls = 0;
-            export const env = {};
-            export const LogLevel = { ERROR: 0 };
-            export class Tensor {}
-            export const StyleTextToSpeech2Model = { from_pretrained: async () => async () => {
-              const call = ++calls;
-              self.postMessage({ type: 'test-inference-start', call });
-              if (call === 1) await new Promise(resolve => setTimeout(resolve, 300));
-              throw new Error('test inference failure');
-            } };
-            export const AutoTokenizer = { from_pretrained: async () => () => ({ input_ids: { size: 3 } }) };
-          `;
-          const moduleURL = URL.createObjectURL(new Blob([moduleCode], { type: 'text/javascript' }));
-          const workerURL = new URL('assets/headtts/modules/worker-tts.mjs', document.baseURI);
-          workerURL.search = new URL(VOICE_ENGINE_URL, document.baseURI).search;
-          const worker = new Worker(workerURL, { type: 'module' });
-          const errors = [];
-          let preloaded = false;
-          let timer;
-          try {
-            const completed = new Promise((resolve, reject) => {
-              timer = setTimeout(() => reject(new Error('Voice worker cancellation timed out')), 10000);
-              const send = id => worker.postMessage({ type: 'synthesize', id, data: {
-                language: 'en-us', input: [{ type: 'phonetic', value: 'hello' }], voice: 'test', speed: 1, audioEncoding: 'wav'
-              } });
-              worker.onerror = event => reject(new Error(event.message));
-              worker.onmessage = event => {
-                const message = event.data;
-                if (message.type === 'test-voice-loaded') {
-                  preloaded = true;
-                } else if (message.type === 'ready') {
-                  if (!preloaded) {
-                    reject(new Error('Voice worker became ready before the selected voice loaded'));
-                    return;
-                  }
-                  send(1);
-                } else if (message.type === 'test-inference-start' && message.call === 1) {
-                  send(2);
-                  worker.postMessage({ type: 'clear' });
-                  send(3);
-                } else if (message.type === 'error') {
-                  errors.push(message.ref);
-                  if (message.ref === 3) resolve();
-                }
-              };
-              worker.postMessage({ type: 'connect', data: {
-                transformersModule: moduleURL, model: 'test', device: 'wasm', dtype: 'q8', voices: ['test'], languages: [],
-                voiceURL: 'https://voice.invalid/', styleDim: 256, trace: 0
-              } });
-            });
-            await completed;
-            assert(errors.join(',') === '1,3', 'A cancelled queued request ran before the new request');
-          } finally {
-            clearTimeout(timer);
-            worker.terminate();
-            URL.revokeObjectURL(moduleURL);
+            client.close();
           }
         });
 
@@ -614,6 +452,44 @@
               assert(spoken[index].text === convertTextToICAOSpeech(text), `Audio order or text differs on card ${id}, turn ${index + 1}`);
               assert(spoken[index].voice === (line.dataset.speaker === 'PILOT' ? selectedPilotVoice : selectedVoice), `Wrong speaker voice on card ${id}`);
             });
+          }
+        });
+
+        await test('The dialogue button generates every real voice turn in order', async () => {
+          const savedActivate = activateAudio;
+          const savedSynthesize = synthesizeTurn;
+          const savedPlay = playAudioBuffer;
+          const context = new OfflineAudioContext(1, 1, 24000);
+          const card = findCard(6);
+          const expected = getCardDialogue(card);
+          const generated = [];
+          let audibleChunks = 0;
+          try {
+            speechCache.clear();
+            speechCacheBytes = 0;
+            activateAudio = () => Promise.resolve(context);
+            synthesizeTurn = async (text, voice, ...args) => {
+              generated.push({ text, voice });
+              return originalSynthesize(text, voice, ...args);
+            };
+            playAudioBuffer = async buffer => {
+              if (buffer.getChannelData(0).some(sample => Math.abs(sample) > 0.001)) audibleChunks++;
+            };
+            renderFlashcards([card]);
+            document.querySelector('[data-card-action="dialogue"]').click();
+            await activeSpeechTask;
+            assert(generated.length === expected.length && audibleChunks > 0, 'Real dialogue audio omitted a turn or contained no speech');
+            expected.forEach((turn, index) => {
+              assert(generated[index].text === convertTextToICAOSpeech(turn.text), `Real dialogue text changed at turn ${index + 1}`);
+              assert(generated[index].voice === (turn.speaker === 'PILOT' ? selectedPilotVoice : selectedVoice), `Real dialogue used the wrong voice at turn ${index + 1}`);
+            });
+            assert(/audio finished/i.test(document.getElementById('voice-feedback').textContent), 'Real dialogue did not finish');
+          } finally {
+            speechCache.clear();
+            speechCacheBytes = 0;
+            activateAudio = savedActivate;
+            synthesizeTurn = savedSynthesize;
+            playAudioBuffer = savedPlay;
           }
         });
 
@@ -671,7 +547,7 @@
             card.querySelector(`[data-card-action="${action}"]`).click();
             assert(/preparing independent voices/i.test(status.textContent), `No progress shown for ${action}`);
             await activeSpeechTask;
-            assert(/voices are ready/i.test(status.textContent) && spoken.length > 0, `${action} did not complete`);
+            assert(/audio finished/i.test(status.textContent) && spoken.length > 0, `${action} did not complete`);
           }
         });
 
@@ -734,41 +610,33 @@
           }
         });
 
-        await test('A partial accelerated message is not repeated on failure', async () => {
+        await test('A partial message is not repeated when later synthesis fails', async () => {
           const savedGetEngine = getVoiceEngine;
-          const savedEngine = voiceEngine;
-          const savedBackend = voiceEngineBackend;
-          let cpuAttempts = 0;
+          let calls = 0;
+          let streamed = 0;
           const buffer = { length: 10, numberOfChannels: 1, getChannelData: () => new Float32Array(10) };
           const engine = {
-            setup: async () => {},
-            synthesize: async (data, onMessage) => {
-              if (/Speedbird/.test(data.input)) {
-                const message = { type: 'audio', data: { audio: buffer } };
-                onMessage(message);
-                return [message];
+            preload: async () => {},
+            synthesize: async (text, voice, context, onChunk) => {
+              calls++;
+              if (/Speedbird/.test(text)) {
+                onChunk(buffer);
+                return [buffer];
               }
-              return [{ type: 'error', data: { error: 'Second part failed' } }];
+              throw new Error('Second part failed');
             }
           };
           try {
-            getVoiceEngine = async (context, cpuOnly = false) => {
-              if (cpuOnly) cpuAttempts++;
-              voiceEngine = engine;
-              voiceEngineBackend = 'webgpu';
-              return engine;
-            };
+            getVoiceEngine = async () => engine;
             let failure;
             try {
-              await originalSynthesize('Speedbird one zero niner, climb Flight Level two hundred.', 'bm_george', {}, playbackGeneration, 'controller', true, () => {});
+              await originalSynthesize('Speedbird one zero niner, climb Flight Level two hundred.', 'fast_edwin', {}, playbackGeneration, 'controller', true, () => { streamed++; });
             } catch (error) {
               failure = error.message;
             }
-            assert(failure === 'Second part failed' && cpuAttempts === 0, 'Partial speech was retried or its failure was hidden');
+            assert(failure === 'Second part failed' && calls === 2 && streamed === 1, 'Partial speech was retried or its failure was hidden');
           } finally {
             getVoiceEngine = savedGetEngine;
-            voiceEngine = savedEngine;
-            voiceEngineBackend = savedBackend;
           }
         });
 

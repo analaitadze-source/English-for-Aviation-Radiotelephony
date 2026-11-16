@@ -218,7 +218,7 @@
   <main class="flex-grow max-w-[1200px] w-full mx-auto p-4 sm:p-6 lg:p-8">
     <p class="mb-5 text-xs text-amber-300">Training examples only. Follow current local procedures, published instructions and ATC clearances.</p>
     <div class="mb-5 flex flex-wrap items-center gap-2">
-      <p id="voice-feedback" role="status" aria-live="polite" class="flex-1 min-w-0 break-words text-xs text-slate-400">Independent voices prepare when you open a card or scenario. First use downloads about 100–200 MB.</p>
+      <p id="voice-feedback" role="status" aria-live="polite" class="flex-1 min-w-0 break-words text-xs text-slate-400">Fast local voices prepare in the background. First use requires a voice download.</p>
       <button id="voice-stop-button" type="button" onclick="stopVoicePlayback()" class="hidden px-3 py-1 bg-slate-800 border border-slate-700 text-slate-200 text-xs">Stop audio</button>
     </div>
 
@@ -430,7 +430,7 @@
           <button type="button" onclick="speakICAOText('Ground, Speedbird one zero nine, request pushback.', 'PILOT')" class="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs">Preview</button>
         </div>
       </div>
-      <p class="text-xs text-slate-400">British George (controller) and Emma (pilot) are the defaults. Voices are generated locally. First use downloads about 100–200 MB; dialogue text is not sent to a speech server.</p>
+      <p class="text-xs text-slate-400">British Edwin (controller) and Maeve (pilot) are the defaults. Speech is generated locally. Each new voice requires a first-use download; dialogue text is not sent to a speech server.</p>
       <p id="voice-modal-status" class="break-words text-xs text-slate-400" aria-live="polite"></p>
       <div class="flex justify-end gap-2">
         <button id="voice-modal-stop" type="button" onclick="stopVoicePlayback()" class="hidden px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs">Stop audio</button>
@@ -470,32 +470,26 @@
     /* =========================================================================
        1. VOICE & SPEECH ENGINE (ICAO & NATO PHONETIC STANDARDS)
        ========================================================================= */
-    const VOICE_ENGINE_URL = './assets/headtts/modules/headtts.mjs?v=fast-4';
+    const VOICE_ENGINE_URL = './assets/fast-tts/client.mjs?v=fast-1';
     const INDEPENDENT_VOICES = [
-      { id: 'af_bella', name: 'Bella', accent: 'American' },
-      { id: 'af_heart', name: 'Heart', accent: 'American' },
-      { id: 'af_nicole', name: 'Nicole', accent: 'American' },
-      { id: 'af_sarah', name: 'Sarah', accent: 'American' },
-      { id: 'am_adam', name: 'Adam', accent: 'American' },
-      { id: 'am_fenrir', name: 'Fenrir', accent: 'American' },
-      { id: 'am_michael', name: 'Michael', accent: 'American' },
-      { id: 'am_onyx', name: 'Onyx', accent: 'American' },
-      { id: 'bf_alice', name: 'Alice', accent: 'British' },
-      { id: 'bf_emma', name: 'Emma', accent: 'British' },
-      { id: 'bf_isabella', name: 'Isabella', accent: 'British' },
-      { id: 'bf_lily', name: 'Lily', accent: 'British' },
-      { id: 'bm_daniel', name: 'Daniel', accent: 'British' },
-      { id: 'bm_fable', name: 'Fable', accent: 'British' },
-      { id: 'bm_george', name: 'George', accent: 'British' },
-      { id: 'bm_lewis', name: 'Lewis', accent: 'British' }
+      { id: 'fast_everly', name: 'Everly', accent: 'American', gender: 'Female' },
+      { id: 'fast_hadley', name: 'Hadley', accent: 'American', gender: 'Female' },
+      { id: 'fast_wren', name: 'Wren', accent: 'American', gender: 'Female' },
+      { id: 'fast_miles', name: 'Miles', accent: 'American', gender: 'Male' },
+      { id: 'fast_trevor', name: 'Trevor', accent: 'American', gender: 'Male' },
+      { id: 'fast_bryony', name: 'Bryony', accent: 'British', gender: 'Female' },
+      { id: 'fast_maeve', name: 'Maeve', accent: 'British', gender: 'Female' },
+      { id: 'fast_edwin', name: 'Edwin', accent: 'British', gender: 'Male' },
+      { id: 'fast_fable', name: 'Fable', accent: 'British', gender: 'Male' },
+      { id: 'fast_hugh', name: 'Hugh', accent: 'British', gender: 'Male' }
     ];
-    let selectedVoice = 'bm_george';
-    let selectedPilotVoice = 'bf_emma';
+    let selectedVoice = 'fast_edwin';
+    let selectedPilotVoice = 'fast_maeve';
     let audioContext = null;
+    let preparationAudioContext = null;
     let voiceEngine = null;
     let voiceEnginePromise = null;
-    let voiceEngineBackend = null;
-    let voicePreparing = false;
+    let voicePreparation = null;
     let playbackGeneration = 0;
     let voiceBusy = false;
     let activeVoiceStatus = null;
@@ -521,7 +515,7 @@
           INDEPENDENT_VOICES.filter(voice => voice.accent === accent).forEach(voice => {
             const option = document.createElement('option');
             option.value = voice.id;
-            option.textContent = `${accent} - ${voice.name}`;
+            option.textContent = `${accent} - ${voice.name} (${voice.gender})`;
             group.appendChild(option);
           });
           select.appendChild(group);
@@ -540,6 +534,7 @@
       }
       selectedVoice = controller;
       selectedPilotVoice = pilot;
+      prepareVoiceEngine();
     }
 
     function openVoiceSettings() {
@@ -679,10 +674,6 @@
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
       if (!AudioContextClass) throw new Error('This browser does not support audio playback.');
       if (!audioContext || audioContext.state === 'closed') {
-        if (voiceEngine && voiceEngine.ww) voiceEngine.ww.terminate();
-        voiceEngine = null;
-        voiceEnginePromise = null;
-        voiceEngineBackend = null;
         audioContext = new AudioContextClass();
       }
       const context = audioContext;
@@ -701,61 +692,17 @@
       return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
     }
 
-    async function preferredGpuDtype(gpu = navigator.gpu, connection = navigator.connection) {
-      if (!gpu) return 'q8';
-      try {
-        const adapter = await gpu.requestAdapter();
-        return adapter && adapter.features.has('shader-f16') && shouldPrepareVoice(connection) ? 'fp16' : 'q8';
-      } catch (error) {
-        console.warn('Unable to inspect voice acceleration:', error);
-        return 'q8';
+    function getVoiceEngine() {
+      if (voiceEngine && voiceEngine.closed) {
+        voiceEngine = null;
+        voiceEnginePromise = null;
       }
-    }
-
-    function getVoiceEngine(context, cpuOnly = false) {
       if (voiceEngine) return Promise.resolve(voiceEngine);
       if (!voiceEnginePromise) {
-        voiceEnginePromise = (async () => {
-          const { HeadTTS } = await import(VOICE_ENGINE_URL);
-          const gpuDtype = cpuOnly ? null : await preferredGpuDtype();
-          const candidates = cpuOnly ? [{ backend: 'wasm', dtype: 'q8' }] : [
-            { backend: 'webgpu', dtype: gpuDtype },
-            ...(gpuDtype === 'fp16' ? [{ backend: 'webgpu', dtype: 'q8' }] : []),
-            { backend: 'wasm', dtype: 'q8' }
-          ];
-          for (const [index, { backend, dtype }] of candidates.entries()) {
-            const voices = [...new Set([selectedVoice, selectedPilotVoice])];
-            const engine = new HeadTTS({
-              endpoints: [backend],
-              dtypeWebgpu: dtype,
-              dtypeWasm: 'q8',
-              audioCtx: context,
-              languages: [...new Set(voices.map(voice => voice.startsWith('b') ? 'en-gb' : 'en-us'))],
-              voices,
-              splitLength: 160
-            });
-            let lastMegabytes = 0;
-            try {
-              await withVoiceTimeout(engine.connect(null, event => {
-                if (!voiceBusy && !voicePreparing) return;
-                const megabytes = Math.floor(event.loaded / (1024 * 1024));
-                if (megabytes >= lastMegabytes + 5) {
-                  lastMegabytes = megabytes;
-                  setVoiceFeedback(`Downloading independent voice data: ${megabytes} MB received.`);
-                }
-              }), 180000);
-              if (!engine.isConnected) throw new Error('The independent voice engine could not start.');
-              voiceEngine = engine;
-              voiceEngineBackend = backend;
-              return engine;
-            } catch (error) {
-              if (engine.ww) engine.ww.terminate();
-              if (index === candidates.length - 1) throw error;
-              console.warn('Voice engine could not start; trying another backend:', error);
-              if (voiceBusy || voicePreparing) setVoiceFeedback('Voice acceleration unavailable. Trying another voice backend; this can take longer.');
-            }
-          }
-        })().catch(error => {
+        voiceEnginePromise = import(VOICE_ENGINE_URL).then(({ FastVoiceClient }) => {
+          voiceEngine = new FastVoiceClient();
+          return voiceEngine;
+        }).catch(error => {
           voiceEnginePromise = null;
           throw error;
         });
@@ -768,29 +715,36 @@
     }
 
     function prepareVoiceEngine() {
-      if (voiceBusy || voicePreparing || voiceEngine || voiceEnginePromise ||
-          !shouldPrepareVoice()) return;
-      voicePreparing = true;
-      setVoiceFeedback('Preparing independent voices in the background. First use downloads about 100–200 MB.');
-      let activation;
-      try {
-        activation = activateAudio();
-      } catch (error) {
-        voicePreparing = false;
-        console.error('Voice preparation failed:', error);
-        setVoiceFeedback(`Voice preparation failed: ${error.message || error}. Try an audio button.`, true);
-        return;
-      }
-      return Promise.resolve(activation)
-        .then(context => getVoiceEngine(context))
+      if (!shouldPrepareVoice()) return Promise.resolve();
+      const voices = [...new Set([selectedVoice, selectedPilotVoice])];
+      const key = [...voices].sort().join(',');
+      if (voicePreparation && voicePreparation.key === key) return voicePreparation.promise;
+      const preparation = { key, promise: null };
+      voicePreparation = preparation;
+      if (!voiceBusy) setVoiceFeedback('Preparing fast local voices in the background. First use downloads voice data.');
+      preparation.promise = getVoiceEngine()
+        .then(engine => withVoiceTimeout(Promise.all(voices.map(voice => engine.preload(voice))), 120000))
         .then(() => {
-          if (!voiceBusy) setVoiceFeedback('Independent voices are ready. Speech is generated on your device.');
+          if (voicePreparation === preparation && !voiceBusy) setVoiceFeedback('Independent voices are ready. Speech is generated on your device.');
         })
         .catch(error => {
           console.error('Voice preparation failed:', error);
-          if (!voiceBusy) setVoiceFeedback(`Voice preparation failed: ${error.message || error}. Try an audio button.`, true);
+          if (voicePreparation === preparation && !voiceBusy) setVoiceFeedback(`Voice preparation failed: ${error.message || error}. Try an audio button.`, true);
         })
-        .finally(() => { voicePreparing = false; });
+        .finally(() => {
+          if (voicePreparation === preparation) {
+            voicePreparation = null;
+          }
+        });
+      return preparation.promise;
+    }
+
+    function getPreparationAudioContext() {
+      if (audioContext && audioContext.state !== 'closed') return audioContext;
+      const OfflineContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+      if (!OfflineContext) return null;
+      if (!preparationAudioContext) preparationAudioContext = new OfflineContext(1, 1, 24000);
+      return preparationAudioContext;
     }
 
     function cachedSpeech(text, voice) {
@@ -838,66 +792,42 @@
     async function synthesizeTurn(text, voice, context, generation, role, showStatus = true, onChunk = null) {
       const cached = cachedSpeech(text, voice);
       if (cached) return cached;
-      let engine = await getVoiceEngine(context);
+      const engine = await getVoiceEngine();
       if (generation !== playbackGeneration) return [];
-      if (showStatus) setVoiceFeedback(`Generating ${role} audio on your device; this may take a moment...`);
-      let emitted = false;
-      const generate = async currentEngine => {
-        const language = voice.startsWith('b') ? 'en-gb' : 'en-us';
-        await currentEngine.setup({ voice, language, speed: 0.95, audioEncoding: 'wav' });
-        if (generation !== playbackGeneration) return [];
-        const requests = voiceTextParts(text).map(part => currentEngine.synthesize({ input: part }, message => {
-          if (message.type === 'audio' && message.data?.audio && onChunk && generation === playbackGeneration) {
-            emitted = true;
-            onChunk(message.data.audio);
-          }
-        }).then(messages => {
-          const failure = messages.find(message => message.type === 'error');
-          if (failure) throw new Error(failure.data?.error || 'Speech generation failed.');
-          return messages;
-        }));
-        const messages = (await withVoiceTimeout(Promise.all(requests), voiceEngineBackend === 'webgpu' ? 45000 : 180000)).flat();
-        const buffers = messages.filter(message => message.type === 'audio').map(message => message.data.audio);
-        if (!buffers.length || buffers.some(buffer => !buffer)) throw new Error('No speech audio was generated.');
-        if (generation === playbackGeneration) cacheSpeech(text, voice, buffers);
-        return buffers;
-      };
-      try {
-        return await generate(engine);
-      } catch (error) {
-        if (generation !== playbackGeneration) return [];
-        if (emitted || voiceEngine !== engine || voiceEngineBackend !== 'webgpu') throw error;
-        console.warn('Accelerated voice generation failed; trying CPU:', error);
-        engine.clear();
-        if (engine.ww) engine.ww.terminate();
-        voiceEngine = null;
-        voiceEnginePromise = null;
-        voiceEngineBackend = null;
-        setVoiceFeedback('Accelerated voice failed. Trying CPU voices; this can take longer.');
-        engine = await getVoiceEngine(context, true);
-        if (generation !== playbackGeneration) return [];
-        if (showStatus) setVoiceFeedback(`Generating ${role} audio on your device; this may take a moment...`);
-        return generate(engine);
-      }
+      if (showStatus) setVoiceFeedback(`Preparing ${role} voice. First use may download voice data...`);
+      await withVoiceTimeout(engine.preload(voice), 120000);
+      if (generation !== playbackGeneration) return [];
+      if (showStatus) setVoiceFeedback(`Generating ${role} audio on your device...`);
+      const requests = voiceTextParts(text).map(part => engine.synthesize(part, voice, context, buffer => {
+        if (onChunk && generation === playbackGeneration) onChunk(buffer);
+      }));
+      const buffers = (await withVoiceTimeout(Promise.all(requests), 120000)).flat();
+      if (!buffers.length && generation !== playbackGeneration) return [];
+      if (!buffers.length || buffers.some(buffer => !buffer)) throw new Error('No speech audio was generated.');
+      if (generation === playbackGeneration) cacheSpeech(text, voice, buffers);
+      return buffers;
     }
 
     function prepareLikelySpeech(turns, isRelevant, preparation = null) {
       const revision = ++speechPreparationRevision;
       const generation = playbackGeneration;
       const voices = { ATC: selectedVoice, PILOT: selectedPilotVoice };
+      if (!shouldPrepareVoice()) return;
       setTimeout(async () => {
         try {
           if (preparation) await preparation;
-          else if (voiceEnginePromise) await voiceEnginePromise;
+          else if (voicePreparation) await voicePreparation.promise;
           if (voiceBusy) await activeSpeechTask;
+          const context = getPreparationAudioContext();
+          if (!context) return;
           for (const turn of turns) {
             if (revision !== speechPreparationRevision || generation !== playbackGeneration || voiceBusy ||
                 !isRelevant() || selectedVoice !== voices.ATC || selectedPilotVoice !== voices.PILOT ||
-                !voiceEngine || voiceEngineBackend !== 'webgpu' || voiceEngine.settings.dtypeWebgpu !== 'fp16') return;
+                !voiceEngine || voiceEngine.closed) return;
             const text = convertTextToICAOSpeech(turn.text);
             const voice = voices[turn.speaker];
             if (!cachedSpeech(text, voice)) {
-              const promise = synthesizeTurn(text, voice, audioContext, generation, turn.speaker === 'PILOT' ? 'pilot' : 'controller', false);
+              const promise = synthesizeTurn(text, voice, context, generation, turn.speaker === 'PILOT' ? 'pilot' : 'controller', false);
               const pending = { text, voice, promise };
               backgroundSpeech = pending;
               try {
@@ -913,7 +843,7 @@
             setVoiceFeedback('Audio could not be prepared in advance. Use the audio button to retry.', true);
           }
         }
-      }, 500);
+      }, 0);
     }
 
     async function playAudioBuffer(buffer, context, generation) {
@@ -986,7 +916,7 @@
             }
           };
           state.complete.then(prepareNext);
-          setVoiceFeedback(`Generating ${role} audio on your device; this may take a moment...`);
+          setVoiceFeedback(`Preparing ${role} voice...`);
           let bufferIndex = 0;
           while (true) {
             if (generation !== playbackGeneration) return;
@@ -999,20 +929,15 @@
               prepareNext();
               break;
             } else {
-              setVoiceFeedback(`Generating ${role} audio on your device; this may take a moment...`);
               await new Promise(resolve => { state.wake = resolve; });
             }
           }
           current = next;
         }
         setVoiceBusy(false);
-        setVoiceFeedback('Independent voices are ready. Speech is generated on your device.');
+        setVoiceFeedback('Audio finished. Speech is generated on your device.');
       } catch (error) {
         if (generation !== playbackGeneration) return;
-        if (voiceEngine && voiceEngine.ww) voiceEngine.ww.terminate();
-        voiceEngine = null;
-        voiceEnginePromise = null;
-        voiceEngineBackend = null;
         setVoiceBusy(false);
         console.error('Voice playback failed:', error);
         setVoiceFeedback(`Voice playback failed: ${error.message || error}. Check your connection and try again.`, true);
@@ -1046,7 +971,7 @@
       if (activeVoiceStatus && activeVoiceStatus !== statusElement) activeVoiceStatus.textContent = '';
       activeVoiceStatus = statusElement;
       setVoiceBusy(true);
-      setVoiceFeedback('Preparing independent voices. First use downloads about 100–200 MB and may take a minute.');
+      setVoiceFeedback('Preparing independent voices. First use downloads voice data and may take a moment.');
       let activation;
       try {
         activation = activateAudio();
@@ -2725,6 +2650,7 @@
       renderFlashcards(flashcardsData);
       renderVocabularyList();
       populateScenarioDropdown();
+      prepareVoiceEngine();
     };
   </script>
 </body>
