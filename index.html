@@ -169,7 +169,7 @@
       <!-- MAIN TABS NAVIGATION -->
       <nav class="hidden min-[1600px]:flex items-center space-x-1 font-mono text-sm whitespace-nowrap">
         <button onclick="switchTab('flashcards')" id="tab-flashcards" class="nav-tab px-4 py-2 rounded-lg flex items-center gap-2 transition text-cyan-400 bg-cyan-950/40 border border-cyan-500/40 font-bold">
-          <i class="fa-solid fa-layer-group"></i> Flashcards (<span id="flashcard-count-badge">70</span>)
+          <i class="fa-solid fa-layer-group"></i> Flashcards (<span id="flashcard-count-badge">99</span>)
         </button>
         <button onclick="switchTab('matching')" id="tab-matching" class="nav-tab px-4 py-2 rounded-lg flex items-center gap-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800">
           <i class="fa-solid fa-puzzle-piece"></i> Matching Drills
@@ -1137,7 +1137,37 @@
       67: ["climb via a SID", "comply with SID restrictions"],
       68: ["descend via a STAR", "read back the QNH"],
       69: ["request a runway backtrack", "read back a backtrack clearance"],
-      70: ["cancel a distress call", "report that the emergency has ended"]
+      70: ["cancel a distress call", "report that the emergency has ended"],
+      71: ["confirm readiness", "give an affirmative response"],
+      72: ["report not ready", "give a negative response"],
+      73: ["correct a readback", "repeat the assigned heading"],
+      74: ["verify a transponder code", "confirm the selected code"],
+      75: ["conduct a radio check", "assess radio readability"],
+      76: ["repeat an instruction", "request message repetition"],
+      77: ["request engine start", "obtain start-up approval"],
+      78: ["hold position", "stop ground movement"],
+      79: ["follow ground traffic", "taxi to a holding point"],
+      80: ["report departure readiness", "wait for takeoff clearance"],
+      81: ["receive a departure instruction", "turn to an assigned heading"],
+      82: ["stop a climb", "maintain the revised flight level"],
+      83: ["stop a descent", "maintain the revised flight level"],
+      84: ["maintain the present heading", "follow a radar vector"],
+      85: ["turn left to a heading", "read back a heading"],
+      86: ["begin descent when ready", "read back a descent clearance"],
+      87: ["expedite a descent", "comply with an assigned level"],
+      88: ["reduce airspeed", "comply with a speed instruction"],
+      89: ["resume normal speed", "cancel a speed restriction"],
+      90: ["identify traffic visually", "report traffic in sight"],
+      91: ["report traffic not in sight", "scan for traffic"],
+      92: ["request descent", "receive a descent clearance"],
+      93: ["request a weather deviation", "return to the cleared route"],
+      94: ["report unable to comply", "avoid adverse weather"],
+      95: ["anticipate an approach", "await approach clearance"],
+      96: ["report established on an approach", "read back an approach clearance"],
+      97: ["report final approach", "continue the approach"],
+      98: ["initiate a go-around", "acknowledge a go-around instruction"],
+      99: ["report the runway vacated", "taxi to a parking stand"],
+      100: ["advise minimum fuel", "monitor fuel reserves"]
     };
 
     const DEFAULT_CARD_COMPOUND_NOUNS = {
@@ -1209,7 +1239,37 @@
       67: ["departure route", "level restriction"],
       68: ["arrival route", "altimeter setting"],
       69: ["runway backtrack", "backtrack clearance"],
-      70: ["distress call", "emergency condition"]
+      70: ["distress call", "emergency condition"],
+      71: ["affirmative response"],
+      72: ["negative response"],
+      73: ["corrected readback"],
+      74: ["transponder setting"],
+      75: ["radio check", "signal readability"],
+      76: ["repeated transmission"],
+      77: ["start-up approval"],
+      78: ["holding instruction"],
+      79: ["taxi route", "ground traffic"],
+      80: ["departure readiness"],
+      81: ["departure heading", "altimeter setting"],
+      82: ["climb restriction"],
+      83: ["descent restriction"],
+      84: ["heading instruction"],
+      85: ["assigned heading"],
+      86: ["descent clearance"],
+      87: ["descent rate"],
+      88: ["speed instruction"],
+      89: ["speed restriction"],
+      90: ["traffic information"],
+      91: ["traffic advisory"],
+      92: ["descent request"],
+      93: ["weather deviation"],
+      94: ["amended heading"],
+      95: ["expected approach"],
+      96: ["approach clearance"],
+      97: ["final approach"],
+      98: ["go-around instruction"],
+      99: ["runway vacated report"],
+      100: ["fuel advisory"]
     };
 
     const DEFAULT_FLASHCARDS = [
@@ -1295,7 +1355,39 @@
       { id: 67, cat: "DEPARTURE", phrase: "CLIMB VIA SID TO FL240", icaoAudio: "CLIMB VIA Standard Instrument Departure TO Flight Level two four zero", meaning: "Follow the SID lateral route and applicable level and speed restrictions while climbing to FL240.", atcLine: "Lufthansa 421, CLIMB VIA SID TO Flight Level two four zero.", pilotLine: "CLIMB VIA SID TO Flight Level two four zero, Lufthansa 421.", svgType: "GENERAL" },
       { id: 68, cat: "APPROACH", phrase: "DESCEND VIA STAR TO 4000 FEET", icaoAudio: "DESCEND VIA Standard Terminal Arrival TO four thousand FEET", meaning: "Follow the STAR lateral route and applicable level and speed restrictions while descending to 4,000 ft QNH.", atcLine: "KLM 671, DESCEND VIA STAR TO four thousand FEET QNH 1012.", pilotLine: "DESCEND VIA STAR TO four thousand FEET QNH 1012, KLM 671.", svgType: "HOLDING" },
       { id: 69, cat: "AIRPORT", phrase: "REQUEST BACKTRACK RUNWAY 09R", icaoAudio: "REQUEST BACKTRACK Runway zero niner Right", meaning: "Taxiing on active runway in opposite direction of takeoff to reach departure threshold.", firstSpeaker: "PILOT", pilotLine: "Tower, G-ABCD, REQUEST BACKTRACK Runway zero niner Right.", atcLine: "G-ABCD, BACKTRACK Runway zero niner Right.", followUp: [{ speaker: "PILOT", text: "BACKTRACK Runway zero niner Right, G-ABCD." }], svgType: "RUNWAY" },
-      { id: 70, cat: "EMERGENCY", phrase: "CANCEL MAYDAY", icaoAudio: "CANCEL MAYDAY", meaning: "Pilot notification that the distress condition has ended. An extinguished fire alone does not establish that the aircraft is no longer in distress.", firstSpeaker: "PILOT", pilotLine: "Tower, Speedbird 44, fire extinguished, CANCEL MAYDAY.", atcLine: "Speedbird 44, ROGER MAYDAY CANCELLED.", svgType: "MAYDAY" }
+      { id: 70, cat: "EMERGENCY", phrase: "CANCEL MAYDAY", icaoAudio: "CANCEL MAYDAY", meaning: "Pilot notification that the distress condition has ended. An extinguished fire alone does not establish that the aircraft is no longer in distress.", firstSpeaker: "PILOT", pilotLine: "Tower, Speedbird 44, fire extinguished, CANCEL MAYDAY.", atcLine: "Speedbird 44, ROGER MAYDAY CANCELLED.", svgType: "MAYDAY" },
+
+      // 71-100 Additional radiotelephony practice
+      { id: 71, cat: "GENERAL", phrase: "AFFIRM", icaoAudio: "AFFIRM", meaning: "Yes. An affirmative answer does not itself constitute an ATC clearance.", atcLine: "Speedbird 109, confirm ready for departure.", pilotLine: "AFFIRM, Speedbird 109.", svgType: "GENERAL" },
+      { id: 72, cat: "GENERAL", phrase: "NEGATIVE", icaoAudio: "NEGATIVE", meaning: "No, or that a statement is not correct, according to the context.", atcLine: "G-ABCD, confirm ready for departure.", pilotLine: "NEGATIVE, G-ABCD.", svgType: "GENERAL" },
+      { id: 73, cat: "GENERAL", phrase: "CORRECTION", icaoAudio: "CORRECTION", meaning: "An error was made in the transmission; the corrected information follows.", atcLine: "Speedbird 109, turn right heading 040.", pilotLine: "Turn right heading 050, CORRECTION, turn right heading 040, Speedbird 109.", followUp: [{ speaker: "ATC", text: "Speedbird 109, readback correct." }], svgType: "GENERAL" },
+      { id: 74, cat: "GENERAL", phrase: "CONFIRM SQUAWK 4253", icaoAudio: "CONFIRM SQUAWK four two five three", meaning: "Request verification of the transponder code currently selected.", atcLine: "Speedbird 109, CONFIRM SQUAWK 4253.", pilotLine: "SQUAWKING 4253, Speedbird 109.", svgType: "TOWER" },
+      { id: 75, cat: "GENERAL", phrase: "RADIO CHECK", icaoAudio: "RADIO CHECK", meaning: "Request an assessment of radio transmission readability; readability five means perfectly readable.", firstSpeaker: "PILOT", pilotLine: "Ground, G-ABCD, RADIO CHECK.", atcLine: "G-ABCD, readability FIVE.", followUp: [{ speaker: "PILOT", text: "G-ABCD." }], svgType: "TOWER" },
+      { id: 76, cat: "GENERAL", phrase: "I SAY AGAIN", icaoAudio: "I SAY AGAIN", meaning: "The speaker is repeating the message or the specified part.", atcLine: "Speedbird 109, turn left heading 270.", pilotLine: "SAY AGAIN heading, Speedbird 109.", followUp: [{ speaker: "ATC", text: "Speedbird 109, I SAY AGAIN, turn left heading 270." }, { speaker: "PILOT", text: "Turn left heading 270, Speedbird 109." }], svgType: "GENERAL" },
+      { id: 77, cat: "AIRPORT", phrase: "REQUEST START UP", icaoAudio: "REQUEST START UP", meaning: "Request approval to start engines where required; follow local and operator procedures.", firstSpeaker: "PILOT", pilotLine: "Ground, G-ABCD, stand 4, REQUEST START UP.", atcLine: "G-ABCD, START UP APPROVED.", followUp: [{ speaker: "PILOT", text: "START UP APPROVED, G-ABCD." }], svgType: "TOWER" },
+      { id: 78, cat: "AIRPORT", phrase: "HOLD POSITION", icaoAudio: "HOLD POSITION", meaning: "Stop ground movement and remain at the present position until further instructed.", atcLine: "G-ABCD, HOLD POSITION.", pilotLine: "HOLDING, G-ABCD.", svgType: "RUNWAY" },
+      { id: 79, cat: "AIRPORT", phrase: "FOLLOW THE AIRCRAFT AHEAD", icaoAudio: "FOLLOW THE AIRCRAFT AHEAD", meaning: "Follow the identified ground traffic along the assigned taxi route; runway entry or crossing still requires authorization.", atcLine: "Speedbird 109, follow Boeing 737 ahead, taxi to holding point Runway 27 via Alfa.", pilotLine: "Follow Boeing 737 ahead, taxi to holding point Runway 27 via Alfa, Speedbird 109.", svgType: "RUNWAY" },
+      { id: 80, cat: "AIRPORT", phrase: "REPORT READY FOR DEPARTURE", icaoAudio: "REPORT READY FOR DEPARTURE", meaning: "Tell ATC when ready for departure. This is not a takeoff clearance.", atcLine: "G-ABCD, REPORT READY FOR DEPARTURE.", pilotLine: "WILCO, G-ABCD.", followUp: [{ speaker: "PILOT", text: "Tower, G-ABCD, ready for departure Runway 27." }, { speaker: "ATC", text: "G-ABCD, ROGER." }], svgType: "TOWER" },
+      { id: 81, cat: "DEPARTURE", phrase: "AFTER DEPARTURE TURN LEFT HEADING 270", icaoAudio: "AFTER DEPARTURE TURN LEFT HEADING two seven zero", meaning: "After departure, turn to the assigned heading. This instruction does not itself authorize takeoff.", atcLine: "Speedbird 109, after departure TURN LEFT HEADING 270, climb to four thousand feet, QNH 1016.", pilotLine: "After departure TURN LEFT HEADING 270, climb to four thousand feet, QNH 1016, Speedbird 109.", svgType: "GENERAL" },
+      { id: 82, cat: "ENROUTE", phrase: "STOP CLIMB AT FL100", icaoAudio: "STOP CLIMB AT Flight Level one hundred", meaning: "Stop the climb at the newly assigned flight level instead of continuing to the previous level.", atcLine: "Speedbird 109, STOP CLIMB AT FL100.", pilotLine: "STOP CLIMB AT FL100, Speedbird 109.", svgType: "ALTIMETER" },
+      { id: 83, cat: "ENROUTE", phrase: "STOP DESCENT AT FL120", icaoAudio: "STOP DESCENT AT Flight Level one two zero", meaning: "Stop the descent at the newly assigned flight level instead of continuing to the previous level.", atcLine: "Lufthansa 421, STOP DESCENT AT FL120.", pilotLine: "STOP DESCENT AT FL120, Lufthansa 421.", svgType: "ALTIMETER" },
+      { id: 84, cat: "ENROUTE", phrase: "MAINTAIN PRESENT HEADING", icaoAudio: "MAINTAIN PRESENT HEADING", meaning: "Continue on the current heading until further instructed; it does not change the assigned level.", atcLine: "Speedbird 109, MAINTAIN PRESENT HEADING.", pilotLine: "MAINTAIN PRESENT HEADING, Speedbird 109.", svgType: "TOWER" },
+      { id: 85, cat: "ENROUTE", phrase: "TURN LEFT HEADING 270", icaoAudio: "TURN LEFT HEADING two seven zero", meaning: "Turn left to the assigned magnetic heading of 270 degrees.", atcLine: "Speedbird 109, TURN LEFT HEADING 270.", pilotLine: "TURN LEFT HEADING 270, Speedbird 109.", svgType: "GENERAL" },
+      { id: 86, cat: "ENROUTE", phrase: "WHEN READY DESCEND TO FL150", icaoAudio: "WHEN READY DESCEND TO Flight Level one five zero", meaning: "Descent to the assigned flight level is cleared to begin when the crew is ready.", atcLine: "Lufthansa 421, WHEN READY DESCEND TO FL150.", pilotLine: "WHEN READY DESCEND TO FL150, Lufthansa 421.", svgType: "ALTIMETER" },
+      { id: 87, cat: "ENROUTE", phrase: "DESCEND TO FL100, EXPEDITE DESCENT", icaoAudio: "DESCEND TO Flight Level one hundred, EXPEDITE DESCENT", meaning: "Descend promptly to the assigned level at an increased rate if able; advise ATC if unable.", atcLine: "Speedbird 109, DESCEND TO FL100, EXPEDITE DESCENT.", pilotLine: "DESCEND TO FL100, EXPEDITING DESCENT, Speedbird 109.", svgType: "ALTIMETER" },
+      { id: 88, cat: "ENROUTE", phrase: "REDUCE SPEED TO 210 KNOTS", icaoAudio: "REDUCE SPEED TO two one zero KNOTS", meaning: "Reduce to and maintain the assigned speed until ATC changes the instruction.", atcLine: "Speedbird 109, REDUCE SPEED TO 210 KNOTS.", pilotLine: "REDUCE SPEED TO 210 KNOTS, Speedbird 109.", svgType: "GENERAL" },
+      { id: 89, cat: "ENROUTE", phrase: "RESUME NORMAL SPEED", icaoAudio: "RESUME NORMAL SPEED", meaning: "The assigned ATC speed restriction is no longer required; other applicable limits still apply.", atcLine: "Speedbird 109, RESUME NORMAL SPEED.", pilotLine: "RESUME NORMAL SPEED, Speedbird 109.", svgType: "GENERAL" },
+      { id: 90, cat: "ENROUTE", phrase: "TRAFFIC IN SIGHT", icaoAudio: "TRAFFIC IN SIGHT", meaning: "The pilot reports that the notified traffic is visible; this does not by itself transfer separation responsibility.", atcLine: "Speedbird 109, traffic one o'clock, five miles, crossing left to right, one thousand feet above.", pilotLine: "TRAFFIC IN SIGHT, Speedbird 109.", svgType: "TOWER" },
+      { id: 91, cat: "ENROUTE", phrase: "NEGATIVE CONTACT", icaoAudio: "NEGATIVE CONTACT", meaning: "In response to traffic information, the pilot has not visually acquired the reported aircraft.", atcLine: "Lufthansa 421, traffic two o'clock, six miles, one thousand feet above.", pilotLine: "NEGATIVE CONTACT, Lufthansa 421.", followUp: [{ speaker: "ATC", text: "Lufthansa 421, ROGER." }], svgType: "TOWER" },
+      { id: 92, cat: "ENROUTE", phrase: "REQUEST DESCENT", icaoAudio: "REQUEST DESCENT", meaning: "Ask ATC for descent; remain at the cleared level until a descent clearance is received.", firstSpeaker: "PILOT", pilotLine: "Control, Lufthansa 421, REQUEST DESCENT.", atcLine: "Lufthansa 421, DESCEND TO FL160.", followUp: [{ speaker: "PILOT", text: "DESCEND TO FL160, Lufthansa 421." }], svgType: "ALTIMETER" },
+      { id: 93, cat: "WEATHER", phrase: "REQUEST WEATHER DEVIATION", icaoAudio: "REQUEST DEVIATION LEFT OF TRACK DUE WEATHER", meaning: "Request a route deviation to avoid weather and read back any clearance and limits given.", firstSpeaker: "PILOT", pilotLine: "Control, Swiss 312, REQUEST DEVIATION LEFT OF TRACK DUE WEATHER.", atcLine: "Swiss 312, deviation up to 20 miles left of track approved, when able proceed direct MERLU.", followUp: [{ speaker: "PILOT", text: "Deviation up to 20 miles left of track approved, when able direct MERLU, Swiss 312." }], svgType: "TOWER" },
+      { id: 94, cat: "WEATHER", phrase: "UNABLE DUE WEATHER", icaoAudio: "UNABLE DUE WEATHER", meaning: "Advise ATC that the instruction cannot be complied with because of weather, and clarify a safe alternative.", atcLine: "Speedbird 109, turn right heading 090.", pilotLine: "UNABLE heading 090 DUE WEATHER, Speedbird 109.", followUp: [{ speaker: "ATC", text: "Speedbird 109, turn left heading 270." }, { speaker: "PILOT", text: "Turn left heading 270, Speedbird 109." }], svgType: "TOWER" },
+      { id: 95, cat: "APPROACH", phrase: "EXPECT ILS APPROACH RUNWAY 27", icaoAudio: "EXPECT I L S APPROACH Runway two seven", meaning: "The stated approach is anticipated; EXPECT is not an approach or landing clearance.", atcLine: "Speedbird 109, EXPECT ILS APPROACH RUNWAY 27.", pilotLine: "EXPECT ILS APPROACH RUNWAY 27, Speedbird 109.", svgType: "RUNWAY" },
+      { id: 96, cat: "APPROACH", phrase: "REPORT ESTABLISHED", icaoAudio: "REPORT ESTABLISHED", meaning: "Report when established on the cleared approach; read back the approach and runway in the clearance.", atcLine: "Speedbird 109, cleared ILS approach Runway 27, REPORT ESTABLISHED.", pilotLine: "Cleared ILS approach Runway 27, WILCO, Speedbird 109.", followUp: [{ speaker: "PILOT", text: "Speedbird 109, established on the ILS Runway 27." }, { speaker: "ATC", text: "Speedbird 109, ROGER." }], svgType: "RUNWAY" },
+      { id: 97, cat: "APPROACH", phrase: "REPORT FINAL RUNWAY 27", icaoAudio: "REPORT FINAL Runway two seven", meaning: "Report when on final approach for the specified runway; a separate landing clearance is required.", atcLine: "G-ABCD, REPORT FINAL RUNWAY 27.", pilotLine: "WILCO, G-ABCD.", followUp: [{ speaker: "PILOT", text: "G-ABCD, final Runway 27." }, { speaker: "ATC", text: "G-ABCD, continue approach." }, { speaker: "PILOT", text: "Continuing approach, G-ABCD." }], svgType: "RUNWAY" },
+      { id: 98, cat: "APPROACH", phrase: "GO AROUND, I SAY AGAIN GO AROUND", icaoAudio: "GO AROUND, I SAY AGAIN GO AROUND", meaning: "ATC instructs an immediate go-around. Fly the aircraft first and read back subsequent instructions when able.", atcLine: "Speedbird 109, GO AROUND, I SAY AGAIN GO AROUND, runway occupied.", pilotLine: "GOING AROUND, Speedbird 109.", followUp: [{ speaker: "ATC", text: "Speedbird 109, climb straight ahead to three thousand feet." }, { speaker: "PILOT", text: "Climb straight ahead to three thousand feet, Speedbird 109." }], svgType: "RUNWAY" },
+      { id: 99, cat: "AIRPORT", phrase: "RUNWAY 27 VACATED", icaoAudio: "Runway two seven VACATED", meaning: "Report the runway vacated only after the entire aircraft has passed the relevant runway holding position marking.", firstSpeaker: "PILOT", pilotLine: "Tower, G-ABCD, RUNWAY 27 VACATED.", atcLine: "G-ABCD, taxi to stand 4 via Alfa.", followUp: [{ speaker: "PILOT", text: "Taxi to stand 4 via Alfa, G-ABCD." }], svgType: "RUNWAY" },
+      { id: 100, cat: "EMERGENCY", phrase: "MINIMUM FUEL", icaoAudio: "MINIMUM FUEL", meaning: "Advise that the flight is committed to land at a specific aerodrome and cannot accept additional delay. This alone is not an emergency or a request for priority.", firstSpeaker: "PILOT", pilotLine: "Approach, Speedbird 44, MINIMUM FUEL.", atcLine: "Speedbird 44, ROGER MINIMUM FUEL.", svgType: "MAYDAY" }
     ].map(card => ({
       ...card,
       collocations: DEFAULT_CARD_COLLOCATIONS[card.id],
@@ -1411,6 +1503,36 @@
       { kind: "Collocation", term: "conduct a crew briefing", example: "The pilots conducted a crew briefing before departure." },
       { kind: "Collocation", term: "check the runway condition", example: "The crew checked the runway condition before landing." },
       { kind: "Collocation", term: "continue the approach", example: "The crew continued the approach while awaiting further instructions." },
+      { kind: "Collocation", term: "confirm readiness", example: "The crew confirmed readiness for departure when asked." },
+      { kind: "Collocation", term: "report not ready", example: "The pilot reported not ready for departure." },
+      { kind: "Collocation", term: "correct a readback", example: "The pilot corrected a readback before the transmission ended." },
+      { kind: "Collocation", term: "verify a transponder code", example: "The crew verified the transponder code on the control panel." },
+      { kind: "Collocation", term: "conduct a radio check", example: "The pilot conducted a radio check before departure." },
+      { kind: "Collocation", term: "repeat an instruction", example: "The controller repeated the heading instruction." },
+      { kind: "Collocation", term: "request engine start", example: "The crew requested engine start from the appropriate ground station." },
+      { kind: "Collocation", term: "hold position", example: "The aircraft held position until it received further instructions." },
+      { kind: "Collocation", term: "follow ground traffic", example: "The crew followed the identified ground traffic along the taxi route." },
+      { kind: "Collocation", term: "report departure readiness", example: "The pilot reported departure readiness at the holding point." },
+      { kind: "Collocation", term: "receive a departure instruction", example: "The pilot received a departure instruction before takeoff." },
+      { kind: "Collocation", term: "stop a climb", example: "The crew stopped the climb at the revised flight level." },
+      { kind: "Collocation", term: "stop a descent", example: "The aircraft stopped the descent at the revised flight level." },
+      { kind: "Collocation", term: "maintain the present heading", example: "The crew maintained the present heading after the controller's instruction." },
+      { kind: "Collocation", term: "turn left to a heading", example: "The aircraft turned left to the assigned heading." },
+      { kind: "Collocation", term: "begin descent when ready", example: "The crew began descent when ready after receiving clearance." },
+      { kind: "Collocation", term: "expedite a descent", example: "The crew expedited the descent when instructed and able." },
+      { kind: "Collocation", term: "reduce airspeed", example: "The pilots reduced airspeed to the assigned value." },
+      { kind: "Collocation", term: "resume normal speed", example: "The aircraft resumed normal speed after the ATC restriction ended." },
+      { kind: "Collocation", term: "identify traffic visually", example: "The pilot identified the reported traffic visually." },
+      { kind: "Collocation", term: "report traffic not in sight", example: "The pilot reported traffic not in sight after scanning the area." },
+      { kind: "Collocation", term: "request descent", example: "The crew requested descent before leaving the assigned flight level." },
+      { kind: "Collocation", term: "request a weather deviation", example: "The pilot requested a weather deviation before changing the route." },
+      { kind: "Collocation", term: "report unable to comply", example: "The crew reported unable to comply with the heading because of weather." },
+      { kind: "Collocation", term: "anticipate an approach", example: "The crew anticipated an ILS approach while awaiting clearance." },
+      { kind: "Collocation", term: "report established on an approach", example: "The pilot reported established on the cleared approach." },
+      { kind: "Collocation", term: "report final approach", example: "The pilot reported final approach to the tower." },
+      { kind: "Collocation", term: "initiate a go-around", example: "The crew initiated a go-around after the tower's instruction." },
+      { kind: "Collocation", term: "taxi to a parking stand", example: "The aircraft taxied to a parking stand after vacating the runway." },
+      { kind: "Collocation", term: "advise minimum fuel", example: "The crew advised minimum fuel when no additional delay could be accepted." },
       { kind: "Compound noun", term: "flight level", example: "The controller assigned a higher flight level." },
       { kind: "Compound noun", term: "emergency frequency", example: "The emergency frequency was available if needed." },
       { kind: "Compound noun", term: "runway designator", example: "The pilot checked the runway designator in the clearance." },
@@ -1841,6 +1963,130 @@
           { speaker: "ATC", template: "Speedbird 109, {0}, turn right heading 040.", blanks: [{ answer: "NEGATIVE I SAY AGAIN", options: ["NEGATIVE I SAY AGAIN", "ROGER", "CLEARED TO LAND"] }] },
           { speaker: "PILOT", text: "Turn right heading 040, Speedbird 109." }
         ]
+      },
+      {
+        title: "Radio Check and Engine Start",
+        note: "Start-up approval requirements vary by aerodrome and operator.",
+        lines: [
+          { speaker: "PILOT", text: "Ground, G-ABCD, radio check." },
+          { speaker: "ATC", template: "G-ABCD, readability {0}.", blanks: [{ answer: "FIVE", options: ["FIVE", "CLEARED", "WILCO"] }] },
+          { speaker: "PILOT", text: "G-ABCD." },
+          { speaker: "PILOT", text: "Ground, G-ABCD, stand 4, request start up." },
+          { speaker: "ATC", text: "G-ABCD, start up approved." },
+          { speaker: "PILOT", template: "{0} approved, G-ABCD.", blanks: [{ answer: "START UP", options: ["START UP", "TAKEOFF", "RUNWAY CROSSING"] }] }
+        ]
+      },
+      {
+        title: "Ground Traffic and Readiness",
+        lines: [
+          { speaker: "ATC", text: "G-ABCD, follow Boeing 737 ahead, taxi to holding point Runway 27 via Alfa." },
+          { speaker: "PILOT", template: "Follow Boeing 737 ahead, taxi to holding point Runway {0} via Alfa, G-ABCD.", blanks: [{ answer: "27", options: ["27", "09", "36"] }] },
+          { speaker: "ATC", text: "G-ABCD, hold position." },
+          { speaker: "PILOT", template: "{0}, G-ABCD.", blanks: [{ answer: "HOLDING", options: ["HOLDING", "CROSSING RUNWAY", "CLEARED FOR TAKEOFF"] }] },
+          { speaker: "ATC", text: "G-ABCD, confirm ready for departure." },
+          { speaker: "PILOT", template: "{0}, G-ABCD.", blanks: [{ answer: "NEGATIVE", options: ["NEGATIVE", "AFFIRM", "CLEARED"] }] },
+          { speaker: "ATC", text: "G-ABCD, report ready for departure." },
+          { speaker: "PILOT", text: "WILCO, G-ABCD." },
+          { speaker: "PILOT", text: "G-ABCD, ready for departure Runway 27." },
+          { speaker: "ATC", text: "G-ABCD, confirm ready for departure." },
+          { speaker: "PILOT", template: "{0}, G-ABCD.", blanks: [{ answer: "AFFIRM", options: ["AFFIRM", "NEGATIVE", "STANDBY"] }] }
+        ]
+      },
+      {
+        title: "Squawk Verification and Correction",
+        note: "The pilot corrects the heading within the same transmission.",
+        lines: [
+          { speaker: "ATC", text: "Speedbird 109, confirm squawk 4253." },
+          { speaker: "PILOT", template: "Squawking {0}, Speedbird 109.", blanks: [{ answer: "4253", options: ["4253", "4352", "7700"] }] },
+          { speaker: "ATC", text: "Speedbird 109, turn left heading 270." },
+          { speaker: "PILOT", text: "SAY AGAIN heading, Speedbird 109." },
+          { speaker: "ATC", template: "Speedbird 109, {0}, turn left heading 270.", blanks: [{ answer: "I SAY AGAIN", options: ["I SAY AGAIN", "CLEARED TO LAND", "START UP APPROVED"] }] },
+          { speaker: "PILOT", template: "Turn left heading 280, {0}, turn left heading 270, Speedbird 109.", blanks: [{ answer: "CORRECTION", options: ["CORRECTION", "ROGER", "STANDBY"] }] },
+          { speaker: "ATC", text: "Speedbird 109, readback correct." }
+        ]
+      },
+      {
+        title: "Departure and Revised Climb",
+        note: "The aircraft is at the holding point. The revised climb instruction is issued after takeoff while the aircraft is below FL100.",
+        lines: [
+          { speaker: "ATC", text: "Speedbird 109, after departure turn left heading 270, climb to four thousand feet, QNH 1016." },
+          { speaker: "PILOT", template: "After departure turn left heading {0}, climb to {1}, QNH {2}, Speedbird 109.", blanks: [
+            { answer: "270", options: ["270", "090", "072"] },
+            { answer: "four thousand feet", options: ["four thousand feet", "three thousand feet", "Flight Level 400"] },
+            { answer: "1016", options: ["1016", "1013", "1006"] }
+          ] },
+          { speaker: "ATC", text: "Speedbird 109, Runway 27, cleared for takeoff." },
+          { speaker: "PILOT", text: "Runway 27, cleared for takeoff, Speedbird 109." },
+          { speaker: "ATC", text: "Speedbird 109, climb to FL140." },
+          { speaker: "PILOT", text: "Climb to FL140, Speedbird 109." },
+          { speaker: "ATC", text: "Speedbird 109, stop climb at FL100." },
+          { speaker: "PILOT", template: "Stop climb at {0}, Speedbird 109.", blanks: [{ answer: "FL100", options: ["FL100", "FL140", "FL200"] }] },
+          { speaker: "ATC", text: "Speedbird 109, maintain present heading." },
+          { speaker: "PILOT", text: "Maintain present heading, Speedbird 109." }
+        ]
+      },
+      {
+        title: "Requested and Revised Descent",
+        note: "The aircraft is above FL160 when the stop-descent instruction is issued.",
+        lines: [
+          { speaker: "PILOT", text: "Control, Lufthansa 421, request descent." },
+          { speaker: "ATC", text: "Lufthansa 421, when ready descend to FL150." },
+          { speaker: "PILOT", template: "When ready descend to {0}, Lufthansa 421.", blanks: [{ answer: "FL150", options: ["FL150", "FL250", "FL100"] }] },
+          { speaker: "ATC", text: "Lufthansa 421, expedite descent." },
+          { speaker: "PILOT", text: "Expediting descent to FL150, Lufthansa 421." },
+          { speaker: "ATC", text: "Lufthansa 421, stop descent at FL160." },
+          { speaker: "PILOT", template: "Stop descent at {0}, Lufthansa 421.", blanks: [{ answer: "FL160", options: ["FL160", "FL150", "FL060"] }] }
+        ]
+      },
+      {
+        title: "Traffic Reports and Speed",
+        note: "A traffic-in-sight report does not by itself transfer separation responsibility.",
+        lines: [
+          { speaker: "ATC", text: "Speedbird 109, traffic two o'clock, six miles, one thousand feet above." },
+          { speaker: "PILOT", template: "{0}, Speedbird 109.", blanks: [{ answer: "NEGATIVE CONTACT", options: ["NEGATIVE CONTACT", "TRAFFIC IN SIGHT", "CLEARED TO LAND"] }] },
+          { speaker: "ATC", text: "Speedbird 109, traffic now one o'clock, three miles, one thousand feet above." },
+          { speaker: "PILOT", template: "{0}, Speedbird 109.", blanks: [{ answer: "TRAFFIC IN SIGHT", options: ["TRAFFIC IN SIGHT", "NEGATIVE CONTACT", "RUNWAY VACATED"] }] },
+          { speaker: "ATC", text: "Speedbird 109, reduce speed to 210 knots." },
+          { speaker: "PILOT", template: "Reduce speed to {0} knots, Speedbird 109.", blanks: [{ answer: "210", options: ["210", "120", "250"] }] },
+          { speaker: "ATC", text: "Speedbird 109, resume normal speed." },
+          { speaker: "PILOT", text: "Resume normal speed, Speedbird 109." }
+        ]
+      },
+      {
+        title: "Unable Heading and Weather Deviation",
+        lines: [
+          { speaker: "ATC", text: "Swiss 312, turn right heading 090." },
+          { speaker: "PILOT", template: "Unable heading 090 due weather, request deviation {0} of track, Swiss 312.", blanks: [{ answer: "LEFT", options: ["LEFT", "RIGHT", "BELOW"] }] },
+          { speaker: "ATC", text: "Swiss 312, deviation up to 20 miles left of track approved, when able proceed direct MERLU." },
+          { speaker: "PILOT", template: "Deviation up to {0} miles left of track approved, when able direct {1}, Swiss 312.", blanks: [
+            { answer: "20", options: ["20", "10", "50"] },
+            { answer: "MERLU", options: ["MERLU", "RUNWAY 27", "STANDBY"] }
+          ] }
+        ]
+      },
+      {
+        title: "Approach Reports and Tower Go-Around",
+        note: "An expected approach is not a clearance. The go-around is a separate tower instruction.",
+        lines: [
+          { speaker: "ATC", text: "Speedbird 109, expect ILS approach Runway 27." },
+          { speaker: "PILOT", text: "Expect ILS approach Runway 27, Speedbird 109." },
+          { speaker: "ATC", text: "Speedbird 109, cleared ILS approach Runway 27, report established." },
+          { speaker: "PILOT", template: "Cleared {0} approach Runway {1}, WILCO, Speedbird 109.", blanks: [
+            { answer: "ILS", options: ["ILS", "VISUAL", "TAKEOFF"] },
+            { answer: "27", options: ["27", "09", "36"] }
+          ] },
+          { speaker: "PILOT", text: "Speedbird 109, established on the ILS Runway 27." },
+          { speaker: "ATC", text: "Speedbird 109, contact Tower 118.1." },
+          { speaker: "PILOT", text: "Contact Tower 118.1, Speedbird 109." },
+          { speaker: "PILOT", text: "Tower, Speedbird 109, established on the ILS Runway 27." },
+          { speaker: "ATC", text: "Speedbird 109, report final Runway 27." },
+          { speaker: "PILOT", text: "WILCO, Speedbird 109." },
+          { speaker: "PILOT", text: "Speedbird 109, final Runway 27." },
+          { speaker: "ATC", template: "Speedbird 109, {0}, I SAY AGAIN GO AROUND, runway occupied.", blanks: [{ answer: "GO AROUND", options: ["GO AROUND", "CLEARED TO LAND", "CROSS RUNWAY"] }] },
+          { speaker: "PILOT", text: "Going around, Speedbird 109." },
+          { speaker: "ATC", text: "Speedbird 109, climb straight ahead to three thousand feet." },
+          { speaker: "PILOT", template: "Climb straight ahead to {0}, Speedbird 109.", blanks: [{ answer: "three thousand feet", options: ["three thousand feet", "one thousand feet", "Flight Level 300"] }] }
+        ]
       }
     ];
 
@@ -2177,7 +2423,37 @@
       { category: "CHANNEL IDENTIFICATION", difficulty: 3, question: "How is channel 118.125 identified where six digits are required?", options: ["One one eight decimal one two five.", "One one eight decimal one.", "One eighteen point twelve.", "One one eight decimal five."], correct: 0, explanation: "When six-digit channel identification is required, retain all three digits after DECIMAL." },
       { category: "DISTRESS CANCELLATION", difficulty: 3, question: "Does an extinguished engine fire alone prove that a distress condition has ended?", options: ["No; the crew must assess the whole situation before cancellation.", "Yes, automatically.", "Yes, without notifying ATC.", "No, because MAYDAY can never be cancelled."], correct: 0, explanation: "The crew assesses whether distress has ended and communicates cancellation when appropriate." },
       { category: "TCAS", difficulty: 3, question: "When responding to a TCAS resolution advisory, what should the crew do?", options: ["Follow the advisory and report TCAS RA when able.", "Ignore the advisory if it conflicts with the clearance.", "Request a landing clearance before responding.", "Turn off the transponder."], correct: 0, explanation: "Follow the resolution advisory and applicable procedures; communicate when workload permits." },
-      { category: "FUEL", difficulty: 3, question: "Does declaring MINIMUM FUEL alone request emergency priority?", options: ["No; it is an advisory that additional delay cannot be accepted.", "Yes, it automatically declares MAYDAY.", "Yes, it is a runway-crossing clearance.", "No; it means the fuel tanks are empty."], correct: 0, explanation: "MINIMUM FUEL is an advisory, not itself an emergency. Declare distress when the applicable emergency criteria are met." }
+      { category: "FUEL", difficulty: 3, question: "Does declaring MINIMUM FUEL alone request emergency priority?", options: ["No; it is an advisory that additional delay cannot be accepted.", "Yes, it automatically declares MAYDAY.", "Yes, it is a runway-crossing clearance.", "No; it means the fuel tanks are empty."], correct: 0, explanation: "MINIMUM FUEL is an advisory, not itself an emergency. Declare distress when the applicable emergency criteria are met." },
+      { cardId: 71, category: "STANDARD MEANINGS", difficulty: 1, question: "What does AFFIRM mean in response to a yes-or-no question?", options: ["Yes.", "No.", "Repeat the message.", "I am unable to comply."], correct: 0, explanation: "AFFIRM is an affirmative answer; it is not itself a clearance." },
+      { cardId: 72, category: "STANDARD MEANINGS", difficulty: 1, question: "What does NEGATIVE mean when answering a yes-or-no question?", options: ["No.", "Yes.", "The runway is clear.", "I will comply."], correct: 0, explanation: "NEGATIVE is a negative answer; the precise meaning depends on context." },
+      { cardId: 73, category: "READBACK CORRECTION", difficulty: 2, question: "A pilot says 'heading 050, CORRECTION, heading 040'. What is the corrected heading?", options: ["040.", "050.", "400.", "The heading has not been stated."], correct: 0, explanation: "CORRECTION introduces the corrected information within the transmission." },
+      { cardId: 74, category: "TRANSPONDER", difficulty: 2, question: "Before reporting SQUAWKING 4253, what should the pilot verify?", options: ["The code selected on the transponder.", "The runway surface.", "The aircraft's fuel quantity.", "The tower's radio channel."], correct: 0, explanation: "CONFIRM SQUAWK asks for verification of the selected transponder code." },
+      { cardId: 75, category: "RADIO CHECK", difficulty: 1, question: "What does readability five mean in a radio check?", options: ["The transmission is perfectly readable.", "The transmission is unreadable.", "The aircraft is cleared to taxi.", "The radio frequency is 5 MHz."], correct: 0, explanation: "On the readability scale, five indicates a perfectly readable transmission." },
+      { cardId: 76, category: "STANDARD MEANINGS", difficulty: 1, question: "What does I SAY AGAIN introduce?", options: ["A repetition of the message or specified part.", "A new takeoff clearance.", "A request for engine start.", "A distress cancellation."], correct: 0, explanation: "I SAY AGAIN tells the listener that the speaker is repeating information." },
+      { cardId: 77, category: "ENGINE START", difficulty: 2, question: "Does START UP APPROVED also authorize taxi or runway entry?", options: ["No; obtain the other instructions or clearances as required.", "Yes, it authorizes both.", "Yes, if the stand looks clear.", "Only if the pilot says ROGER."], correct: 0, explanation: "Start-up approval is separate from taxi and runway clearances; follow local procedures." },
+      { cardId: 78, category: "GROUND MOVEMENT", difficulty: 1, question: "What should a pilot do when instructed to HOLD POSITION?", options: ["Stop and remain at the present position.", "Enter the runway.", "Continue taxiing slowly.", "Begin the takeoff roll."], correct: 0, explanation: "HOLD POSITION stops ground movement until further instructions." },
+      { cardId: 79, category: "TAXI", difficulty: 2, question: "Does an instruction to follow aircraft ahead by itself permit crossing a runway?", options: ["No; runway entry or crossing still requires authorization.", "Yes, if the aircraft ahead crosses.", "Yes, if the runway looks clear.", "Yes, after any radio acknowledgement."], correct: 0, explanation: "Follow the assigned taxi route and obtain the necessary runway authorization." },
+      { cardId: 80, category: "DEPARTURE READINESS", difficulty: 1, question: "Does REPORT READY FOR DEPARTURE authorize takeoff?", options: ["No; report readiness and await a takeoff clearance.", "Yes, it is a takeoff clearance.", "Yes, after lining up.", "Only on an empty runway."], correct: 0, explanation: "Reporting readiness does not replace a takeoff clearance." },
+      { cardId: 81, category: "DEPARTURE READBACK", difficulty: 3, question: "ATC assigns a left turn to heading 270 after departure, 4,000 feet and QNH 1016. What must the readback include?", options: ["The turn and heading, altitude, QNH and aircraft call sign.", "Only the heading.", "Only the QNH.", "ROGER without the clearance."], correct: 0, explanation: "Read back the assigned heading, level and altimeter setting with the aircraft call sign." },
+      { cardId: 82, category: "REVISED CLIMB", difficulty: 2, question: "What does STOP CLIMB AT FL100 require?", options: ["Stop the climb at FL100 rather than continue to the previous level.", "Continue to the previous higher level.", "Descend immediately to the ground.", "Maintain the current speed only."], correct: 0, explanation: "FL100 is the revised limit of the climb and must be read back." },
+      { cardId: 83, category: "REVISED DESCENT", difficulty: 2, question: "What does STOP DESCENT AT FL120 require?", options: ["Stop the descent at FL120 rather than continue to the previous level.", "Continue to the previous lower level.", "Climb immediately to FL220.", "Cancel the radio frequency."], correct: 0, explanation: "FL120 is the revised limit of the descent and must be read back." },
+      { cardId: 84, category: "HEADING", difficulty: 2, question: "What does MAINTAIN PRESENT HEADING instruct?", options: ["Continue on the current heading until further instructed.", "Turn to any heading.", "Leave the assigned level automatically.", "Proceed direct to an unassigned waypoint."], correct: 0, explanation: "The heading instruction does not by itself change the assigned level." },
+      { cardId: 85, category: "HEADING", difficulty: 2, question: "Which readback matches TURN LEFT HEADING 270?", options: ["Turn left heading two seven zero, followed by the call sign.", "Turn right heading two seven zero.", "Turn left heading zero seven two.", "Cleared to land runway two seven."], correct: 0, explanation: "Read back the turn direction, heading and aircraft call sign." },
+      { cardId: 86, category: "DESCENT", difficulty: 2, question: "When may a crew begin a WHEN READY descent?", options: ["When ready, after receiving the descent clearance.", "Only after landing.", "Before receiving any clearance.", "Only after a separate takeoff clearance."], correct: 0, explanation: "WHEN READY permits the crew to begin the cleared descent when ready." },
+      { cardId: 87, category: "DESCENT", difficulty: 3, question: "What should a crew do after an EXPEDITE DESCENT instruction?", options: ["Descend promptly at an increased rate if able, and advise ATC if unable.", "Ignore the assigned level.", "Wait indefinitely before descending.", "Descend without regard to aircraft limitations."], correct: 0, explanation: "EXPEDITE calls for prompt action; communicate if the instruction cannot be complied with." },
+      { cardId: 88, category: "SPEED", difficulty: 2, question: "Which readback matches REDUCE SPEED TO 210 KNOTS?", options: ["Reduce speed to two one zero knots, followed by the call sign.", "Maintain 120 knots.", "Climb to flight level 210.", "Roger, without the assigned speed."], correct: 0, explanation: "Read back the assigned speed and identify the aircraft." },
+      { cardId: 89, category: "SPEED", difficulty: 2, question: "What does RESUME NORMAL SPEED mean?", options: ["The assigned ATC speed restriction is no longer required; other limits still apply.", "All aircraft and procedure speed limits are cancelled.", "The aircraft must stop.", "The pilot has a landing clearance."], correct: 0, explanation: "Release from an ATC speed instruction does not cancel other applicable restrictions." },
+      { cardId: 90, category: "TRAFFIC INFORMATION", difficulty: 2, question: "What does TRAFFIC IN SIGHT report?", options: ["The pilot can see the reported traffic.", "The traffic has disappeared from radar.", "The pilot automatically accepts separation responsibility.", "The runway is clear for takeoff."], correct: 0, explanation: "A visual report alone does not automatically transfer separation responsibility." },
+      { cardId: 91, category: "TRAFFIC INFORMATION", difficulty: 2, question: "What does NEGATIVE CONTACT mean in response to traffic information?", options: ["The pilot does not see the reported traffic.", "The pilot sees the reported traffic.", "The transponder has failed.", "The aircraft has landed."], correct: 0, explanation: "NEGATIVE CONTACT reports that the notified traffic is not in sight." },
+      { cardId: 92, category: "DESCENT", difficulty: 2, question: "Does REQUEST DESCENT allow the pilot to leave the cleared level immediately?", options: ["No; await a descent clearance.", "Yes, a request is a clearance.", "Yes, if the radio is quiet.", "Only after selecting IDENT."], correct: 0, explanation: "A request is not an ATC clearance." },
+      { cardId: 93, category: "WEATHER DEVIATION", difficulty: 3, question: "ATC approves up to 20 miles left of track and directs MERLU when able. What should the pilot read back?", options: ["The left deviation limit, direct MERLU when able, and the aircraft call sign.", "Only ROGER.", "A right deviation without a limit.", "A landing clearance."], correct: 0, explanation: "Read back the route clearance and its stated limit with the call sign." },
+      { cardId: 94, category: "UNABLE", difficulty: 3, question: "A heading would take the aircraft into unsafe weather. What should the crew communicate?", options: ["Unable to comply and the reason, then coordinate a safe alternative.", "WILCO regardless of the weather.", "A landing clearance that was not issued.", "That the traffic is in sight."], correct: 0, explanation: "Maintain safety, inform ATC when unable, and clarify a safe alternative." },
+      { cardId: 95, category: "APPROACH", difficulty: 2, question: "Does EXPECT ILS APPROACH RUNWAY 27 clear the aircraft for that approach?", options: ["No; a separate approach clearance is required.", "Yes, it clears the approach and landing.", "Yes, it clears landing only.", "Yes, it clears a runway crossing."], correct: 0, explanation: "EXPECT describes an anticipated approach; it is not the clearance." },
+      { cardId: 96, category: "APPROACH", difficulty: 3, question: "ATC clears the ILS approach Runway 27 and asks for an established report. What is required?", options: ["Read back the approach and runway, then report established when able.", "Report established before joining the approach.", "Read back only ROGER.", "Assume landing is also cleared."], correct: 0, explanation: "The approach clearance and runway are read back; the established report follows when appropriate." },
+      { cardId: 97, category: "FINAL APPROACH", difficulty: 2, question: "Does REPORT FINAL RUNWAY 27 include a landing clearance?", options: ["No; report final and await the landing clearance.", "Yes, it is always a landing clearance.", "Yes, if the runway looks empty.", "It authorizes a runway crossing."], correct: 0, explanation: "A request to report final is not authorization to land." },
+      { cardId: 98, category: "GO-AROUND", difficulty: 3, question: "What is the pilot's priority after ATC instructs GO AROUND?", options: ["Fly the aircraft and communicate or read back subsequent instructions when able.", "Continue to land regardless.", "Wait for a taxi clearance.", "Read back before controlling the aircraft."], correct: 0, explanation: "Aviate first, then communicate and read back assigned heading or level instructions when able." },
+      { cardId: 99, category: "RUNWAY VACATED", difficulty: 2, question: "When may the pilot report the runway vacated?", options: ["When the entire aircraft has passed the relevant runway holding position marking.", "As soon as the nosewheel leaves the runway.", "Before leaving the runway.", "After receiving a takeoff clearance."], correct: 0, explanation: "The whole aircraft must be clear of the relevant holding position before reporting vacated." },
+      { cardId: 100, category: "FUEL", difficulty: 3, question: "What does MINIMUM FUEL communicate?", options: ["The flight is committed to land at a specific aerodrome and cannot accept additional delay.", "The aircraft has automatically declared a fuel emergency.", "The fuel tanks are empty.", "The pilot has received priority handling."], correct: 0, explanation: "MINIMUM FUEL is an advisory, not itself an emergency or a request for priority." }
     ];
 
     let currentQuizIndex = 0;
