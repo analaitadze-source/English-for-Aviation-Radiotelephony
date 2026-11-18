@@ -1,6 +1,6 @@
 # English-for-Aviation-Radiotelephony
 
-Practice radiotelephony with flashcards, matching, gap-fill scenarios and quizzes. The built-in deck contains 124 cards, including 25 additional common calls covering clearances, taxi, position reports, speed, weather and approach. Matching and searchable radio examples use the current deck. Each card's dialogue side includes related collocations and compound nouns in general aviation English; these are not necessarily prescribed radio transmissions.
+Practice radiotelephony with flashcards, matching, gap-fill scenarios and quizzes. The built-in deck contains 128 cards, including calls covering clearances, taxi, position reports, wake turbulence, frequency changes, weather and approach. Matching and searchable radio examples use the current deck. Each card's dialogue side includes related collocations and compound nouns in general aviation English; these are not necessarily prescribed radio transmissions.
 
 Each quiz selects ten different questions across easy, intermediate and advanced levels, including questions for the additional phrases. Scenarios cover representative routine, abnormal and emergency exchanges; **New scenario** selects a different exercise, while **Retry same** keeps the chosen exercise and reshuffles its options. The scenario bank is not exhaustive.
 

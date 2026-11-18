@@ -35,6 +35,7 @@
         'Direct Route and Waypoint Spelling', 'Surface Wind and Runway Information',
         'Request an Approach and Report Runway in Sight', 'Taxi to a Parking Stand', 'Further Clearance from Holding'
       ];
+      const missingScenarioTitles = ['Wake Warning and Airborne Report', 'Ground Handoff and Taxi Speed'];
       const synthesis = window.speechSynthesis;
       const originalNativeSpeak = synthesis && synthesis.speak;
       const originalActivate = activateAudio;
@@ -523,7 +524,7 @@
 
         await test('Twenty-five common phrases reach every practice section', () => {
           const added = cards.filter(card => card.id >= 101 && card.id <= 125);
-          assert(cards.length === 124 && added.length === 25, 'The built-in deck does not contain exactly 25 new cards');
+          assert(added.length === 25, 'The previous 25 added cards are missing');
           assert(new Set(cards.map(card => card.id)).size === cards.length, 'Card identifiers are not unique');
           assert(new Set(cards.map(card => card.phrase.toLowerCase())).size === cards.length, 'A practice phrase is duplicated');
           for (let id = 101; id <= 125; id++) {
@@ -587,6 +588,64 @@
           }
         });
 
+        await test('The identified missing phrases reach every practice section', () => {
+          const added = cards.filter(card => card.id >= 126 && card.id <= 129);
+          assert(cards.length === 128 && added.length === 4, 'The four additional cards are missing');
+          assert(new Set(cards.map(card => card.id)).size === cards.length, 'Card identifiers are not unique');
+          assert(new Set(cards.map(card => card.phrase.toLowerCase())).size === cards.length, 'A practice phrase is duplicated');
+          const scenarios = SCENARIOS.filter(scenario => missingScenarioTitles.includes(scenario.title));
+          assert(scenarios.length === missingScenarioTitles.length, 'A related scenario is missing');
+          const scenarioText = scenarios.flatMap(scenario => scenario.lines.map(line => line.text ||
+            line.blanks.reduce((text, blank, index) => text.replace(`{${index}}`, blank.answer), line.template))).join('\n').toUpperCase();
+          for (const card of added) {
+            assert(card.meaning && card.icaoAudio && getCardDialogue(card).length >= 2, `Card ${card.id} is incomplete`);
+            assert(card.collocations.length >= 2 && card.compoundNouns.length >= 1, `Card ${card.id} lacks related vocabulary`);
+            assert(scenarioText.includes(card.phrase), `Card ${card.id} is missing from the new scenarios`);
+            const questions = QUIZ_QUESTIONS.filter(question => question.cardId === card.id);
+            assert(questions.length === 1, `Card ${card.id} lacks a related quiz question`);
+            const question = questions[0];
+            assert([1, 2, 3].includes(question.difficulty) && question.options.length === 4 &&
+              new Set(question.options).size === 4 && Number.isInteger(question.correct) &&
+              question.correct >= 0 && question.correct < question.options.length && question.explanation,
+              `Card ${card.id} has an invalid quiz question`);
+          }
+          const previousCards = flashcardsData;
+          const previousCategory = category.value;
+          const previousSearch = search.value;
+          const vocabularySearch = document.getElementById('vocabulary-search');
+          const previousVocabularySearch = vocabularySearch.value;
+          try {
+            flashcardsData = cards;
+            category.value = 'ALL';
+            search.value = 'heed a wake turbulence warning';
+            filterFlashcards();
+            assert(document.querySelectorAll('#flashcards-grid .flip-card').length === 1 &&
+              document.getElementById('flashcards-grid').textContent.includes('CARD ID: #128'),
+              'New card vocabulary is not searchable');
+            vocabularySearch.value = '';
+            renderVocabularyList();
+            for (const card of added) {
+              assert(document.querySelector(`#radio-examples [data-card-id="${card.id}"]`),
+                `Card ${card.id} is missing from radio examples`);
+              const term = card.collocations[0];
+              assert([...document.querySelectorAll('#general-examples [data-general-example]')].some(item =>
+                item.querySelector('dt').textContent.toLowerCase().includes(term.toLowerCase())),
+                `Card ${card.id} lacks a general-English example`);
+            }
+            flashcardsData = added;
+            initMatchingDrills();
+            assert(matchingRoundPairs.length === 4 && matchingRoundPairs.every(card => card.id >= 126 && card.id <= 129),
+              'New cards are not available to matching drills');
+          } finally {
+            flashcardsData = previousCards;
+            category.value = previousCategory;
+            search.value = previousSearch;
+            vocabularySearch.value = previousVocabularySearch;
+            renderVocabularyList();
+            filterFlashcards();
+          }
+        });
+
         await test('The dialogue button generates every real voice turn in order', async () => {
           const savedActivate = activateAudio;
           const savedSynthesize = synthesizeTurn;
@@ -637,7 +696,7 @@
           ]);
           assert(response.ok, 'Voice tokenizer is unavailable');
           const vocab = (await response.json()).model.vocab;
-          const added = cards.filter(card => card.id >= 71 && card.id <= 125);
+          const added = cards.filter(card => card.id >= 71 && card.id <= 129);
           const checkSpeech = (text, label) => {
             const spokenText = convertTextToICAOSpeech(text);
             for (const language of languages) {
@@ -651,7 +710,7 @@
               checkSpeech(text, `Card ${card.id}`);
             }
           }
-          for (const scenario of SCENARIOS.filter(item => [...newScenarioTitles, ...additionalScenarioTitles].includes(item.title))) {
+          for (const scenario of SCENARIOS.filter(item => [...newScenarioTitles, ...additionalScenarioTitles, ...missingScenarioTitles].includes(item.title))) {
             for (const line of scenario.lines) {
               const text = line.text || line.blanks.reduce((value, blank, index) => value.replace(`{${index}}`, blank.answer), line.template);
               checkSpeech(text, scenario.title);
@@ -665,7 +724,7 @@
               assert(buffers.some(buffer => buffer.getChannelData(0).some(sample => Math.abs(sample) > 0.001)),
                 `Card ${card.id} phrase produced no audible samples`);
             }
-            for (const id of [75, 93, 98, 100, 103, 105, 120, 125]) {
+            for (const id of [75, 93, 98, 100, 103, 105, 120, 125, 126, 127, 128, 129]) {
               for (const turn of getCardDialogue(findCard(id))) {
                 const voice = turn.speaker === 'PILOT' ? 'fast_maeve' : 'fast_edwin';
                 const buffers = await withVoiceTimeout(client.synthesize(convertTextToICAOSpeech(turn.text), voice, context), 30000);
@@ -688,6 +747,7 @@
           assert(spokenText('hold at the holding point').includes('holding point'), 'A non-numeric holding point was changed');
           assert(spokenText('Request IFR clearance.').includes('i f r'), 'IFR was not spoken as letters');
           assert(spokenText('RVR Runway 27 six hundred metres.').includes('r v r runway two seven six hundred metres'), 'RVR, runway or visibility speech is incorrect');
+          assert(spokenText('Contact Ground 121.900.').includes('one two one decimal niner zero zero'), 'Ground channel digits were not preserved');
         });
 
         await test('Quiz answers use the stated flight-level and frequency conventions', () => {
@@ -952,6 +1012,37 @@
             'Approach request, visual report or landing-clearance boundary is incorrect');
         });
 
+        await test('Airborne, wake and ground-handoff dialogues preserve clearance boundaries', () => {
+          const contains = (text, parts) => parts.every(part => text.toUpperCase().includes(part.toUpperCase()));
+          const airborne = findCard(126);
+          assert(contains(airborne.atcLine, ['runway 27', 'cleared for takeoff', 'report airborne']) &&
+            contains(airborne.pilotLine, ['runway 27', 'cleared for takeoff', 'WILCO']) &&
+            airborne.followUp[0].speaker === 'PILOT' && /airborne/i.test(airborne.followUp[0].text),
+            'Takeoff clearance, readback or airborne report is incomplete');
+          assert(/slowing down/i.test(findCard(127).pilotLine) && /runway entry or crossing/i.test(findCard(127).meaning),
+            'Taxi-speed acknowledgement or runway boundary is missing');
+          const wake = findCard(128);
+          assert(/wake turbulence/i.test(wake.atcLine) && /roger/i.test(wake.pilotLine) &&
+            /not itself a clearance or an automatic transfer/i.test(wake.meaning) &&
+            !getCardDialogue(wake).some(turn => /cleared/i.test(turn.text)),
+            'Wake warning was presented as a clearance or automatic transfer');
+          const handoff = findCard(129);
+          assert(contains(handoff.atcLine, ['when vacated', 'Ground 121.900']) &&
+            contains(handoff.pilotLine, ['when vacated', 'Ground 121.900', 'Speedbird 109']) &&
+            handoff.followUp[0].speaker === 'PILOT' && /runway 27 vacated/i.test(handoff.followUp[0].text),
+            'Ground handoff timing, frequency readback or runway-vacated report is missing');
+          const filled = line => line.text || line.blanks.reduce((text, blank, index) => text.replace(`{${index}}`, blank.answer), line.template);
+          const departure = SCENARIOS.find(scenario => scenario.title === 'Wake Warning and Airborne Report').lines.map(filled);
+          assert(/caution wake turbulence/i.test(departure[0]) &&
+            contains(departure[2], ['runway 27', 'cleared for takeoff', 'report airborne']) &&
+            contains(departure[3], ['runway 27', 'cleared for takeoff']) && /airborne/i.test(departure[4]),
+            'Wake-warning and airborne-report sequence is incomplete');
+          const ground = SCENARIOS.find(scenario => scenario.title === 'Ground Handoff and Taxi Speed').lines.map(filled);
+          assert(contains(ground[1], ['when vacated', '121.900']) && /runway 27 vacated/i.test(ground[2]) &&
+            /taxi slower/i.test(ground[5]) && /slowing down/i.test(ground[6]),
+            'Ground handoff or taxi-speed sequence is incomplete');
+        });
+
         await test('Generic illustrations do not contradict the example clearance', () => {
           renderFlashcards([findCard(18), findCard(57)]);
           const graphics = [...document.querySelectorAll('#flashcards-grid .flip-card-front svg')];
@@ -1133,7 +1224,7 @@
             assert(radioExamples().length === 2 && radioExamples()[0].textContent.includes('Controller says <inspect>.') && !radioExamples()[0].querySelector('inspect, ready'), 'Imported dialogue examples were not safely rendered');
             resetDefaultDeck();
             await activeSpeechTask;
-            assert(flashcardsData.length === 124 && flashcardsData.some(card => card.id === 125),
+            assert(flashcardsData.length === 128 && flashcardsData.some(card => card.id === 129),
               'Reset did not load the expanded built-in deck');
             assert(items('vocabulary-collocations').length === expected('collocations') && !items('vocabulary-collocations').includes('Request <inspection>'), 'Reset did not refresh the vocabulary list');
             assert(radioExamples().length === cards.length && generalExamples().length === GENERAL_AVIATION_EXAMPLES.length, 'Reset did not refresh the example sections');

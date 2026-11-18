@@ -169,7 +169,7 @@
       <!-- MAIN TABS NAVIGATION -->
       <nav class="hidden min-[1600px]:flex items-center space-x-1 font-mono text-sm whitespace-nowrap">
         <button onclick="switchTab('flashcards')" id="tab-flashcards" class="nav-tab px-4 py-2 rounded-lg flex items-center gap-2 transition text-cyan-400 bg-cyan-950/40 border border-cyan-500/40 font-bold">
-          <i class="fa-solid fa-layer-group"></i> Flashcards (<span id="flashcard-count-badge">124</span>)
+          <i class="fa-solid fa-layer-group"></i> Flashcards (<span id="flashcard-count-badge">128</span>)
         </button>
         <button onclick="switchTab('matching')" id="tab-matching" class="nav-tab px-4 py-2 rounded-lg flex items-center gap-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800">
           <i class="fa-solid fa-puzzle-piece"></i> Matching Drills
@@ -1194,7 +1194,11 @@
       122: ["report the runway in sight", "maintain the cleared approach"],
       123: ["continue an approach", "wait for landing clearance"],
       124: ["advise of a delay", "wait for pushback approval"],
-      125: ["request further clearance", "maintain the holding pattern"]
+      125: ["request further clearance", "maintain the holding pattern"],
+      126: ["report airborne", "acknowledge a takeoff clearance"],
+      127: ["reduce taxi speed", "acknowledge a ground instruction"],
+      128: ["heed a wake turbulence warning", "consider wake turbulence"],
+      129: ["contact ground after vacating", "read back the ground frequency"]
     };
 
     const DEFAULT_CARD_COMPOUND_NOUNS = {
@@ -1321,7 +1325,11 @@
       122: ["runway sighting"],
       123: ["approach instruction"],
       124: ["traffic delay"],
-      125: ["clearance limit", "holding pattern"]
+      125: ["clearance limit", "holding pattern"],
+      126: ["airborne report", "takeoff clearance"],
+      127: ["taxi speed", "ground instruction"],
+      128: ["wake turbulence", "wake vortex"],
+      129: ["ground frequency", "frequency change"]
     };
 
     const DEFAULT_FLASHCARDS = [
@@ -1466,7 +1474,13 @@
       { id: 122, cat: "APPROACH", phrase: "RUNWAY 27 IN SIGHT", icaoAudio: "Runway two seven IN SIGHT", meaning: "Report that the runway is visible; this alone does not authorize a visual approach or landing.", atcLine: "Speedbird 109, report Runway 27 in sight.", pilotLine: "WILCO, Speedbird 109.", followUp: [{ speaker: "PILOT", text: "Speedbird 109, RUNWAY 27 IN SIGHT." }, { speaker: "ATC", text: "Speedbird 109, ROGER." }], svgType: "RUNWAY" },
       { id: 123, cat: "APPROACH", phrase: "CONTINUE APPROACH", icaoAudio: "CONTINUE APPROACH", meaning: "Continue the approach while awaiting further instructions; this is not a landing clearance.", atcLine: "G-ABCD, CONTINUE APPROACH.", pilotLine: "CONTINUING APPROACH, G-ABCD.", svgType: "RUNWAY" },
       { id: 124, cat: "AIRPORT", phrase: "EXPECT FIVE MINUTES DELAY DUE TRAFFIC", icaoAudio: "EXPECT five MINUTES DELAY DUE TRAFFIC", meaning: "A delay of the stated duration is anticipated because of traffic; the requested action is not approved by this advisory.", firstSpeaker: "PILOT", pilotLine: "Ground, Speedbird 109, request pushback.", atcLine: "Speedbird 109, EXPECT FIVE MINUTES DELAY DUE TRAFFIC.", followUp: [{ speaker: "PILOT", text: "ROGER, Speedbird 109." }], svgType: "TOWER" },
-      { id: 125, cat: "ENROUTE", phrase: "REQUEST FURTHER CLEARANCE", icaoAudio: "REQUEST FURTHER CLEARANCE", meaning: "Ask for a revised clearance while continuing to comply with the current clearance and holding instructions.", firstSpeaker: "PILOT", pilotLine: "Control, Speedbird 109, holding at MERLU FL100, REQUEST FURTHER CLEARANCE.", atcLine: "Speedbird 109, proceed direct TANGO, maintain FL100.", followUp: [{ speaker: "PILOT", text: "Direct TANGO, maintain FL100, Speedbird 109." }], svgType: "HOLDING" }
+      { id: 125, cat: "ENROUTE", phrase: "REQUEST FURTHER CLEARANCE", icaoAudio: "REQUEST FURTHER CLEARANCE", meaning: "Ask for a revised clearance while continuing to comply with the current clearance and holding instructions.", firstSpeaker: "PILOT", pilotLine: "Control, Speedbird 109, holding at MERLU FL100, REQUEST FURTHER CLEARANCE.", atcLine: "Speedbird 109, proceed direct TANGO, maintain FL100.", followUp: [{ speaker: "PILOT", text: "Direct TANGO, maintain FL100, Speedbird 109." }], svgType: "HOLDING" },
+
+      // 126-129 Additional tower and ground calls
+      { id: 126, cat: "DEPARTURE", phrase: "REPORT AIRBORNE", icaoAudio: "REPORT AIRBORNE", meaning: "Report when airborne. This request is not itself a takeoff clearance.", atcLine: "G-ABCD, Runway 27, cleared for takeoff, REPORT AIRBORNE.", pilotLine: "Runway 27, cleared for takeoff, WILCO, G-ABCD.", followUp: [{ speaker: "PILOT", text: "G-ABCD, AIRBORNE." }, { speaker: "ATC", text: "G-ABCD, ROGER." }], svgType: "RUNWAY" },
+      { id: 127, cat: "AIRPORT", phrase: "TAXI SLOWER", icaoAudio: "TAXI SLOWER", meaning: "Reduce taxi speed while following the existing clearance; this instruction does not authorize runway entry or crossing.", atcLine: "G-ABCD, TAXI SLOWER.", pilotLine: "SLOWING DOWN, G-ABCD.", svgType: "RUNWAY" },
+      { id: 128, cat: "AIRPORT", phrase: "CAUTION WAKE TURBULENCE", icaoAudio: "CAUTION WAKE TURBULENCE", meaning: "Warns of possible wake turbulence. The warning is not itself a clearance or an automatic transfer of separation responsibility; follow applicable procedures.", atcLine: "G-ABCD, CAUTION WAKE TURBULENCE.", pilotLine: "ROGER, G-ABCD.", svgType: "TOWER" },
+      { id: 129, cat: "AIRPORT", phrase: "WHEN VACATED CONTACT GROUND 121.900", icaoAudio: "WHEN VACATED CONTACT GROUND one two one decimal niner zero zero", meaning: "After vacating the runway, contact Ground on the assigned channel and read it back. The entire aircraft must clear the relevant holding position marking before reporting vacated.", atcLine: "Speedbird 109, WHEN VACATED CONTACT GROUND 121.900.", pilotLine: "WHEN VACATED CONTACT GROUND 121.900, Speedbird 109.", followUp: [{ speaker: "PILOT", text: "Ground, Speedbird 109, Runway 27 vacated, request taxi to stand." }, { speaker: "ATC", text: "Speedbird 109, taxi to stand 4 via Alfa." }, { speaker: "PILOT", text: "Taxi to stand 4 via Alfa, Speedbird 109." }], svgType: "RUNWAY" }
     ].map(card => ({
       ...card,
       collocations: DEFAULT_CARD_COLLOCATIONS[card.id],
@@ -1637,6 +1651,10 @@
       { kind: "Collocation", term: "continue an approach", example: "The crew continued an approach while awaiting further instructions." },
       { kind: "Collocation", term: "advise of a delay", example: "The controller advised the crew of a delay to pushback." },
       { kind: "Collocation", term: "request further clearance", example: "The crew requested further clearance while holding at the fix." },
+      { kind: "Collocation", term: "report airborne", example: "The pilot reported airborne after takeoff." },
+      { kind: "Collocation", term: "reduce taxi speed", example: "The crew reduced taxi speed after the controller's instruction." },
+      { kind: "Collocation", term: "heed a wake turbulence warning", example: "The pilot heeded a wake turbulence warning before departure." },
+      { kind: "Collocation", term: "contact ground after vacating", example: "The crew contacted ground after vacating the runway." },
       { kind: "Compound noun", term: "flight level", example: "The controller assigned a higher flight level." },
       { kind: "Compound noun", term: "emergency frequency", example: "The emergency frequency was available if needed." },
       { kind: "Compound noun", term: "runway designator", example: "The pilot checked the runway designator in the clearance." },
@@ -2320,6 +2338,34 @@
             { answer: "FL100", options: ["FL100", "FL200", "FL010"] }
           ] }
         ]
+      },
+      {
+        title: "Wake Warning and Airborne Report",
+        note: "The wake warning precedes a later, separate takeoff clearance. Applicable wake-separation and operator procedures still apply.",
+        lines: [
+          { speaker: "ATC", template: "G-ABCD, {0}.", blanks: [{ answer: "CAUTION WAKE TURBULENCE", options: ["CAUTION WAKE TURBULENCE", "CLEARED TO LAND", "PUSHBACK APPROVED"] }] },
+          { speaker: "PILOT", text: "ROGER, G-ABCD." },
+          { speaker: "ATC", text: "G-ABCD, Runway 27, cleared for takeoff, report airborne." },
+          { speaker: "PILOT", template: "Runway {0}, cleared for takeoff, {1}, G-ABCD.", blanks: [
+            { answer: "27", options: ["27", "09", "36"] },
+            { answer: "WILCO", options: ["WILCO", "STANDBY", "UNABLE"] }
+          ] },
+          { speaker: "PILOT", text: "G-ABCD, airborne." },
+          { speaker: "ATC", text: "G-ABCD, ROGER." }
+        ]
+      },
+      {
+        title: "Ground Handoff and Taxi Speed",
+        note: "The aircraft is on the landing roll. Change frequency only after the entire aircraft has cleared the relevant runway holding position; runway crossings still require authorization.",
+        lines: [
+          { speaker: "ATC", text: "Speedbird 109, when vacated contact Ground 121.900." },
+          { speaker: "PILOT", template: "When vacated contact Ground {0}, Speedbird 109.", blanks: [{ answer: "121.900", options: ["121.900", "121.090", "121.500"] }] },
+          { speaker: "PILOT", text: "Ground, Speedbird 109, Runway 27 vacated, request taxi to stand." },
+          { speaker: "ATC", text: "Speedbird 109, taxi to stand 4 via Alfa." },
+          { speaker: "PILOT", text: "Taxi to stand 4 via Alfa, Speedbird 109." },
+          { speaker: "ATC", text: "Speedbird 109, taxi slower." },
+          { speaker: "PILOT", template: "{0}, Speedbird 109.", blanks: [{ answer: "SLOWING DOWN", options: ["SLOWING DOWN", "CROSSING RUNWAY", "CLEARED FOR TAKEOFF"] }] }
+        ]
       }
     ];
 
@@ -2711,7 +2757,11 @@
       { cardId: 122, category: "RUNWAY IN SIGHT", difficulty: 2, question: "Does reporting RUNWAY IN SIGHT by itself authorize a visual approach or landing?", options: ["No; follow the existing clearance and obtain any further clearance needed.", "Yes, it automatically authorizes landing.", "Yes, it cancels all instructions.", "It authorizes takeoff."], correct: 0, explanation: "A visual report alone is not a visual approach or landing clearance." },
       { cardId: 123, category: "CONTINUE APPROACH", difficulty: 2, question: "Does CONTINUE APPROACH mean CLEARED TO LAND?", options: ["No; a separate landing clearance is required.", "Yes, they mean the same thing.", "Yes, if the runway is visible.", "It authorizes runway crossing."], correct: 0, explanation: "Continue the approach while awaiting further instructions; it is not landing clearance." },
       { cardId: 124, category: "GROUND DELAY", difficulty: 1, question: "Does EXPECT FIVE MINUTES DELAY DUE TRAFFIC approve a pushback request?", options: ["No; wait for pushback approval.", "Yes, begin pushback immediately.", "Yes, it also clears taxi.", "It is a takeoff clearance."], correct: 0, explanation: "A delay advisory does not grant the requested approval." },
-      { cardId: 125, category: "FURTHER CLEARANCE", difficulty: 3, question: "While holding, does REQUEST FURTHER CLEARANCE permit leaving the hold immediately?", options: ["No; follow the current clearance until ATC issues a revised one.", "Yes, a request clears the route.", "Yes, proceed to any waypoint.", "Only when the pilot says ROGER."], correct: 0, explanation: "Continue to comply with the cleared hold until a revised clearance is received." }
+      { cardId: 125, category: "FURTHER CLEARANCE", difficulty: 3, question: "While holding, does REQUEST FURTHER CLEARANCE permit leaving the hold immediately?", options: ["No; follow the current clearance until ATC issues a revised one.", "Yes, a request clears the route.", "Yes, proceed to any waypoint.", "Only when the pilot says ROGER."], correct: 0, explanation: "Continue to comply with the cleared hold until a revised clearance is received." },
+      { cardId: 126, category: "AIRBORNE REPORT", difficulty: 2, question: "Does REPORT AIRBORNE itself authorize takeoff?", options: ["No; a separate takeoff clearance is required.", "Yes, it is a takeoff clearance.", "Yes, if the runway looks clear.", "It authorizes a runway crossing."], correct: 0, explanation: "REPORT AIRBORNE requests a later report; it does not replace takeoff clearance." },
+      { cardId: 127, category: "TAXI SPEED", difficulty: 1, question: "How should a pilot respond to TAXI SLOWER?", options: ["Reduce taxi speed and acknowledge the instruction.", "Enter the runway immediately.", "Continue at the same speed.", "Treat it as takeoff clearance."], correct: 0, explanation: "Slow down while continuing to follow the current taxi clearance." },
+      { cardId: 128, category: "WAKE TURBULENCE", difficulty: 2, question: "What does CAUTION WAKE TURBULENCE communicate?", options: ["A wake hazard may exist; apply the relevant procedures.", "The runway is cleared for takeoff.", "No wake turbulence is possible.", "The pilot automatically receives landing clearance."], correct: 0, explanation: "The warning is information, not itself a clearance; separation responsibilities depend on the circumstances and procedures." },
+      { cardId: 129, category: "GROUND FREQUENCY", difficulty: 2, question: "ATC says WHEN VACATED CONTACT GROUND 121.900. What should the pilot read back?", options: ["When vacated, Ground one two one decimal niner zero zero, followed by the call sign.", "Ground one two one decimal zero niner zero.", "Only ROGER.", "A runway-crossing clearance."], correct: 0, explanation: "Read back the assigned channel and contact Ground after vacating the runway." }
     ];
 
     let currentQuizIndex = 0;
