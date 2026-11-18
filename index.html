@@ -615,7 +615,6 @@
       'RTF': 'R T F',
       'ATIS': 'A T I S',
       'METAR': 'METAR',
-      'WILCO': 'WILCO',
       'ROGER': 'ROGER',
       'MAYDAY': 'MAYDAY',
       'PAN': 'PAN'
@@ -624,6 +623,11 @@
     function convertTextToICAOSpeech(text) {
       if (!text) return "";
       let speech = text;
+
+      // These respellings affect audio only; the displayed message remains unchanged.
+      speech = speech.replace(/\bKLM-?(?=\d)/gi, 'K L M ')
+        .replace(/\bKLM\b/gi, 'K L M')
+        .replace(/\bWILCO\b/gi, 'WILKO');
 
       const flightLevel = digits => /^[1-9]00$/.test(digits)
         ? `${ICAO_NUMBERS[digits[0]]} hundred`

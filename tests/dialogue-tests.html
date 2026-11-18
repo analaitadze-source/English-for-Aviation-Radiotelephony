@@ -145,7 +145,7 @@
             }
             assert(/unknown fast voice/i.test(failure), 'An invalid voice was not reported');
             for (const voice of INDEPENDENT_VOICES) {
-              const chunks = await withVoiceTimeout(client.synthesize('Tower, request taxi.', voice.id, context), 30000);
+              const chunks = await withVoiceTimeout(client.synthesize(convertTextToICAOSpeech('KLM 671, WILCO.'), voice.id, context), 30000);
               assert(chunks.length && chunks.some(chunk => chunk.getChannelData(0).some(sample => Math.abs(sample) > 0.001)), `${voice.name} produced no audible samples`);
             }
             let staleChunks = 0;
@@ -748,6 +748,58 @@
           assert(spokenText('Request IFR clearance.').includes('i f r'), 'IFR was not spoken as letters');
           assert(spokenText('RVR Runway 27 six hundred metres.').includes('r v r runway two seven six hundred metres'), 'RVR, runway or visibility speech is incorrect');
           assert(spokenText('Contact Ground 121.900.').includes('one two one decimal niner zero zero'), 'Ground channel digits were not preserved');
+        });
+
+        await test('KLM and WILCO use the requested pronunciation across speech controls', async () => {
+          assert(convertTextToICAOSpeech('KLM') === 'K L M', 'KLM was not expanded into letter names');
+          assert(convertTextToICAOSpeech('klm671, Wilco!') === 'K L M six seven one, WILKO!', 'Attached call sign, case or punctuation changed');
+          assert(convertTextToICAOSpeech('KLM-671, WILCO.') === 'K L M six seven one, WILKO.', 'Hyphenated call sign was not spoken correctly');
+          assert(convertTextToICAOSpeech('WILCOX and KLMN.') === 'WILCOX and KLMN.', 'A longer unrelated word was modified');
+
+          const { Language: BritishLanguage } = await import(new URL('assets/headtts/modules/language-en-gb.mjs', document.baseURI).href);
+          const { Language: AmericanLanguage } = await import(new URL('assets/headtts/modules/language-en-us.mjs', document.baseURI).href);
+          const languages = [new BritishLanguage(), new AmericanLanguage()];
+          await Promise.all([
+            languages[0].loadDictionary(new URL('assets/headtts/dictionaries/en-gb.txt', document.baseURI).href),
+            languages[1].loadDictionary(new URL('assets/headtts/dictionaries/en-us.txt', document.baseURI).href)
+          ]);
+          for (const language of languages) {
+            const pronounce = text => language.generate([{ type: 'text', value: convertTextToICAOSpeech(text) }]).phonemes.join('');
+            assert(pronounce('KLM') === 'kˈA ˈɛl ˈɛm', 'KLM does not sound like KAY ELL EM');
+            assert(pronounce('WILCO') === 'wˈɪlkO', 'WILCO does not sound like WIL-KOH');
+          }
+
+          renderFlashcards([findCard(4), findCard(26)]);
+          const rendered = [...document.querySelectorAll('#flashcards-grid .flip-card')];
+          spoken.length = 0;
+          rendered[0].querySelector('[data-card-action="phrase"]').click();
+          await activeSpeechTask;
+          assert(spoken.length === 1 && spoken[0].text === 'WILKO', 'Phrase playback did not use the WILCO pronunciation');
+          spoken.length = 0;
+          rendered[1].querySelector('[data-card-action="dialogue"]').click();
+          await activeSpeechTask;
+          assert(spoken.length === 2 && spoken[0].text.startsWith('K L M six seven one') &&
+            spoken[1].text.startsWith('WILKO, K L M six seven one'), 'Dialogue playback did not pronounce the call sign and acknowledgement');
+          assert(rendered[1].textContent.includes('KLM 671') && rendered[1].textContent.includes('WILCO'),
+            'Speech respelling changed displayed dialogue');
+
+          const custom = { id: 901, cat: 'CUSTOM', phrase: 'Custom', icaoAudio: 'WILCO', meaning: 'Custom', svgType: 'GENERAL',
+            atcLine: 'KLM671, report passing FL100.', pilotLine: 'Wilco, KLM-671.' };
+          renderFlashcards([custom]);
+          spoken.length = 0;
+          document.querySelector('[data-card-action="dialogue"]').click();
+          await activeSpeechTask;
+          assert(spoken.length === 2 && spoken[0].text.startsWith('K L M six seven one') &&
+            spoken[1].text === 'WILKO, K L M six seven one.', 'Custom dialogue pronunciation changed or was omitted');
+          assert(custom.pilotLine === 'Wilco, KLM-671.', 'Custom deck text was modified');
+
+          const scenarioIndex = SCENARIOS.findIndex(scenario => scenario.title === 'Published Holding Pattern');
+          loadScenario(scenarioIndex);
+          spoken.length = 0;
+          speakLineContent(0);
+          await activeSpeechTask;
+          assert(spoken.length === 1 && spoken[0].text.startsWith('K L M six seven one'),
+            'Scenario playback did not pronounce the KLM call sign');
         });
 
         await test('Quiz answers use the stated flight-level and frequency conventions', () => {
