@@ -169,7 +169,7 @@
       <!-- MAIN TABS NAVIGATION -->
       <nav class="hidden min-[1600px]:flex items-center space-x-1 font-mono text-sm whitespace-nowrap">
         <button onclick="switchTab('flashcards')" id="tab-flashcards" class="nav-tab px-4 py-2 rounded-lg flex items-center gap-2 transition text-cyan-400 bg-cyan-950/40 border border-cyan-500/40 font-bold">
-          <i class="fa-solid fa-layer-group"></i> Flashcards (<span id="flashcard-count-badge">99</span>)
+          <i class="fa-solid fa-layer-group"></i> Flashcards (<span id="flashcard-count-badge">124</span>)
         </button>
         <button onclick="switchTab('matching')" id="tab-matching" class="nav-tab px-4 py-2 rounded-lg flex items-center gap-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800">
           <i class="fa-solid fa-puzzle-piece"></i> Matching Drills
@@ -216,7 +216,7 @@
 
   <!-- MAIN CONTENT CONTAINER -->
   <main class="flex-grow max-w-[1200px] w-full mx-auto p-4 sm:p-6 lg:p-8">
-    <p class="mb-5 text-xs text-amber-300">Training examples only. Follow current local procedures, published instructions and ATC clearances.</p>
+    <p class="mb-5 text-xs text-amber-300">Training examples informed by <a class="underline" href="https://store.icao.int/en/manual-of-radiotelephony-doc-9432">ICAO Doc 9432</a> and <a class="underline" href="https://store.icao.int/en/procedures-for-air-navigation-services-air-traffic-management-doc-4444">Doc 4444</a>; some use plain language or local wording. Follow current local procedures, published instructions and ATC clearances.</p>
     <div class="mb-5 flex flex-wrap items-center gap-2">
       <p id="voice-feedback" role="status" aria-live="polite" class="flex-1 min-w-0 break-words text-xs text-slate-400">Fast local voices prepare in the background. First use requires a voice download.</p>
       <button id="voice-stop-button" type="button" onclick="stopVoicePlayback()" class="hidden px-3 py-1 bg-slate-800 border border-slate-700 text-slate-200 text-xs">Stop audio</button>
@@ -240,7 +240,7 @@
             <option value="ENROUTE">En-Route & Level Changes</option>
             <option value="APPROACH">Approach & Landing</option>
             <option value="EMERGENCY">Distress & Urgency (Mayday/Pan)</option>
-            <option value="WEATHER">METAR & Altimetry (QNH/QFE)</option>
+            <option value="WEATHER">Weather & Altimetry (QNH/QFE/RVR)</option>
           </select>
           <input type="text" id="flashcard-search" onkeyup="filterFlashcards()" placeholder="Search terms or phraseology..." class="bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-cyan-500 focus:outline-none flex-grow md:w-48">
         </div>
@@ -607,6 +607,8 @@
       'QNH': 'Q N H',
       'QFE': 'Q F E',
       'ILS': 'I L S',
+      'IFR': 'I F R',
+      'RVR': 'R V R',
       'VOR': 'V O R',
       'DME': 'D M E',
       'ATC': 'A T C',
@@ -1167,7 +1169,32 @@
       97: ["report final approach", "continue the approach"],
       98: ["initiate a go-around", "acknowledge a go-around instruction"],
       99: ["report the runway vacated", "taxi to a parking stand"],
-      100: ["advise minimum fuel", "monitor fuel reserves"]
+      100: ["advise minimum fuel", "monitor fuel reserves"],
+      101: ["invite a transmission", "pass the message"],
+      102: ["request slower speech", "repeat a heading instruction"],
+      103: ["spell a waypoint", "confirm a waypoint"],
+      104: ["repeat the call sign", "identify the calling aircraft"],
+      105: ["request an IFR clearance", "read back a route clearance"],
+      106: ["request taxi instructions", "read back the taxi route"],
+      107: ["taxi with caution", "follow the assigned ground route"],
+      108: ["request taxi to a stand", "follow the assigned taxi route"],
+      109: ["turn onto a taxiway", "follow a ground instruction"],
+      110: ["contact departure after takeoff", "read back the assigned channel"],
+      111: ["report reaching a flight level", "confirm an assigned level"],
+      112: ["request a direct route", "read back the cleared waypoint"],
+      113: ["report passing a waypoint", "confirm a position report"],
+      114: ["report indicated airspeed", "check the current speed"],
+      115: ["increase the assigned speed", "read back a speed instruction"],
+      116: ["expedite a climb", "read back the climb level"],
+      117: ["request the surface wind", "receive a wind report"],
+      118: ["report calm wind", "check surface conditions"],
+      119: ["confirm the runway in use", "read back the QNH"],
+      120: ["report runway visual range", "check applicable visibility minima"],
+      121: ["request an ILS approach", "read back the approach and runway"],
+      122: ["report the runway in sight", "maintain the cleared approach"],
+      123: ["continue an approach", "wait for landing clearance"],
+      124: ["advise of a delay", "wait for pushback approval"],
+      125: ["request further clearance", "maintain the holding pattern"]
     };
 
     const DEFAULT_CARD_COMPOUND_NOUNS = {
@@ -1269,7 +1296,32 @@
       97: ["final approach"],
       98: ["go-around instruction"],
       99: ["runway vacated report"],
-      100: ["fuel advisory"]
+      100: ["fuel advisory"],
+      101: ["initial call"],
+      102: ["speech rate"],
+      103: ["waypoint spelling"],
+      104: ["aircraft call sign"],
+      105: ["IFR clearance", "route clearance"],
+      106: ["taxi instruction", "holding point"],
+      107: ["taxi caution"],
+      108: ["parking stand", "taxi route"],
+      109: ["taxiway intersection"],
+      110: ["departure frequency"],
+      111: ["level report"],
+      112: ["direct route"],
+      113: ["waypoint report"],
+      114: ["indicated airspeed"],
+      115: ["speed assignment"],
+      116: ["climb instruction"],
+      117: ["surface wind"],
+      118: ["calm wind"],
+      119: ["runway in use", "altimeter setting"],
+      120: ["runway visual range"],
+      121: ["instrument approach"],
+      122: ["runway sighting"],
+      123: ["approach instruction"],
+      124: ["traffic delay"],
+      125: ["clearance limit", "holding pattern"]
     };
 
     const DEFAULT_FLASHCARDS = [
@@ -1387,7 +1439,34 @@
       { id: 97, cat: "APPROACH", phrase: "REPORT FINAL RUNWAY 27", icaoAudio: "REPORT FINAL Runway two seven", meaning: "Report when on final approach for the specified runway; a separate landing clearance is required.", atcLine: "G-ABCD, REPORT FINAL RUNWAY 27.", pilotLine: "WILCO, G-ABCD.", followUp: [{ speaker: "PILOT", text: "G-ABCD, final Runway 27." }, { speaker: "ATC", text: "G-ABCD, continue approach." }, { speaker: "PILOT", text: "Continuing approach, G-ABCD." }], svgType: "RUNWAY" },
       { id: 98, cat: "APPROACH", phrase: "GO AROUND, I SAY AGAIN GO AROUND", icaoAudio: "GO AROUND, I SAY AGAIN GO AROUND", meaning: "ATC instructs an immediate go-around. Fly the aircraft first and read back subsequent instructions when able.", atcLine: "Speedbird 109, GO AROUND, I SAY AGAIN GO AROUND, runway occupied.", pilotLine: "GOING AROUND, Speedbird 109.", followUp: [{ speaker: "ATC", text: "Speedbird 109, climb straight ahead to three thousand feet." }, { speaker: "PILOT", text: "Climb straight ahead to three thousand feet, Speedbird 109." }], svgType: "RUNWAY" },
       { id: 99, cat: "AIRPORT", phrase: "RUNWAY 27 VACATED", icaoAudio: "Runway two seven VACATED", meaning: "Report the runway vacated only after the entire aircraft has passed the relevant runway holding position marking.", firstSpeaker: "PILOT", pilotLine: "Tower, G-ABCD, RUNWAY 27 VACATED.", atcLine: "G-ABCD, taxi to stand 4 via Alfa.", followUp: [{ speaker: "PILOT", text: "Taxi to stand 4 via Alfa, G-ABCD." }], svgType: "RUNWAY" },
-      { id: 100, cat: "EMERGENCY", phrase: "MINIMUM FUEL", icaoAudio: "MINIMUM FUEL", meaning: "Advise that the flight is committed to land at a specific aerodrome and cannot accept additional delay. This alone is not an emergency or a request for priority.", firstSpeaker: "PILOT", pilotLine: "Approach, Speedbird 44, MINIMUM FUEL.", atcLine: "Speedbird 44, ROGER MINIMUM FUEL.", svgType: "MAYDAY" }
+      { id: 100, cat: "EMERGENCY", phrase: "MINIMUM FUEL", icaoAudio: "MINIMUM FUEL", meaning: "Advise that the flight is committed to land at a specific aerodrome and cannot accept additional delay. This alone is not an emergency or a request for priority.", firstSpeaker: "PILOT", pilotLine: "Approach, Speedbird 44, MINIMUM FUEL.", atcLine: "Speedbird 44, ROGER MINIMUM FUEL.", svgType: "MAYDAY" },
+
+      // 101-125 Common calls across a flight
+      { id: 101, cat: "GENERAL", phrase: "PASS YOUR MESSAGE", icaoAudio: "PASS YOUR MESSAGE", meaning: "The station invites the caller to continue with its message; this is not a clearance. This expression is used in UK radiotelephony.", firstSpeaker: "PILOT", pilotLine: "Ground, G-ABCD.", atcLine: "G-ABCD, Ground, PASS YOUR MESSAGE.", followUp: [{ speaker: "PILOT", text: "G-ABCD, stand 4, request taxi." }, { speaker: "ATC", text: "G-ABCD, taxi to holding point Runway 27 via Alfa, QNH 1016." }, { speaker: "PILOT", text: "Taxi to holding point Runway 27 via Alfa, QNH 1016, G-ABCD." }], svgType: "TOWER" },
+      { id: 102, cat: "GENERAL", phrase: "SPEAK SLOWER", icaoAudio: "SPEAK SLOWER", meaning: "Ask the other station to reduce its rate of speech; request repetition of any instruction not understood.", atcLine: "Speedbird 109, turn right heading 040.", pilotLine: "SAY AGAIN heading, SPEAK SLOWER, Speedbird 109.", followUp: [{ speaker: "ATC", text: "Speedbird 109, turn right heading 040." }, { speaker: "PILOT", text: "Turn right heading 040, Speedbird 109." }], svgType: "GENERAL" },
+      { id: 103, cat: "GENERAL", phrase: "I SPELL", icaoAudio: "I SPELL", meaning: "Introduce the phonetic spelling of a word to clarify it; read back the actual clearance once understood.", atcLine: "Speedbird 109, proceed direct MERLU.", pilotLine: "SAY AGAIN waypoint, Speedbird 109.", followUp: [{ speaker: "ATC", text: "Speedbird 109, direct MERLU, I SPELL Mike Echo Romeo Lima Uniform." }, { speaker: "PILOT", text: "Direct MERLU, Speedbird 109." }], svgType: "GENERAL" },
+      { id: 104, cat: "GENERAL", phrase: "SAY AGAIN YOUR CALL SIGN", icaoAudio: "SAY AGAIN YOUR CALL SIGN", meaning: "Ask an unidentified station to repeat its call sign so the communication can be addressed correctly.", atcLine: "Station calling Ground, SAY AGAIN YOUR CALL SIGN.", pilotLine: "Ground, G-ABCD.", followUp: [{ speaker: "ATC", text: "G-ABCD, Ground, pass your message." }, { speaker: "PILOT", text: "G-ABCD, radio check." }, { speaker: "ATC", text: "G-ABCD, readability five." }, { speaker: "PILOT", text: "G-ABCD." }], svgType: "TOWER" },
+      { id: 105, cat: "DEPARTURE", phrase: "REQUEST IFR CLEARANCE", icaoAudio: "REQUEST I F R CLEARANCE", meaning: "Request an IFR route clearance. Read back the clearance limit, route, assigned level, QNH and transponder code as issued.", firstSpeaker: "PILOT", pilotLine: "Delivery, Speedbird 109, stand 4, REQUEST IFR CLEARANCE to Bristol.", atcLine: "Speedbird 109, cleared to Bristol via flight planned route, initially climb to altitude four thousand feet, QNH 1016, squawk 4253.", followUp: [{ speaker: "PILOT", text: "Cleared to Bristol via flight planned route, initially climb to altitude four thousand feet, QNH 1016, squawk 4253, Speedbird 109." }], svgType: "GENERAL" },
+      { id: 106, cat: "AIRPORT", phrase: "REQUEST TAXI", icaoAudio: "REQUEST TAXI", meaning: "Ask for taxi instructions; wait for the assigned route and clearance limit before moving.", firstSpeaker: "PILOT", pilotLine: "Ground, G-ABCD, stand 4, REQUEST TAXI.", atcLine: "G-ABCD, taxi to holding point Runway 27 via Alfa, QNH 1016.", followUp: [{ speaker: "PILOT", text: "Taxi to holding point Runway 27 via Alfa, QNH 1016, G-ABCD." }], svgType: "RUNWAY" },
+      { id: 107, cat: "AIRPORT", phrase: "TAXI WITH CAUTION", icaoAudio: "TAXI WITH CAUTION", meaning: "Exercise caution while taxiing under the existing clearance; this instruction does not authorize runway entry or crossing.", atcLine: "G-ABCD, TAXI WITH CAUTION.", pilotLine: "TAXIING WITH CAUTION, G-ABCD.", svgType: "RUNWAY" },
+      { id: 108, cat: "AIRPORT", phrase: "TAXI TO STAND 4", icaoAudio: "TAXI TO STAND four", meaning: "Follow the assigned taxi route to the stand; a runway crossing still requires its own authorization.", firstSpeaker: "PILOT", pilotLine: "Ground, G-ABCD, Runway 27 vacated, request taxi to stand.", atcLine: "G-ABCD, TAXI TO STAND 4 via Alfa.", followUp: [{ speaker: "PILOT", text: "TAXI TO STAND 4 via Alfa, G-ABCD." }], svgType: "RUNWAY" },
+      { id: 109, cat: "AIRPORT", phrase: "TURN LEFT ONTO TAXIWAY BRAVO", icaoAudio: "TURN LEFT ONTO TAXIWAY Bravo", meaning: "Turn onto the specified taxiway within the existing taxi clearance; it does not authorize runway entry or crossing.", atcLine: "G-ABCD, TURN LEFT ONTO TAXIWAY Bravo.", pilotLine: "TURN LEFT ONTO TAXIWAY Bravo, G-ABCD.", svgType: "RUNWAY" },
+      { id: 110, cat: "DEPARTURE", phrase: "AFTER DEPARTURE CONTACT DEPARTURE 125.700", icaoAudio: "AFTER DEPARTURE CONTACT Departure one two five decimal seven zero zero", meaning: "After departure, contact the stated unit on the assigned channel; this instruction is not takeoff clearance.", atcLine: "Speedbird 109, AFTER DEPARTURE CONTACT Departure 125.700.", pilotLine: "AFTER DEPARTURE CONTACT Departure 125.700, Speedbird 109.", svgType: "TOWER" },
+      { id: 111, cat: "ENROUTE", phrase: "REPORT REACHING FL100", icaoAudio: "REPORT REACHING Flight Level one hundred", meaning: "Report when the assigned flight level has been reached; the request itself does not change the clearance.", atcLine: "Speedbird 109, REPORT REACHING FL100.", pilotLine: "WILCO, Speedbird 109.", followUp: [{ speaker: "PILOT", text: "Speedbird 109, REACHING FL100." }, { speaker: "ATC", text: "Speedbird 109, ROGER." }], svgType: "ALTIMETER" },
+      { id: 112, cat: "ENROUTE", phrase: "REQUEST DIRECT MERLU", icaoAudio: "REQUEST DIRECT MERLU", meaning: "Ask to proceed directly to the waypoint; remain on the cleared route until ATC issues a revised clearance.", firstSpeaker: "PILOT", pilotLine: "Control, Speedbird 109, REQUEST DIRECT MERLU.", atcLine: "Speedbird 109, PROCEED DIRECT MERLU.", followUp: [{ speaker: "PILOT", text: "DIRECT MERLU, Speedbird 109." }], svgType: "HOLDING" },
+      { id: 113, cat: "ENROUTE", phrase: "REPORT PASSING MERLU", icaoAudio: "REPORT PASSING MERLU", meaning: "Report when passing the specified waypoint; continue to comply with the existing route clearance.", atcLine: "Speedbird 109, REPORT PASSING MERLU.", pilotLine: "WILCO, Speedbird 109.", followUp: [{ speaker: "PILOT", text: "Speedbird 109, PASSING MERLU." }, { speaker: "ATC", text: "Speedbird 109, ROGER." }], svgType: "HOLDING" },
+      { id: 114, cat: "ENROUTE", phrase: "REPORT SPEED", icaoAudio: "REPORT SPEED", meaning: "Report the current speed requested by ATC, identifying the speed type when needed.", atcLine: "Speedbird 109, REPORT SPEED.", pilotLine: "Indicated airspeed 200 knots, Speedbird 109.", followUp: [{ speaker: "ATC", text: "Speedbird 109, ROGER." }], svgType: "GENERAL" },
+      { id: 115, cat: "ENROUTE", phrase: "INCREASE SPEED TO 220 KNOTS", icaoAudio: "INCREASE SPEED TO two two zero KNOTS", meaning: "Increase to the assigned speed if able, read it back, and advise ATC if unable to comply.", atcLine: "Speedbird 109, INCREASE SPEED TO 220 KNOTS.", pilotLine: "INCREASE SPEED TO 220 KNOTS, Speedbird 109.", svgType: "GENERAL" },
+      { id: 116, cat: "ENROUTE", phrase: "CLIMB TO FL100, EXPEDITE CLIMB", icaoAudio: "CLIMB TO Flight Level one hundred, EXPEDITE CLIMB", meaning: "Climb promptly to the assigned level at an increased rate if able; inform ATC if unable.", atcLine: "Speedbird 109, CLIMB TO FL100, EXPEDITE CLIMB.", pilotLine: "CLIMB TO FL100, EXPEDITING CLIMB, Speedbird 109.", svgType: "ALTIMETER" },
+      { id: 117, cat: "WEATHER", phrase: "REQUEST SURFACE WIND", icaoAudio: "REQUEST SURFACE WIND", meaning: "Ask ATC for the reported surface wind; the wind report is information, not a clearance.", firstSpeaker: "PILOT", pilotLine: "Tower, G-ABCD, REQUEST SURFACE WIND.", atcLine: "G-ABCD, surface wind 270 degrees 12 knots.", followUp: [{ speaker: "PILOT", text: "ROGER, G-ABCD." }], svgType: "GENERAL" },
+      { id: 118, cat: "WEATHER", phrase: "WIND CALM", icaoAudio: "WIND CALM", meaning: "The reported surface wind is calm; this report is not a takeoff or landing clearance.", atcLine: "G-ABCD, WIND CALM.", pilotLine: "ROGER, G-ABCD.", svgType: "GENERAL" },
+      { id: 119, cat: "WEATHER", phrase: "RUNWAY 27, QNH 1016", icaoAudio: "RUNWAY two seven, Q N H one zero one six", meaning: "The station reports the runway in use and altimeter setting; read both back. This information does not authorize runway entry.", atcLine: "G-ABCD, RUNWAY 27, QNH 1016.", pilotLine: "RUNWAY 27, QNH 1016, G-ABCD.", svgType: "RUNWAY" },
+      { id: 120, cat: "WEATHER", phrase: "RVR RUNWAY 27 600 METRES", icaoAudio: "R V R Runway two seven six hundred metres", meaning: "One runway visual range value is shown; check applicable RVR reports and published minima. The report is not an approach or landing clearance.", atcLine: "Speedbird 109, RVR RUNWAY 27 six hundred metres.", pilotLine: "RUNWAY 27, RVR six hundred metres, Speedbird 109.", svgType: "RUNWAY" },
+      { id: 121, cat: "APPROACH", phrase: "REQUEST ILS APPROACH RUNWAY 27", icaoAudio: "REQUEST I L S APPROACH Runway two seven", meaning: "Request the specified instrument approach; await an approach clearance and a separate landing clearance. This example assumes the aircraft is suitably positioned.", firstSpeaker: "PILOT", pilotLine: "Approach, Speedbird 109, REQUEST ILS APPROACH RUNWAY 27.", atcLine: "Speedbird 109, CLEARED ILS APPROACH RUNWAY 27.", followUp: [{ speaker: "PILOT", text: "CLEARED ILS APPROACH RUNWAY 27, Speedbird 109." }], svgType: "RUNWAY" },
+      { id: 122, cat: "APPROACH", phrase: "RUNWAY 27 IN SIGHT", icaoAudio: "Runway two seven IN SIGHT", meaning: "Report that the runway is visible; this alone does not authorize a visual approach or landing.", atcLine: "Speedbird 109, report Runway 27 in sight.", pilotLine: "WILCO, Speedbird 109.", followUp: [{ speaker: "PILOT", text: "Speedbird 109, RUNWAY 27 IN SIGHT." }, { speaker: "ATC", text: "Speedbird 109, ROGER." }], svgType: "RUNWAY" },
+      { id: 123, cat: "APPROACH", phrase: "CONTINUE APPROACH", icaoAudio: "CONTINUE APPROACH", meaning: "Continue the approach while awaiting further instructions; this is not a landing clearance.", atcLine: "G-ABCD, CONTINUE APPROACH.", pilotLine: "CONTINUING APPROACH, G-ABCD.", svgType: "RUNWAY" },
+      { id: 124, cat: "AIRPORT", phrase: "EXPECT FIVE MINUTES DELAY DUE TRAFFIC", icaoAudio: "EXPECT five MINUTES DELAY DUE TRAFFIC", meaning: "A delay of the stated duration is anticipated because of traffic; the requested action is not approved by this advisory.", firstSpeaker: "PILOT", pilotLine: "Ground, Speedbird 109, request pushback.", atcLine: "Speedbird 109, EXPECT FIVE MINUTES DELAY DUE TRAFFIC.", followUp: [{ speaker: "PILOT", text: "ROGER, Speedbird 109." }], svgType: "TOWER" },
+      { id: 125, cat: "ENROUTE", phrase: "REQUEST FURTHER CLEARANCE", icaoAudio: "REQUEST FURTHER CLEARANCE", meaning: "Ask for a revised clearance while continuing to comply with the current clearance and holding instructions.", firstSpeaker: "PILOT", pilotLine: "Control, Speedbird 109, holding at MERLU FL100, REQUEST FURTHER CLEARANCE.", atcLine: "Speedbird 109, proceed direct TANGO, maintain FL100.", followUp: [{ speaker: "PILOT", text: "Direct TANGO, maintain FL100, Speedbird 109." }], svgType: "HOLDING" }
     ].map(card => ({
       ...card,
       collocations: DEFAULT_CARD_COLLOCATIONS[card.id],
@@ -1533,6 +1612,31 @@
       { kind: "Collocation", term: "initiate a go-around", example: "The crew initiated a go-around after the tower's instruction." },
       { kind: "Collocation", term: "taxi to a parking stand", example: "The aircraft taxied to a parking stand after vacating the runway." },
       { kind: "Collocation", term: "advise minimum fuel", example: "The crew advised minimum fuel when no additional delay could be accepted." },
+      { kind: "Collocation", term: "invite a transmission", example: "The controller invited a transmission from the calling aircraft." },
+      { kind: "Collocation", term: "request slower speech", example: "The pilot requested slower speech when the heading was difficult to understand." },
+      { kind: "Collocation", term: "spell a waypoint", example: "The controller spelled a waypoint to clarify the route clearance." },
+      { kind: "Collocation", term: "repeat the call sign", example: "The pilot repeated the call sign when the ground station requested it." },
+      { kind: "Collocation", term: "request an IFR clearance", example: "The crew requested an IFR clearance before departure." },
+      { kind: "Collocation", term: "request taxi instructions", example: "The pilot requested taxi instructions from the stand." },
+      { kind: "Collocation", term: "taxi with caution", example: "The crew taxied with caution along the assigned route." },
+      { kind: "Collocation", term: "request taxi to a stand", example: "The pilot requested taxi to a stand after vacating the runway." },
+      { kind: "Collocation", term: "turn onto a taxiway", example: "The aircraft turned onto a taxiway along its assigned route." },
+      { kind: "Collocation", term: "contact departure after takeoff", example: "The crew contacted departure after takeoff on the assigned channel." },
+      { kind: "Collocation", term: "report reaching a flight level", example: "The pilot reported reaching a flight level when requested." },
+      { kind: "Collocation", term: "request a direct route", example: "The crew requested a direct route to the next waypoint." },
+      { kind: "Collocation", term: "report passing a waypoint", example: "The pilot reported passing a waypoint to ATC." },
+      { kind: "Collocation", term: "report indicated airspeed", example: "The crew reported indicated airspeed when the controller asked." },
+      { kind: "Collocation", term: "increase the assigned speed", example: "The crew increased the assigned speed when able." },
+      { kind: "Collocation", term: "expedite a climb", example: "The aircraft expedited a climb when instructed and able." },
+      { kind: "Collocation", term: "request the surface wind", example: "The pilot requested the surface wind before departure." },
+      { kind: "Collocation", term: "report calm wind", example: "The tower reported calm wind to the aircraft." },
+      { kind: "Collocation", term: "confirm the runway in use", example: "The crew confirmed the runway in use with the ground station." },
+      { kind: "Collocation", term: "report runway visual range", example: "The tower reported runway visual range to the approaching aircraft." },
+      { kind: "Collocation", term: "request an ILS approach", example: "The crew requested an ILS approach for the assigned runway." },
+      { kind: "Collocation", term: "report the runway in sight", example: "The pilot reported the runway in sight during the approach." },
+      { kind: "Collocation", term: "continue an approach", example: "The crew continued an approach while awaiting further instructions." },
+      { kind: "Collocation", term: "advise of a delay", example: "The controller advised the crew of a delay to pushback." },
+      { kind: "Collocation", term: "request further clearance", example: "The crew requested further clearance while holding at the fix." },
       { kind: "Compound noun", term: "flight level", example: "The controller assigned a higher flight level." },
       { kind: "Compound noun", term: "emergency frequency", example: "The emergency frequency was available if needed." },
       { kind: "Compound noun", term: "runway designator", example: "The pilot checked the runway designator in the clearance." },
@@ -2087,6 +2191,135 @@
           { speaker: "ATC", text: "Speedbird 109, climb straight ahead to three thousand feet." },
           { speaker: "PILOT", template: "Climb straight ahead to {0}, Speedbird 109.", blanks: [{ answer: "three thousand feet", options: ["three thousand feet", "one thousand feet", "Flight Level 300"] }] }
         ]
+      },
+      {
+        title: "Initial Call, IFR Clearance and Pushback",
+        note: "Delivery and Ground are separate units in this example. The delay ends before pushback approval is issued.",
+        lines: [
+          { speaker: "PILOT", text: "Delivery, Speedbird 109." },
+          { speaker: "ATC", template: "Station calling Delivery, {0}.", blanks: [{ answer: "SAY AGAIN YOUR CALL SIGN", options: ["SAY AGAIN YOUR CALL SIGN", "CLEARED FOR TAKEOFF", "CROSS RUNWAY"] }] },
+          { speaker: "PILOT", text: "Delivery, Speedbird 109." },
+          { speaker: "ATC", template: "Speedbird 109, Delivery, {0}.", blanks: [{ answer: "PASS YOUR MESSAGE", options: ["PASS YOUR MESSAGE", "RUNWAY VACATED", "CLEARED TO LAND"] }] },
+          { speaker: "PILOT", text: "Speedbird 109, stand 4, request IFR clearance to Bristol." },
+          { speaker: "ATC", text: "Speedbird 109, cleared to Bristol via flight planned route, initially climb to altitude four thousand feet, QNH 1016, squawk 4253." },
+          { speaker: "PILOT", template: "Cleared to Bristol via flight planned route, initially climb to altitude {0}, QNH {1}, squawk {2}, Speedbird 109.", blanks: [
+            { answer: "four thousand feet", options: ["four thousand feet", "three thousand feet", "Flight Level 400"] },
+            { answer: "1016", options: ["1016", "1013", "1006"] },
+            { answer: "4253", options: ["4253", "4352", "7700"] }
+          ] },
+          { speaker: "PILOT", text: "Ground, Speedbird 109, request pushback." },
+          { speaker: "ATC", template: "Speedbird 109, {0}.", blanks: [{ answer: "EXPECT FIVE MINUTES DELAY DUE TRAFFIC", options: ["EXPECT FIVE MINUTES DELAY DUE TRAFFIC", "PUSHBACK APPROVED", "CLEARED FOR TAKEOFF"] }] },
+          { speaker: "PILOT", text: "ROGER, Speedbird 109." },
+          { speaker: "ATC", text: "Speedbird 109, pushback approved." },
+          { speaker: "PILOT", text: "Pushback approved, Speedbird 109." },
+          { speaker: "PILOT", template: "Ground, Speedbird 109, {0}.", blanks: [{ answer: "PUSHBACK COMPLETE", options: ["PUSHBACK COMPLETE", "CLEARED TO LAND", "RUNWAY IN SIGHT"] }] },
+          { speaker: "ATC", text: "Speedbird 109, ROGER." }
+        ]
+      },
+      {
+        title: "Taxi Route and Departure Channel",
+        note: "The turn onto Bravo is within the assigned route. A separate takeoff clearance follows.",
+        lines: [
+          { speaker: "PILOT", template: "Ground, Speedbird 109, {0}.", blanks: [{ answer: "REQUEST TAXI", options: ["REQUEST TAXI", "CLEARED TO LAND", "CROSS RUNWAY"] }] },
+          { speaker: "ATC", text: "Speedbird 109, taxi to holding point Runway 27 via Alfa and Bravo, QNH 1016." },
+          { speaker: "PILOT", template: "Taxi to holding point Runway {0} via Alfa and Bravo, QNH {1}, Speedbird 109.", blanks: [
+            { answer: "27", options: ["27", "09", "36"] },
+            { answer: "1016", options: ["1016", "1013", "1006"] }
+          ] },
+          { speaker: "ATC", text: "Speedbird 109, taxi with caution." },
+          { speaker: "PILOT", text: "Taxiing with caution, Speedbird 109." },
+          { speaker: "ATC", text: "Speedbird 109, turn left onto taxiway Bravo." },
+          { speaker: "PILOT", template: "Turn {0} onto taxiway Bravo, Speedbird 109.", blanks: [{ answer: "LEFT", options: ["LEFT", "RIGHT", "BACK"] }] },
+          { speaker: "ATC", text: "Speedbird 109, contact Tower 118.100." },
+          { speaker: "PILOT", text: "Contact Tower 118.100, Speedbird 109." },
+          { speaker: "PILOT", text: "Tower, Speedbird 109, holding point Runway 27, ready for departure." },
+          { speaker: "ATC", text: "Speedbird 109, after departure contact Departure 125.700." },
+          { speaker: "PILOT", template: "After departure contact Departure {0}, Speedbird 109.", blanks: [{ answer: "125.700", options: ["125.700", "125.070", "121.500"] }] },
+          { speaker: "ATC", text: "Speedbird 109, Runway 27, cleared for takeoff." },
+          { speaker: "PILOT", text: "Runway 27, cleared for takeoff, Speedbird 109." }
+        ]
+      },
+      {
+        title: "Climb and Speed Reports",
+        lines: [
+          { speaker: "ATC", text: "Speedbird 109, climb to FL100, expedite climb." },
+          { speaker: "PILOT", template: "Climb to {0}, expediting climb, Speedbird 109.", blanks: [{ answer: "FL100", options: ["FL100", "FL120", "FL200"] }] },
+          { speaker: "ATC", text: "Speedbird 109, report reaching FL100." },
+          { speaker: "PILOT", text: "WILCO, Speedbird 109." },
+          { speaker: "PILOT", text: "Speedbird 109, reaching FL100." },
+          { speaker: "ATC", text: "Speedbird 109, report speed." },
+          { speaker: "PILOT", text: "Indicated airspeed 200 knots, Speedbird 109." },
+          { speaker: "ATC", text: "Speedbird 109, increase speed to 220 knots." },
+          { speaker: "PILOT", template: "Increase speed to {0} knots, Speedbird 109.", blanks: [{ answer: "220", options: ["220", "200", "120"] }] }
+        ]
+      },
+      {
+        title: "Direct Route and Waypoint Spelling",
+        lines: [
+          { speaker: "PILOT", text: "Control, Speedbird 109, request direct MERLU." },
+          { speaker: "ATC", text: "Speedbird 109, proceed direct MERLU." },
+          { speaker: "PILOT", template: "Say again waypoint, {0}, Speedbird 109.", blanks: [{ answer: "SPEAK SLOWER", options: ["SPEAK SLOWER", "CLEARED TO LAND", "PUSHBACK COMPLETE"] }] },
+          { speaker: "ATC", template: "Speedbird 109, direct MERLU, {0} Mike Echo Romeo Lima Uniform.", blanks: [{ answer: "I SPELL", options: ["I SPELL", "HOLD SHORT", "GO AROUND"] }] },
+          { speaker: "PILOT", template: "Direct {0}, Speedbird 109.", blanks: [{ answer: "MERLU", options: ["MERLU", "TANGO", "RUNWAY 27"] }] },
+          { speaker: "ATC", text: "Speedbird 109, report passing MERLU." },
+          { speaker: "PILOT", text: "WILCO, Speedbird 109." },
+          { speaker: "PILOT", text: "Speedbird 109, passing MERLU." },
+          { speaker: "ATC", text: "Speedbird 109, ROGER." }
+        ]
+      },
+      {
+        title: "Surface Wind and Runway Information",
+        note: "These reports are information, not permission to enter the runway, fly an approach or land.",
+        lines: [
+          { speaker: "PILOT", text: "Tower, G-ABCD, request surface wind." },
+          { speaker: "ATC", template: "G-ABCD, wind {0}.", blanks: [{ answer: "CALM", options: ["CALM", "CLEARED", "WILCO"] }] },
+          { speaker: "PILOT", text: "ROGER, G-ABCD." },
+          { speaker: "ATC", text: "G-ABCD, Runway 27, QNH 1016." },
+          { speaker: "PILOT", template: "Runway {0}, QNH {1}, G-ABCD.", blanks: [
+            { answer: "27", options: ["27", "09", "36"] },
+            { answer: "1016", options: ["1016", "1013", "1006"] }
+          ] },
+          { speaker: "ATC", text: "G-ABCD, RVR Runway 27 six hundred metres." },
+          { speaker: "PILOT", template: "Runway 27, RVR {0} metres, G-ABCD.", blanks: [{ answer: "six hundred", options: ["six hundred", "sixty", "one thousand six hundred"] }] }
+        ]
+      },
+      {
+        title: "Request an Approach and Report Runway in Sight",
+        note: "The aircraft is in a position where the approach clearance can be issued. A visual report and CONTINUE APPROACH do not authorize landing.",
+        lines: [
+          { speaker: "PILOT", text: "Approach, Speedbird 109, request ILS approach Runway 27." },
+          { speaker: "ATC", text: "Speedbird 109, cleared ILS approach Runway 27." },
+          { speaker: "PILOT", template: "Cleared {0} approach Runway {1}, Speedbird 109.", blanks: [
+            { answer: "ILS", options: ["ILS", "VISUAL", "TAKEOFF"] },
+            { answer: "27", options: ["27", "09", "36"] }
+          ] },
+          { speaker: "ATC", text: "Speedbird 109, report Runway 27 in sight." },
+          { speaker: "PILOT", text: "WILCO, Speedbird 109." },
+          { speaker: "PILOT", template: "Speedbird 109, Runway 27 {0}.", blanks: [{ answer: "IN SIGHT", options: ["IN SIGHT", "CLEARED TO LAND", "CROSSED"] }] },
+          { speaker: "ATC", text: "Speedbird 109, continue approach." },
+          { speaker: "PILOT", text: "Continuing approach, Speedbird 109." }
+        ]
+      },
+      {
+        title: "Taxi to a Parking Stand",
+        note: "The aircraft is clear of the runway. Any runway crossing still requires authorization.",
+        lines: [
+          { speaker: "PILOT", text: "Ground, G-ABCD, Runway 27 vacated, request taxi to stand." },
+          { speaker: "ATC", text: "G-ABCD, taxi to stand 4 via Alfa." },
+          { speaker: "PILOT", template: "Taxi to stand {0} via Alfa, G-ABCD.", blanks: [{ answer: "4", options: ["4", "14", "24"] }] }
+        ]
+      },
+      {
+        title: "Further Clearance from Holding",
+        note: "The aircraft remains in its cleared hold until a revised clearance is issued.",
+        lines: [
+          { speaker: "PILOT", template: "Control, Speedbird 109, holding at MERLU FL100, {0}.", blanks: [{ answer: "REQUEST FURTHER CLEARANCE", options: ["REQUEST FURTHER CLEARANCE", "CLEARED TO LAND", "PUSHBACK COMPLETE"] }] },
+          { speaker: "ATC", text: "Speedbird 109, proceed direct TANGO, maintain FL100." },
+          { speaker: "PILOT", template: "Direct {0}, maintain {1}, Speedbird 109.", blanks: [
+            { answer: "TANGO", options: ["TANGO", "MERLU", "RUNWAY 27"] },
+            { answer: "FL100", options: ["FL100", "FL200", "FL010"] }
+          ] }
+        ]
       }
     ];
 
@@ -2453,7 +2686,32 @@
       { cardId: 97, category: "FINAL APPROACH", difficulty: 2, question: "Does REPORT FINAL RUNWAY 27 include a landing clearance?", options: ["No; report final and await the landing clearance.", "Yes, it is always a landing clearance.", "Yes, if the runway looks empty.", "It authorizes a runway crossing."], correct: 0, explanation: "A request to report final is not authorization to land." },
       { cardId: 98, category: "GO-AROUND", difficulty: 3, question: "What is the pilot's priority after ATC instructs GO AROUND?", options: ["Fly the aircraft and communicate or read back subsequent instructions when able.", "Continue to land regardless.", "Wait for a taxi clearance.", "Read back before controlling the aircraft."], correct: 0, explanation: "Aviate first, then communicate and read back assigned heading or level instructions when able." },
       { cardId: 99, category: "RUNWAY VACATED", difficulty: 2, question: "When may the pilot report the runway vacated?", options: ["When the entire aircraft has passed the relevant runway holding position marking.", "As soon as the nosewheel leaves the runway.", "Before leaving the runway.", "After receiving a takeoff clearance."], correct: 0, explanation: "The whole aircraft must be clear of the relevant holding position before reporting vacated." },
-      { cardId: 100, category: "FUEL", difficulty: 3, question: "What does MINIMUM FUEL communicate?", options: ["The flight is committed to land at a specific aerodrome and cannot accept additional delay.", "The aircraft has automatically declared a fuel emergency.", "The fuel tanks are empty.", "The pilot has received priority handling."], correct: 0, explanation: "MINIMUM FUEL is an advisory, not itself an emergency or a request for priority." }
+      { cardId: 100, category: "FUEL", difficulty: 3, question: "What does MINIMUM FUEL communicate?", options: ["The flight is committed to land at a specific aerodrome and cannot accept additional delay.", "The aircraft has automatically declared a fuel emergency.", "The fuel tanks are empty.", "The pilot has received priority handling."], correct: 0, explanation: "MINIMUM FUEL is an advisory, not itself an emergency or a request for priority." },
+      { cardId: 101, category: "INITIAL CALL", difficulty: 1, question: "What does PASS YOUR MESSAGE invite the caller to do?", options: ["Continue with the message.", "Enter the runway.", "Begin takeoff.", "Switch off the radio."], correct: 0, explanation: "PASS YOUR MESSAGE invites a transmission; it is not an ATC clearance." },
+      { cardId: 102, category: "RADIO CLARITY", difficulty: 1, question: "What does SPEAK SLOWER request?", options: ["A reduced rate of speech.", "An immediate climb.", "A new transponder code.", "A runway crossing."], correct: 0, explanation: "SPEAK SLOWER asks the other station to reduce its speech rate." },
+      { cardId: 103, category: "WAYPOINT SPELLING", difficulty: 2, question: "Which spelling matches the waypoint MERLU?", options: ["Mike Echo Romeo Lima Uniform.", "Mike Echo Lima Romeo Uniform.", "Mike Alfa Romeo Lima Uniform.", "Mike Echo Romeo Lima Victor."], correct: 0, explanation: "I SPELL introduces the phonetic spelling; read back the cleared waypoint once understood." },
+      { cardId: 104, category: "CALL SIGNS", difficulty: 1, question: "What should a pilot do when asked to SAY AGAIN YOUR CALL SIGN?", options: ["Repeat the aircraft call sign.", "Assume a taxi clearance.", "Report the surface wind.", "Select the emergency transponder code."], correct: 0, explanation: "Repeat the call sign so the station can identify the caller." },
+      { cardId: 105, category: "IFR CLEARANCE", difficulty: 3, question: "A route clearance includes Bristol, the flight planned route, 4,000 feet, QNH 1016 and squawk 4253. What should the readback include?", options: ["The destination, route, altitude, QNH, squawk and aircraft call sign.", "Only the destination.", "Only the transponder code.", "ROGER without the clearance."], correct: 0, explanation: "Read back the route clearance and safety-critical items with the aircraft call sign." },
+      { cardId: 106, category: "TAXI REQUEST", difficulty: 1, question: "Does REQUEST TAXI authorize the aircraft to move?", options: ["No; wait for taxi instructions.", "Yes, the request itself is a clearance.", "Yes, if the apron is clear.", "Only if the runway is in use."], correct: 0, explanation: "A taxi request does not replace the required taxi instructions." },
+      { cardId: 107, category: "TAXI CAUTION", difficulty: 2, question: "Does TAXI WITH CAUTION authorize crossing a runway?", options: ["No; follow the existing clearance and obtain any required crossing authorization.", "Yes, every runway may be crossed.", "Yes, if the runway looks clear.", "It is a landing clearance."], correct: 0, explanation: "TAXI WITH CAUTION does not itself authorize runway entry or crossing." },
+      { cardId: 108, category: "TAXI TO STAND", difficulty: 2, question: "Does TAXI TO STAND 4 VIA ALFA automatically permit a runway crossing?", options: ["No; obtain the required runway-crossing authorization.", "Yes, every runway may be crossed.", "Yes, if following another aircraft.", "Only when the runway looks clear."], correct: 0, explanation: "Follow the assigned route and obtain any required runway-crossing clearance." },
+      { cardId: 109, category: "TAXIWAY", difficulty: 2, question: "What does TURN LEFT ONTO TAXIWAY BRAVO instruct?", options: ["Turn onto the named taxiway within the existing clearance.", "Enter any runway without clearance.", "Turn right onto Alfa.", "Begin the takeoff roll."], correct: 0, explanation: "A taxiway turn instruction does not authorize runway entry or crossing." },
+      { cardId: 110, category: "DEPARTURE CHANNEL", difficulty: 2, question: "ATC says AFTER DEPARTURE CONTACT DEPARTURE 125.700. What should be read back?", options: ["The unit, channel, timing and aircraft call sign.", "Only ROGER.", "A takeoff clearance not issued.", "The previous ground channel."], correct: 0, explanation: "Read back the assigned channel and identify the aircraft; contact the unit at the instructed time." },
+      { cardId: 111, category: "LEVEL REPORT", difficulty: 2, question: "When should the pilot report REACHING FL100 after being asked?", options: ["When FL100 has been reached.", "Before beginning the climb.", "When reaching FL200.", "Only after landing."], correct: 0, explanation: "REPORT REACHING asks for a report once the specified level has been attained." },
+      { cardId: 112, category: "DIRECT ROUTING", difficulty: 2, question: "Does REQUEST DIRECT MERLU itself authorize a route change?", options: ["No; await and read back the revised clearance.", "Yes, a request is a clearance.", "Yes, if MERLU is visible.", "Only after a radio check."], correct: 0, explanation: "Remain on the cleared route until ATC issues a revised clearance." },
+      { cardId: 113, category: "POSITION REPORT", difficulty: 2, question: "What does REPORT PASSING MERLU ask the pilot to report?", options: ["Passing the specified waypoint.", "Reaching a different runway.", "Starting pushback.", "Cancelling the flight plan."], correct: 0, explanation: "Report passing the named waypoint and continue in accordance with the existing clearance." },
+      { cardId: 114, category: "SPEED REPORT", difficulty: 2, question: "When asked to REPORT SPEED, what helps make the report clear?", options: ["State the speed and its type when needed.", "Report only the runway number.", "Report the transponder code instead.", "Assume a new speed assignment."], correct: 0, explanation: "A report such as indicated airspeed 200 knots identifies the speed being reported." },
+      { cardId: 115, category: "SPEED ASSIGNMENT", difficulty: 2, question: "Which readback matches INCREASE SPEED TO 220 KNOTS?", options: ["Increase speed to two two zero knots, followed by the call sign.", "Reduce speed to 120 knots.", "Climb to flight level 220.", "ROGER without the assigned speed."], correct: 0, explanation: "Read back the assigned speed and advise ATC if unable to comply." },
+      { cardId: 116, category: "EXPEDITE CLIMB", difficulty: 3, question: "What should a crew do after CLIMB TO FL100, EXPEDITE CLIMB?", options: ["Climb promptly to FL100 at an increased rate if able, and advise ATC if unable.", "Ignore FL100.", "Wait indefinitely before climbing.", "Exceed aircraft limitations."], correct: 0, explanation: "EXPEDITE calls for prompt action; the assigned level remains part of the readback." },
+      { cardId: 117, category: "SURFACE WIND", difficulty: 1, question: "Does a surface-wind report provide takeoff or landing clearance?", options: ["No; it is weather information.", "Yes, it clears takeoff.", "Yes, it clears landing.", "It clears runway crossing."], correct: 0, explanation: "A wind report is information, not an ATC clearance." },
+      { cardId: 118, category: "SURFACE WIND", difficulty: 1, question: "What does WIND CALM report?", options: ["The reported surface wind is calm.", "The runway is cleared for takeoff.", "The aircraft is cleared to land.", "The radio is unreadable."], correct: 0, explanation: "WIND CALM describes surface conditions; it does not authorize aircraft movement." },
+      { cardId: 119, category: "RUNWAY AND QNH", difficulty: 2, question: "ATC reports runway in use 27 and QNH 1016. What should the pilot read back?", options: ["Runway 27, QNH 1016 and the aircraft call sign.", "Only ROGER.", "Only the wind.", "A takeoff clearance."], correct: 0, explanation: "The runway in use and altimeter setting are safety-critical readback items." },
+      { cardId: 120, category: "RUNWAY VISUAL RANGE", difficulty: 3, question: "Does RVR RUNWAY 27 600 METRES by itself clear an aircraft to approach or land?", options: ["No; it is a visibility report and published minima still apply.", "Yes, it clears landing automatically.", "Yes, it clears takeoff automatically.", "It cancels all approach minima."], correct: 0, explanation: "RVR is information; obtain the necessary clearances and apply the relevant minima." },
+      { cardId: 121, category: "APPROACH REQUEST", difficulty: 2, question: "Does REQUEST ILS APPROACH RUNWAY 27 provide an approach clearance?", options: ["No; wait for an approach clearance and a separate landing clearance.", "Yes, the request clears both approach and landing.", "Yes, it clears landing only.", "It clears a runway crossing."], correct: 0, explanation: "A request is not a clearance; read back the approach and runway when cleared." },
+      { cardId: 122, category: "RUNWAY IN SIGHT", difficulty: 2, question: "Does reporting RUNWAY IN SIGHT by itself authorize a visual approach or landing?", options: ["No; follow the existing clearance and obtain any further clearance needed.", "Yes, it automatically authorizes landing.", "Yes, it cancels all instructions.", "It authorizes takeoff."], correct: 0, explanation: "A visual report alone is not a visual approach or landing clearance." },
+      { cardId: 123, category: "CONTINUE APPROACH", difficulty: 2, question: "Does CONTINUE APPROACH mean CLEARED TO LAND?", options: ["No; a separate landing clearance is required.", "Yes, they mean the same thing.", "Yes, if the runway is visible.", "It authorizes runway crossing."], correct: 0, explanation: "Continue the approach while awaiting further instructions; it is not landing clearance." },
+      { cardId: 124, category: "GROUND DELAY", difficulty: 1, question: "Does EXPECT FIVE MINUTES DELAY DUE TRAFFIC approve a pushback request?", options: ["No; wait for pushback approval.", "Yes, begin pushback immediately.", "Yes, it also clears taxi.", "It is a takeoff clearance."], correct: 0, explanation: "A delay advisory does not grant the requested approval." },
+      { cardId: 125, category: "FURTHER CLEARANCE", difficulty: 3, question: "While holding, does REQUEST FURTHER CLEARANCE permit leaving the hold immediately?", options: ["No; follow the current clearance until ATC issues a revised one.", "Yes, a request clears the route.", "Yes, proceed to any waypoint.", "Only when the pilot says ROGER."], correct: 0, explanation: "Continue to comply with the cleared hold until a revised clearance is received." }
     ];
 
     let currentQuizIndex = 0;
